@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eric's Arcade | Play HTML Games</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for sleek icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Background glowing decorative blobs -->
+    <div class="glow-bg">
+        <div class="blob blob-purple"></div>
+        <div class="blob blob-cyan"></div>
+    </div>
+
+    <!-- Header / Navigation -->
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <i class="fa-solid fa-gamepad logo-icon"></i>
+                <h1>ERIC'S <span class="accent-text">ARCADE</span></h1>
+            </div>
+            <nav>
+                <a href="#games" class="nav-link active">Games</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="https://github.com" target="_blank" class="github-btn" id="githubLink">
+                    <i class="fa-brands fa-github"></i> GitHub Repo
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container hero-container">
+            <div class="hero-content">
+                <span class="badge">Created with Antigravity AI</span>
+                <h2>Next-Gen HTML Games Portal</h2>
+                <p>Welcome to my personal arcade lounge. Explore, play, and experience retro-futuristic HTML5 games built directly in partnership with AI.</p>
+                <div class="hero-actions">
+                    <a href="#games" class="btn btn-primary">Browse Games <i class="fa-solid fa-arrow-right"></i></a>
+                    <a href="#about" class="btn btn-secondary">Learn More</a>
+                </div>
+            </div>
+            <div class="hero-graphic">
+                <!-- An interactive visual CSS element representing a futuristic gaming console/screen -->
+                <div class="console-box">
+                    <div class="console-screen">
+                        <div class="console-lines"></div>
+                        <div class="console-logo">
+                            <span class="glitch" data-text="READY PLAYER ONE">READY PLAYER ONE</span>
+                        </div>
+                        <div class="console-status">
+                            <span class="status-dot green"></span> ONLINE | SYSTEM: OK
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Arcade Games Area -->
+    <section class="games-section" id="games">
+        <div class="container">
+            <div class="section-header">
+                <h2>The <span class="accent-text">Game Library</span></h2>
+                <p>Instant play. No downloads. High scores saved locally.</p>
+            </div>
+
+            <!-- Controls (Search & Filters) -->
+            <div class="controls-bar">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="searchInput" placeholder="Search games by name or tag...">
+                    <button id="clearSearch" class="clear-btn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="filter-tabs" id="filterTabs">
+                    <button class="filter-tab active" data-filter="all">All Games</button>
+                    <button class="filter-tab" data-filter="arcade">Arcade</button>
+                    <button class="filter-tab" data-filter="puzzle">Puzzle</button>
+                    <button class="filter-tab" data-filter="action">Action</button>
+                </div>
+            </div>
+
+            <!-- Games Grid -->
+            <div class="games-grid" id="gamesGrid">
+                <!-- Dynamically populated by JS -->
+                <div class="loading-state">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Loading games...
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section" id="about">
+        <div class="container">
+            <div class="about-grid">
+                <div class="about-card">
+                    <h3>About Eric's Arcade</h3>
+                    <p>Hi, I'm Eric! This website is my custom game-development workspace and playground. All the HTML5 games hosted here are coded using **Antigravity**, Google's agentic coding assistant.</p>
+                    <p>By combining AI generation with modern web standards, we create rapid, clean, and engaging gameplay experiences that run entirely in your web browser.</p>
+                </div>
+                <div class="about-card checklist-card">
+                    <h3>Adding More Games</h3>
+                    <ul class="steps-list">
+                        <li>
+                            <span class="step-num">1</span>
+                            <div class="step-desc">
+                                <strong>Develop game with Antigravity</strong>
+                                <p>Implement a single-folder HTML5 game with standard structure.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="step-num">2</span>
+                            <div class="step-desc">
+                                <strong>Add to workspace</strong>
+                                <p>Place the folder inside the <code>games/</code> directory.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="step-num">3</span>
+                            <div class="step-desc">
+                                <strong>Register in app.js</strong>
+                                <p>Add the game's metadata metadata record to <code>app.js</code>.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-container">
+            <p>&copy; 2026 Eric. Created with <i class="fa-solid fa-heart accent-text pulse"></i> and Antigravity AI.</p>
+            <p class="footer-note">Ready to customize? Fork this repository on GitHub.</p>
+        </div>
+    </footer>
+
+    <!-- Game Modal Player -->
+    <div class="modal-overlay" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <i class="fa-solid fa-gamepad modal-icon"></i>
+                    <h3 id="modalGameTitle">Game Title</h3>
+                    <span class="modal-game-tag" id="modalGameTag">Arcade</span>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-action-btn" id="modalReloadBtn" title="Restart Game">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                    <button class="modal-action-btn" id="modalFullscreenBtn" title="Fullscreen Mode">
+                        <i class="fa-solid fa-expand"></i>
+                    </button>
+                    <button class="modal-action-btn close-btn" id="modalCloseBtn" title="Close Game">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <iframe src="" id="gameIframe" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-info">
+                    <strong>Controls:</strong> <span id="modalGameControls">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Logic Script -->
+    <script src="app.js"></script>
+</body>
+</html>
