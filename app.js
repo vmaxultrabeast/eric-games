@@ -25,7 +25,7 @@ const GAMES_REGISTRY = [
     {
         id: 'pixel-studio',
         title: 'Pixel Studio',
-        category: 'puzzle',
+        category: 'art',
         description: 'A comprehensive, frame-by-frame pixel art and animation creator. Draw designs, manage frames, customize palettes, and export animations.',
         folder: 'games/pixel-studio',
         cover: 'games/pixel-studio/cover.png',
@@ -39,6 +39,16 @@ const GAMES_REGISTRY = [
         description: 'A 4-player 3D ghost battle arena. Fight bots solo or go online with friends. Use stealth abilities — hide, force-hide, and jump — to outmaneuver opponents.',
         folder: 'games/ghostfighter3000',
         cover: 'games/ghostfighter3000/cover.png',
+        controls: 'WASD / Arrow Keys to move. K: Hide, L: Force Hide, H: Unhide, J: Jump. Space: Attack.',
+        addedDate: '2026-06-09'
+    },
+    {
+        id: 'mariokart',
+        title: 'Mario Kart',
+        category: 'racing',
+        description: 'A 4-player 3D ghost battle arena. Fight bots solo or go online with friends. Use stealth abilities — hide, force-hide, and jump — to outmaneuver opponents.',
+        folder: 'games/mario-kart',
+        cover: 'games/mario-kart/cover.png',
         controls: 'WASD / Arrow Keys to move. K: Hide, L: Force Hide, H: Unhide, J: Jump. Space: Attack.',
         addedDate: '2026-06-09'
     }
@@ -81,9 +91,9 @@ function renderGames() {
     // Filter games
     const filteredGames = GAMES_REGISTRY.filter(game => {
         const matchesCategory = currentFilter === 'all' || game.category === currentFilter;
-        const matchesSearch = game.title.toLowerCase().includes(currentSearchQuery) || 
-                              game.description.toLowerCase().includes(currentSearchQuery) ||
-                              game.category.toLowerCase().includes(currentSearchQuery);
+        const matchesSearch = game.title.toLowerCase().includes(currentSearchQuery) ||
+            game.description.toLowerCase().includes(currentSearchQuery) ||
+            game.category.toLowerCase().includes(currentSearchQuery);
         return matchesCategory && matchesSearch;
     });
 
@@ -146,14 +156,14 @@ function handleImageError(imgElement, gameTitle) {
 // ==========================================================================
 searchInput.addEventListener('input', (e) => {
     currentSearchQuery = e.target.value.toLowerCase().trim();
-    
+
     // Toggle clear button
     if (currentSearchQuery.length > 0) {
         clearSearchBtn.style.display = 'block';
     } else {
         clearSearchBtn.style.display = 'none';
     }
-    
+
     renderGames();
 });
 
@@ -170,7 +180,7 @@ filterContainer.addEventListener('click', (e) => {
         // Toggle active tabs style
         filterTabs.forEach(tab => tab.classList.remove('active'));
         e.target.classList.add('active');
-        
+
         currentFilter = e.target.getAttribute('data-filter');
         renderGames();
     }
@@ -187,7 +197,7 @@ function launchGame(gameId) {
     modalGameTitle.textContent = game.title;
     modalGameTag.textContent = game.category;
     modalGameControls.textContent = game.controls;
-    
+
     // Point iframe to game entry point
     gameIframe.src = `${game.folder}/index.html`;
 
@@ -199,10 +209,10 @@ function launchGame(gameId) {
 function closeGame() {
     gameModal.classList.remove('active');
     document.body.style.overflow = ''; // Restore scrolling
-    
+
     // Safely unload iframe to stop game audio, animations, loops
     gameIframe.src = '';
-    
+
     // Reset full screen view if active
     modalContent.classList.remove('fullscreen');
     modalFullscreenBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
@@ -231,10 +241,10 @@ modalReloadBtn.addEventListener('click', () => {
 // Toggle Fullscreen (Virtual UI Fullscreen or native browser full screen)
 modalFullscreenBtn.addEventListener('click', () => {
     const isFullscreen = modalContent.classList.toggle('fullscreen');
-    
+
     if (isFullscreen) {
         modalFullscreenBtn.innerHTML = '<i class="fa-solid fa-compress"></i>';
-        
+
         // Propose native browser fullscreen request on the modal body
         if (gameModal.requestFullscreen) {
             gameModal.requestFullscreen();
@@ -243,7 +253,7 @@ modalFullscreenBtn.addEventListener('click', () => {
         }
     } else {
         modalFullscreenBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
-        
+
         // Exit native browser fullscreen
         if (document.exitFullscreen) {
             document.exitFullscreen();
@@ -274,11 +284,11 @@ document.addEventListener('keydown', (e) => {
 // Render game grid on start
 document.addEventListener('DOMContentLoaded', () => {
     renderGames();
-    
+
     // Smooth scrolling updates for nav links
     const sections = document.querySelectorAll('section');
     const navLinks = document.querySelectorAll('.nav-link');
-    
+
     window.addEventListener('scroll', () => {
         let current = '';
         sections.forEach(section => {
