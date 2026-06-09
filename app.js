@@ -11,6 +11,16 @@ const GAMES_REGISTRY = [
         cover: 'games/neon-snake/cover.png',
         controls: 'WASD / Arrow Keys to change direction. P to pause.',
         addedDate: '2026-06-08'
+    },
+    {
+        id: 'pokemon-battle',
+        title: 'Pokémon Battle Arena',
+        category: 'action',
+        description: 'A high-energy Pokémon battle arena game. Fight solo, in PvP, or Co-op mode against AI or friends. Features special attacks, ultimates, and touch controls.',
+        folder: 'games/pokemon-battle',
+        cover: 'games/pokemon-battle/icon-512.png',
+        controls: 'P1: WASD to move, J/K/L/U to attack, Space to dodge. P2: Arrow keys to move, 7/8/9/0 to attack, Enter to dodge.',
+        addedDate: '2026-06-09'
     }
     // New games can be easily appended here in the future
 ];
