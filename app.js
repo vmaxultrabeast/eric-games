@@ -31,6 +31,16 @@ const GAMES_REGISTRY = [
         cover: 'games/pixel-studio/cover.png',
         controls: 'Left Click to draw and use tools. Hotkeys: B (Pencil), E (Eraser), G (Fill), I (Eyedropper), L (Line).',
         addedDate: '2026-06-09'
+    },
+    {
+        id: 'ghostfighter3000',
+        title: 'GhostFight3000',
+        category: 'action',
+        description: 'A 4-player 3D ghost battle arena. Fight bots solo or go online with friends. Use stealth abilities — hide, force-hide, and jump — to outmaneuver opponents.',
+        folder: 'games/ghostfighter3000',
+        cover: 'games/ghostfighter3000/cover.png',
+        controls: 'WASD / Arrow Keys to move. K: Hide, L: Force Hide, H: Unhide, J: Jump. Space: Attack.',
+        addedDate: '2026-06-09'
     }
     // New games can be easily appended here in the future
 ];
