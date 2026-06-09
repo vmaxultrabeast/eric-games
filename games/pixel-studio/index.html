@@ -1,0 +1,2490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Studio - Animation Creator</title>
+<style>
+  :root {
+    --bg-primary: #1a1a2e;
+    --bg-secondary: #16213e;
+    --bg-tertiary: #0f3460;
+    --accent: #e94560;
+    --accent-hover: #ff6b81;
+    --text-primary: #eee;
+    --text-secondary: #aaa;
+    --border: #333;
+    --success: #2ecc71;
+    --warning: #f39c12;
+    --panel-bg: #1e1e3a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  header {
+    background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--accent);
+    box-shadow: 0 2px 20px rgba(233, 69, 96, 0.2);
+  }
+
+  header h1 {
+    font-size: 1.5em;
+    background: linear-gradient(90deg, var(--accent), #ff9a9e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  header .subtitle {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+  }
+
+  /* Layout */
+  .app-container {
+    display: grid;
+    grid-template-columns: 260px 1fr 280px;
+    grid-template-rows: auto 1fr;
+    height: calc(100vh - 56px);
+    gap: 0;
+  }
+
+  /* Panels */
+  .panel {
+    background: var(--panel-bg);
+    border-right: 1px solid var(--border);
+    padding: 12px;
+    overflow-y: auto;
+  }
+
+  .panel h3 {
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel:last-child {
+    border-right: none;
+    border-left: 1px solid var(--border);
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8em;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(233, 69, 96, 0.4);
+  }
+
+  .btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover {
+    background: #1a4a7a;
+  }
+
+  .btn-success {
+    background: var(--success);
+    color: white;
+  }
+
+  .btn-success:hover {
+    background: #27ae60;
+  }
+
+  .btn-warning {
+    background: var(--warning);
+    color: white;
+  }
+
+  .btn-danger {
+    background: #c0392b;
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background: #e74c3c;
+  }
+
+  .btn-sm {
+    padding: 4px 8px;
+    font-size: 0.75em;
+  }
+
+  .btn-block {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Form elements */
+  input[type="number"], input[type="text"], select {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.85em;
+    width: 100%;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+
+  input[type="color"] {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    background: none;
+    padding: 2px;
+  }
+
+  label {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .form-group {
+    margin-bottom: 12px;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 8px;
+    align-items: end;
+  }
+
+  /* Canvas area */
+  .canvas-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .canvas-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    width: 100%;
+  }
+
+  #pixelCanvas {
+    cursor: crosshair;
+    image-rendering: pixelated;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    box-shadow: 0 0 40px rgba(233, 69, 96, 0.1);
+  }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+  }
+
+  .toolbar .separator {
+    width: 1px;
+    height: 28px;
+    background: var(--border);
+    margin: 0 6px;
+  }
+
+  .tool-btn {
+    width: 36px;
+    height: 36px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1em;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .tool-btn:hover {
+    border-color: var(--accent);
+    background: var(--bg-tertiary);
+  }
+
+  .tool-btn.active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+  }
+
+  .tool-btn .tooltip {
+    position: absolute;
+    bottom: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #000;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.65em;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 100;
+  }
+
+  .tool-btn:hover .tooltip {
+    opacity: 1;
+  }
+
+  /* Color palette */
+  .color-palette {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 3px;
+    margin-bottom: 10px;
+  }
+
+  .color-swatch {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .color-swatch:hover {
+    transform: scale(1.15);
+    border-color: white;
+    z-index: 1;
+  }
+
+  .color-swatch.active {
+    border-color: white;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+  }
+
+  .current-colors {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .current-color-display {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    border: 3px solid var(--border);
+    position: relative;
+  }
+
+  /* Timeline / Frames */
+  .timeline {
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+    padding: 8px 12px;
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .timeline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .timeline-header h3 {
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin: 0;
+    border: none;
+    padding: 0;
+  }
+
+  .frames-container {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 4px 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) var(--bg-primary);
+  }
+
+  .frame-thumb {
+    min-width: 64px;
+    width: 64px;
+    height: 64px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    background: #000;
+    overflow: hidden;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .frame-thumb:hover {
+    border-color: var(--accent-hover);
+  }
+
+  .frame-thumb.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 12px rgba(233, 69, 96, 0.5);
+  }
+
+  .frame-thumb canvas {
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+  }
+
+  .frame-thumb .frame-number {
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    font-size: 0.6em;
+    color: white;
+    text-shadow: 0 0 3px black;
+  }
+
+  .frame-thumb .frame-delete {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(192, 57, 43, 0.85);
+    color: white;
+    font-size: 0.6em;
+    border: none;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .frame-thumb:hover .frame-delete {
+    display: flex;
+  }
+
+  /* Playback controls */
+  .playback-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .playback-controls .btn {
+    font-size: 1em;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  /* Preview */
+  .preview-area {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  #previewCanvas {
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    image-rendering: pixelated;
+    background: #000;
+    max-width: 100%;
+  }
+
+  /* Movie list */
+  .movie-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .movie-item {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .movie-item:hover {
+    border-color: var(--accent);
+  }
+
+  .movie-item.active {
+    border-color: var(--accent);
+    background: rgba(233, 69, 96, 0.1);
+  }
+
+  .movie-item .movie-title {
+    font-size: 0.85em;
+    font-weight: 600;
+    margin-bottom: 2px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .movie-item .movie-info {
+    font-size: 0.7em;
+    color: var(--text-secondary);
+  }
+
+  .movie-item .movie-preview {
+    display: flex;
+    gap: 3px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+
+  .movie-item .movie-preview canvas {
+    width: 32px;
+    height: 32px;
+    border-radius: 3px;
+    image-rendering: pixelated;
+    background: #000;
+  }
+
+  .movie-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  /* Grid size dialog */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .modal-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    min-width: 340px;
+    max-width: 90vw;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    transform: scale(0.9);
+    transition: transform 0.3s;
+  }
+
+  .modal-overlay.show .modal {
+    transform: scale(1);
+  }
+
+  .modal h2 {
+    margin-bottom: 16px;
+    color: var(--accent);
+  }
+
+  /* Checkerboard pattern for transparency */
+  .checkerboard {
+    background-image: linear-gradient(45deg, #333 25%, transparent 25%),
+      linear-gradient(-45deg, #333 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #333 75%),
+      linear-gradient(-45deg, transparent 75%, #333 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  }
+
+  /* Onion skin indicator */
+  .onion-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8em;
+    color: var(--text-secondary);
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    cursor: pointer;
+  }
+
+  .toggle-switch input {
+    display: none;
+  }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--bg-primary);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    transition: 0.3s;
+  }
+
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    left: 2px;
+    top: 2px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+
+  .toggle-switch input:checked + .toggle-slider {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(16px);
+    background: white;
+  }
+
+  /* Status bar */
+  .status-bar {
+    grid-column: 1 / -1;
+    background: var(--bg-secondary);
+    padding: 4px 12px;
+    font-size: 0.7em;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Brush size preview */
+  .brush-size-preview {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .brush-preview-box {
+    width: 32px;
+    height: 32px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* History list */
+  .history-list {
+    max-height: 120px;
+    overflow-y: auto;
+    font-size: 0.75em;
+  }
+
+  .history-item {
+    padding: 3px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    color: var(--text-secondary);
+  }
+
+  .history-item:hover {
+    background: var(--bg-tertiary);
+  }
+
+  .history-item.current {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+
+  /* Keyboard shortcuts list */
+  .shortcuts-list {
+    font-size: 0.75em;
+    color: var(--text-secondary);
+  }
+
+  .shortcuts-list div {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+  }
+
+  .shortcuts-list kbd {
+    background: var(--bg-primary);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.9em;
+    border: 1px solid var(--border);
+  }
+
+  /* Toast notifications */
+  .toast-container {
+    position: fixed;
+    top: 60px;
+    right: 20px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toast {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.85em;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+    animation: slideIn 0.3s ease-out;
+    max-width: 300px;
+  }
+
+  .toast.success { border-left: 4px solid var(--success); }
+  .toast.error { border-left: 4px solid #e74c3c; }
+  .toast.info { border-left: 4px solid #3498db; }
+
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  @keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg-primary); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  /* Responsive tweaks */
+  @media (max-width: 1024px) {
+    .app-container {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto 1fr auto;
+    }
+    .panel { border: none; border-bottom: 1px solid var(--border); }
+  }
+
+  /* Drag frame indicator */
+  .frame-thumb.drag-over {
+    border-color: var(--success);
+    background: rgba(46, 204, 113, 0.1);
+  }
+
+  /* Layer of export buttons */
+  .export-section {
+    margin-top: 8px;
+  }
+
+  .export-section .btn {
+    margin-bottom: 4px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🎨 Pixel Studio</h1>
+    <div class="subtitle">Animation Creator</div>
+  </div>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <span id="movieName" style="font-size:0.9em; color:var(--text-secondary);">Untitled Movie</span>
+    <button class="btn btn-secondary btn-sm" onclick="renameCurrentMovie()">✏️ Rename</button>
+  </div>
+</header>
+
+<div class="app-container">
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="tool-btn active" data-tool="pencil" onclick="setTool('pencil')">
+      ✏️<span class="tooltip">Pencil (B)</span>
+    </button>
+    <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser')">
+      🧹<span class="tooltip">Eraser (E)</span>
+    </button>
+    <button class="tool-btn" data-tool="fill" onclick="setTool('fill')">
+      🪣<span class="tooltip">Fill (G)</span>
+    </button>
+    <button class="tool-btn" data-tool="eyedropper" onclick="setTool('eyedropper')">
+      💉<span class="tooltip">Eyedropper (I)</span>
+    </button>
+    <button class="tool-btn" data-tool="line" onclick="setTool('line')">
+      📏<span class="tooltip">Line (L)</span>
+    </button>
+    <button class="tool-btn" data-tool="rect" onclick="setTool('rect')">
+      ⬜<span class="tooltip">Rectangle (R)</span>
+    </button>
+    <button class="tool-btn" data-tool="circle" onclick="setTool('circle')">
+      ⭕<span class="tooltip">Circle (C)</span>
+    </button>
+    <button class="tool-btn" data-tool="move" onclick="setTool('move')">
+      ✋<span class="tooltip">Move Frame (M)</span>
+    </button>
+
+    <div class="separator"></div>
+
+    <button class="tool-btn" onclick="undo()" title="Undo">
+      ↩️<span class="tooltip">Undo (Ctrl+Z)</span>
+    </button>
+    <button class="tool-btn" onclick="redo()" title="Redo">
+      ↪️<span class="tooltip">Redo (Ctrl+Y)</span>
+    </button>
+
+    <div class="separator"></div>
+
+    <button class="tool-btn" onclick="clearCurrentFrame()">
+      🗑️<span class="tooltip">Clear Frame</span>
+    </button>
+    <button class="tool-btn" onclick="mirrorHorizontal()">
+      ↔️<span class="tooltip">Mirror H</span>
+    </button>
+    <button class="tool-btn" onclick="mirrorVertical()">
+      ↕️<span class="tooltip">Mirror V</span>
+    </button>
+
+    <div class="separator"></div>
+
+    <div class="onion-indicator">
+      <label class="toggle-switch">
+        <input type="checkbox" id="onionToggle" onchange="toggleOnionSkin()">
+        <span class="toggle-slider"></span>
+      </label>
+      <span>Onion Skin</span>
+    </div>
+
+    <div class="onion-indicator" style="margin-left: 8px;">
+      <label class="toggle-switch">
+        <input type="checkbox" id="gridToggle" checked onchange="toggleGrid()">
+        <span class="toggle-slider"></span>
+      </label>
+      <span>Grid</span>
+    </div>
+
+    <div class="separator"></div>
+
+    <label style="display:flex; align-items:center; gap:4px; margin:0;">
+      <span style="font-size:0.8em;">Brush:</span>
+      <input type="range" id="brushSize" min="1" max="8" value="1"
+        style="width:80px;" oninput="updateBrushSize()">
+      <span id="brushSizeLabel" style="font-size:0.8em; min-width:18px;">1</span>
+    </label>
+
+    <div class="separator"></div>
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="display:flex; align-items:center; gap:4px; margin:0; font-size:0.8em;">
+        Symmetry:
+        <select id="symmetryMode" style="width:auto; padding:3px 6px;" onchange="updateSymmetry()">
+          <option value="none">None</option>
+          <option value="h">Horizontal</option>
+          <option value="v">Vertical</option>
+          <option value="hv">Both</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <!-- Left Panel: Tools & Colors -->
+  <div class="panel" id="leftPanel">
+    <h3>🎨 Colors</h3>
+
+    <div class="current-colors">
+      <div class="current-color-display" id="currentColorDisplay" style="background:#000;"></div>
+      <input type="color" id="colorPicker" value="#000000" oninput="setColor(this.value)">
+      <div style="flex:1;">
+        <label>Hex</label>
+        <input type="text" id="hexInput" value="#000000" maxlength="7"
+          onchange="setColor(this.value)" style="font-family:monospace;">
+      </div>
+    </div>
+
+    <div class="color-palette" id="colorPalette"></div>
+
+    <div class="form-group">
+      <label>Recent Colors</label>
+      <div class="color-palette" id="recentColors" style="grid-template-columns: repeat(10, 1fr);"></div>
+    </div>
+
+    <hr style="border-color:var(--border); margin:10px 0;">
+
+    <h3>📐 Grid Settings</h3>
+    <div class="form-row" style="margin-bottom: 8px;">
+      <div class="form-group" style="flex:1;">
+        <label>Width</label>
+        <input type="number" id="gridWidth" value="16" min="2" max="128">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label>Height</label>
+        <input type="number" id="gridHeight" value="16" min="2" max="128">
+      </div>
+    </div>
+    <div class="form-row" style="margin-bottom: 8px;">
+      <button class="btn btn-primary btn-sm" onclick="resizeGrid()">Apply Size</button>
+      <select id="presetSizes" onchange="applyPreset()" style="width:auto; padding:4px 6px; font-size:0.8em;">
+        <option value="">Presets...</option>
+        <option value="8,8">8×8</option>
+        <option value="16,16">16×16</option>
+        <option value="24,24">24×24</option>
+        <option value="32,32">32×32</option>
+        <option value="48,48">48×48</option>
+        <option value="64,64">64×64</option>
+        <option value="16,24">16×24</option>
+        <option value="32,16">32×16</option>
+      </select>
+    </div>
+
+    <hr style="border-color:var(--border); margin:10px 0;">
+
+    <h3>⌨️ Shortcuts</h3>
+    <div class="shortcuts-list">
+      <div><span>Pencil</span><kbd>B</kbd></div>
+      <div><span>Eraser</span><kbd>E</kbd></div>
+      <div><span>Fill</span><kbd>G</kbd></div>
+      <div><span>Eyedropper</span><kbd>I</kbd></div>
+      <div><span>Line</span><kbd>L</kbd></div>
+      <div><span>Rectangle</span><kbd>R</kbd></div>
+      <div><span>Circle</span><kbd>C</kbd></div>
+      <div><span>Move</span><kbd>M</kbd></div>
+      <div><span>Undo</span><kbd>Ctrl+Z</kbd></div>
+      <div><span>Redo</span><kbd>Ctrl+Y</kbd></div>
+      <div><span>Prev Frame</span><kbd>←</kbd></div>
+      <div><span>Next Frame</span><kbd>→</kbd></div>
+      <div><span>New Frame</span><kbd>N</kbd></div>
+      <div><span>Play/Pause</span><kbd>Space</kbd></div>
+      <div><span>Swap Color</span><kbd>X</kbd></div>
+      <div><span>Brush Size ±</span><kbd>[ / ]</kbd></div>
+    </div>
+  </div>
+
+  <!-- Center: Canvas -->
+  <div class="canvas-area">
+    <div class="canvas-wrapper">
+      <canvas id="pixelCanvas" width="512" height="512"></canvas>
+    </div>
+  </div>
+
+  <!-- Right Panel: Preview & Movies -->
+  <div class="panel" id="rightPanel">
+    <h3>▶️ Preview</h3>
+    <div class="preview-area">
+      <canvas id="previewCanvas" width="128" height="128"></canvas>
+    </div>
+
+    <div class="form-group">
+      <label>FPS: <span id="fpsLabel">8</span></label>
+      <input type="range" id="fpsSlider" min="1" max="30" value="8" oninput="updateFPS()">
+    </div>
+
+    <div class="playback-controls" style="justify-content:center; margin-bottom: 12px;">
+      <button class="btn btn-secondary" onclick="prevFrame()">⏮</button>
+      <button class="btn btn-primary" id="playBtn" onclick="togglePlay()">▶️</button>
+      <button class="btn btn-secondary" onclick="nextFrame()">⏭</button>
+      <button class="btn btn-secondary" onclick="goToFirstFrame()">⏪</button>
+      <button class="btn btn-secondary" onclick="goToLastFrame()">⏩</button>
+    </div>
+
+    <div class="form-group">
+      <label>Playback Mode</label>
+      <select id="playbackMode">
+        <option value="loop">Loop</option>
+        <option value="pingpong">Ping-Pong</option>
+        <option value="once">Play Once</option>
+      </select>
+    </div>
+
+    <hr style="border-color:var(--border); margin:10px 0;">
+
+    <h3>🎬 Movies</h3>
+    <div style="display:flex; gap:4px; margin-bottom:8px;">
+      <button class="btn btn-primary btn-sm btn-block" onclick="createNewMovie()">➕ New Movie</button>
+    </div>
+    <div class="movie-list" id="movieList"></div>
+
+    <hr style="border-color:var(--border); margin:10px 0;">
+
+    <h3>💾 Storage</h3>
+    <div style="display:flex; flex-direction:column; gap:4px;">
+      <button class="btn btn-success btn-sm btn-block" onclick="saveToLocalStorage()">💾 Save All</button>
+      <button class="btn btn-secondary btn-sm btn-block" onclick="loadFromLocalStorage()">📂 Load Saved</button>
+      <button class="btn btn-secondary btn-sm btn-block" onclick="exportProject()">📤 Export JSON</button>
+      <button class="btn btn-secondary btn-sm btn-block" onclick="importProject()">📥 Import JSON</button>
+    </div>
+
+    <div class="export-section">
+      <hr style="border-color:var(--border); margin:10px 0;">
+      <h3>🖼️ Export</h3>
+      <button class="btn btn-warning btn-sm btn-block" onclick="exportSpriteSheet()">🖼️ Sprite Sheet PNG</button>
+      <button class="btn btn-warning btn-sm btn-block" onclick="exportGIF()">🎞️ Export GIF</button>
+      <button class="btn btn-warning btn-sm btn-block" onclick="exportCurrentFrame()">📸 Current Frame PNG</button>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline">
+    <div class="timeline-header">
+      <h3>🎞️ Frames</h3>
+      <div style="display:flex; gap:4px; align-items:center;">
+        <span id="frameCounter" style="font-size:0.75em; color:var(--text-secondary);">1 / 1</span>
+        <button class="btn btn-primary btn-sm" onclick="addFrame()">➕ Add Frame</button>
+        <button class="btn btn-secondary btn-sm" onclick="duplicateFrame()">📋 Duplicate</button>
+        <button class="btn btn-secondary btn-sm" onclick="insertBlankFrame()">📄 Insert Blank</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCurrentFrame()">🗑️ Delete</button>
+      </div>
+    </div>
+    <div class="frames-container" id="framesContainer"></div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span id="statusLeft">Ready</span>
+    <span id="statusCenter"></span>
+    <span id="statusRight">16×16 | Frame 1/1</span>
+  </div>
+</div>
+
+<!-- New Movie Modal -->
+<div class="modal-overlay" id="newMovieModal">
+  <div class="modal">
+    <h2>🎬 New Movie</h2>
+    <div class="form-group">
+      <label>Movie Name</label>
+      <input type="text" id="newMovieName" value="Untitled Movie" placeholder="Movie name...">
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1;">
+        <label>Width</label>
+        <input type="number" id="newMovieWidth" value="16" min="2" max="128">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label>Height</label>
+        <input type="number" id="newMovieHeight" value="16" min="2" max="128">
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:16px;">
+      <button class="btn btn-primary" onclick="confirmNewMovie()">Create</button>
+      <button class="btn btn-secondary" onclick="closeModal('newMovieModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Resize warning modal -->
+<div class="modal-overlay" id="resizeModal">
+  <div class="modal">
+    <h2>⚠️ Resize Grid</h2>
+    <p style="margin-bottom:16px; font-size:0.9em;">
+      Changing the grid size will resize all frames in this movie.
+      Content outside the new bounds will be cropped.
+    </p>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-primary" onclick="confirmResize()">Resize</button>
+      <button class="btn btn-secondary" onclick="closeModal('resizeModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Hidden file input -->
+<input type="file" id="fileInput" accept=".json" style="display:none;" onchange="handleFileImport(event)">
+
+<script>
+// ==================== STATE ====================
+let state = {
+  movies: [],
+  currentMovieIndex: 0,
+  currentFrameIndex: 0,
+  currentTool: 'pencil',
+  currentColor: '#000000',
+  secondaryColor: '#ffffff',
+  brushSize: 1,
+  showGrid: true,
+  showOnionSkin: false,
+  isPlaying: false,
+  fps: 8,
+  symmetryMode: 'none',
+  recentColors: [],
+  undoStack: [],
+  redoStack: [],
+  maxUndo: 50
+};
+
+let isDrawing = false;
+let lastPixel = null;
+let lineStart = null;
+let shapeStart = null;
+let moveStart = null;
+let moveOriginalData = null;
+let playInterval = null;
+let pingPongDir = 1;
+
+// Canvas references
+const canvas = document.getElementById('pixelCanvas');
+const ctx = canvas.getContext('2d');
+const previewCanvas = document.getElementById('previewCanvas');
+const previewCtx = previewCanvas.getContext('2d');
+
+// ==================== DEFAULT PALETTE ====================
+const DEFAULT_PALETTE = [
+  // Row 1: Blacks, grays, whites
+  '#000000', '#1a1a1a', '#333333', '#4d4d4d', '#666666', '#999999', '#cccccc', '#ffffff',
+  // Row 2: Reds
+  '#330000', '#660000', '#990000', '#cc0000', '#ff0000', '#ff3333', '#ff6666', '#ff9999',
+  // Row 3: Oranges
+  '#331a00', '#663300', '#994d00', '#cc6600', '#ff8000', '#ff9933', '#ffb366', '#ffcc99',
+  // Row 4: Yellows
+  '#333300', '#666600', '#999900', '#cccc00', '#ffff00', '#ffff33', '#ffff66', '#ffff99',
+  // Row 5: Greens
+  '#003300', '#006600', '#009900', '#00cc00', '#00ff00', '#33ff33', '#66ff66', '#99ff99',
+  // Row 6: Cyans
+  '#003333', '#006666', '#009999', '#00cccc', '#00ffff', '#33ffff', '#66ffff', '#99ffff',
+  // Row 7: Blues
+  '#000033', '#000066', '#000099', '#0000cc', '#0000ff', '#3333ff', '#6666ff', '#9999ff',
+  // Row 8: Purples / Pinks
+  '#330033', '#660066', '#990099', '#cc00cc', '#ff00ff', '#ff33ff', '#ff66ff', '#ff99ff',
+  // Row 9: Skin tones & browns
+  '#8B4513', '#A0522D', '#D2691E', '#CD853F', '#DEB887', '#F5DEB3', '#FFDEAD', '#FFE4C4',
+  // Row 10: Extra nice colors
+  '#e94560', '#1abc9c', '#3498db', '#9b59b6', '#f39c12', '#2ecc71', '#e67e22', '#1e90ff',
+];
+
+// ==================== INITIALIZATION ====================
+function init() {
+  buildPalette();
+  loadFromLocalStorage(true);
+  if (state.movies.length === 0) {
+    createDefaultMovie();
+  }
+  selectMovie(state.currentMovieIndex);
+  renderCanvas();
+  renderTimeline();
+  renderMovieList();
+  updateStatus();
+  setupCanvasEvents();
+  setupKeyboardShortcuts();
+  autoSaveInterval();
+}
+
+function createDefaultMovie() {
+  const movie = {
+    name: 'Untitled Movie',
+    width: 16,
+    height: 16,
+    fps: 8,
+    frames: [createEmptyFrame(16, 16)]
+  };
+  state.movies.push(movie);
+  state.currentMovieIndex = 0;
+  state.currentFrameIndex = 0;
+}
+
+function createEmptyFrame(w, h) {
+  const data = new Array(h).fill(null).map(() => new Array(w).fill(null));
+  return { data };
+}
+
+// ==================== PALETTE ====================
+function buildPalette() {
+  const container = document.getElementById('colorPalette');
+  container.innerHTML = '';
+  DEFAULT_PALETTE.forEach(color => {
+    const swatch = document.createElement('div');
+    swatch.className = 'color-swatch';
+    swatch.style.background = color;
+    swatch.onclick = () => setColor(color);
+    container.appendChild(swatch);
+  });
+}
+
+function setColor(color) {
+  // Validate
+  if (!/^#[0-9a-fA-F]{6}$/.test(color)) {
+    if (/^[0-9a-fA-F]{6}$/.test(color)) color = '#' + color;
+    else return;
+  }
+  state.currentColor = color;
+  document.getElementById('colorPicker').value = color;
+  document.getElementById('hexInput').value = color;
+  document.getElementById('currentColorDisplay').style.background = color;
+
+  // Update active swatch
+  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.color-swatch').forEach(s => {
+    if (s.style.background === color || rgbToHex(s.style.background) === color.toLowerCase()) {
+      s.classList.add('active');
+    }
+  });
+
+  addRecentColor(color);
+}
+
+function addRecentColor(color) {
+  state.recentColors = state.recentColors.filter(c => c !== color);
+  state.recentColors.unshift(color);
+  if (state.recentColors.length > 20) state.recentColors.pop();
+  renderRecentColors();
+}
+
+function renderRecentColors() {
+  const container = document.getElementById('recentColors');
+  container.innerHTML = '';
+  state.recentColors.slice(0, 20).forEach(color => {
+    const swatch = document.createElement('div');
+    swatch.className = 'color-swatch';
+    swatch.style.background = color;
+    swatch.style.width = '100%';
+    swatch.onclick = () => setColor(color);
+    container.appendChild(swatch);
+  });
+}
+
+function rgbToHex(rgb) {
+  if (rgb.startsWith('#')) return rgb.toLowerCase();
+  const match = rgb.match(/\d+/g);
+  if (!match || match.length < 3) return rgb;
+  return '#' + match.slice(0, 3).map(n => parseInt(n).toString(16).padStart(2, '0')).join('');
+}
+
+function swapColors() {
+  const tmp = state.currentColor;
+  state.currentColor = state.secondaryColor;
+  state.secondaryColor = tmp;
+  setColor(state.currentColor);
+}
+
+// ==================== TOOLS ====================
+function setTool(tool) {
+  state.currentTool = tool;
+  document.querySelectorAll('.tool-btn[data-tool]').forEach(b => {
+    b.classList.toggle('active', b.dataset.tool === tool);
+  });
+  canvas.style.cursor = tool === 'eyedropper' ? 'crosshair' :
+                          tool === 'move' ? 'grab' :
+                          tool === 'fill' ? 'cell' : 'crosshair';
+  updateStatus();
+}
+
+function updateBrushSize() {
+  state.brushSize = parseInt(document.getElementById('brushSize').value);
+  document.getElementById('brushSizeLabel').textContent = state.brushSize;
+}
+
+function updateSymmetry() {
+  state.symmetryMode = document.getElementById('symmetryMode').value;
+}
+
+// ==================== GRID / MOVIE ====================
+function getCurrentMovie() {
+  return state.movies[state.currentMovieIndex];
+}
+
+function getCurrentFrame() {
+  const movie = getCurrentMovie();
+  return movie.frames[state.currentFrameIndex];
+}
+
+function resizeGrid() {
+  const w = parseInt(document.getElementById('gridWidth').value);
+  const h = parseInt(document.getElementById('gridHeight').value);
+  const movie = getCurrentMovie();
+  if (w === movie.width && h === movie.height) return;
+
+  // Show resize warning
+  document.getElementById('resizeModal').classList.add('show');
+}
+
+function confirmResize() {
+  const w = parseInt(document.getElementById('gridWidth').value);
+  const h = parseInt(document.getElementById('gridHeight').value);
+  const movie = getCurrentMovie();
+
+  saveUndoState();
+
+  movie.frames.forEach(frame => {
+    const newData = new Array(h).fill(null).map((_, y) =>
+      new Array(w).fill(null).map((_, x) =>
+        (y < frame.data.length && x < frame.data[0].length) ? frame.data[y][x] : null
+      )
+    );
+    frame.data = newData;
+  });
+
+  movie.width = w;
+  movie.height = h;
+
+  closeModal('resizeModal');
+  renderCanvas();
+  renderTimeline();
+  updateStatus();
+  toast('Grid resized to ' + w + '×' + h, 'success');
+}
+
+function applyPreset() {
+  const sel = document.getElementById('presetSizes');
+  if (!sel.value) return;
+  const [w, h] = sel.value.split(',').map(Number);
+  document.getElementById('gridWidth').value = w;
+  document.getElementById('gridHeight').value = h;
+  sel.value = '';
+  resizeGrid();
+}
+
+// ==================== CANVAS RENDERING ====================
+function renderCanvas() {
+  const movie = getCurrentMovie();
+  const frame = getCurrentFrame();
+  const w = movie.width;
+  const h = movie.height;
+
+  // Calculate pixel size to fit canvas
+  const maxCanvasSize = Math.min(
+    canvas.parentElement.clientWidth - 40,
+    canvas.parentElement.clientHeight - 40,
+    700
+  );
+  const pixelSize = Math.max(2, Math.floor(maxCanvasSize / Math.max(w, h)));
+  canvas.width = w * pixelSize;
+  canvas.height = h * pixelSize;
+
+  // Background checkerboard
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const isLight = (x + y) % 2 === 0;
+      ctx.fillStyle = isLight ? '#2a2a2a' : '#222';
+      ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+    }
+  }
+
+  // Onion skin (previous frame)
+  if (state.showOnionSkin && state.currentFrameIndex > 0) {
+    const prevFrame = movie.frames[state.currentFrameIndex - 1];
+    ctx.globalAlpha = 0.25;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        if (prevFrame.data[y] && prevFrame.data[y][x]) {
+          ctx.fillStyle = prevFrame.data[y][x];
+          ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+        }
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Draw pixels
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (frame.data[y] && frame.data[y][x]) {
+        ctx.fillStyle = frame.data[y][x];
+        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+      }
+    }
+  }
+
+  // Grid lines
+  if (state.showGrid && pixelSize >= 4) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x <= w; x++) {
+      ctx.beginPath();
+      ctx.moveTo(x * pixelSize, 0);
+      ctx.lineTo(x * pixelSize, h * pixelSize);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= h; y++) {
+      ctx.beginPath();
+      ctx.moveTo(0, y * pixelSize);
+      ctx.lineTo(w * pixelSize, y * pixelSize);
+      ctx.stroke();
+    }
+  }
+
+  // Update preview
+  renderPreview();
+}
+
+function renderPreview() {
+  const movie = getCurrentMovie();
+  const frame = getCurrentFrame();
+  const w = movie.width;
+  const h = movie.height;
+  const ps = Math.floor(Math.min(256, previewCanvas.parentElement.clientWidth - 20) / Math.max(w, h));
+  previewCanvas.width = w * ps;
+  previewCanvas.height = h * ps;
+
+  // Black bg
+  previewCtx.fillStyle = '#000';
+  previewCtx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (frame.data[y] && frame.data[y][x]) {
+        previewCtx.fillStyle = frame.data[y][x];
+        previewCtx.fillRect(x * ps, y * ps, ps, ps);
+      }
+    }
+  }
+}
+
+// ==================== CANVAS EVENTS ====================
+function setupCanvasEvents() {
+  canvas.addEventListener('mousedown', onCanvasMouseDown);
+  canvas.addEventListener('mousemove', onCanvasMouseMove);
+  canvas.addEventListener('mouseup', onCanvasMouseUp);
+  canvas.addEventListener('mouseleave', onCanvasMouseUp);
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+  // Touch support
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const fakeEvent = { clientX: touch.clientX, clientY: touch.clientY, button: 0, preventDefault: () => {} };
+    onCanvasMouseDown(fakeEvent);
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const fakeEvent = { clientX: touch.clientX, clientY: touch.clientY, buttons: 1 };
+    onCanvasMouseMove(fakeEvent);
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', e => {
+    e.preventDefault();
+    onCanvasMouseUp({});
+  }, { passive: false });
+
+  // Resize observer
+  const resizeObs = new ResizeObserver(() => renderCanvas());
+  resizeObs.observe(canvas.parentElement);
+}
+
+function getPixelPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const movie = getCurrentMovie();
+  const pixelSize = canvas.width / movie.width;
+  const x = Math.floor((e.clientX - rect.left) / pixelSize);
+  const y = Math.floor((e.clientY - rect.top) / pixelSize);
+  return { x, y };
+}
+
+function isInBounds(x, y) {
+  const movie = getCurrentMovie();
+  return x >= 0 && x < movie.width && y >= 0 && y < movie.height;
+}
+
+function onCanvasMouseDown(e) {
+  e.preventDefault && e.preventDefault();
+  const pos = getPixelPos(e);
+  if (!isInBounds(pos.x, pos.y)) return;
+
+  isDrawing = true;
+  lastPixel = pos;
+
+  const useEraser = e.button === 2 || state.currentTool === 'eraser';
+
+  if (state.currentTool === 'eyedropper') {
+    const frame = getCurrentFrame();
+    const color = frame.data[pos.y][pos.x];
+    if (color) setColor(color);
+    return;
+  }
+
+  if (state.currentTool === 'fill') {
+    saveUndoState();
+    floodFill(pos.x, pos.y, useEraser ? null : state.currentColor);
+    renderCanvas();
+    renderTimeline();
+    return;
+  }
+
+  if (state.currentTool === 'line' || state.currentTool === 'rect' || state.currentTool === 'circle') {
+    lineStart = pos;
+    shapeStart = pos;
+    saveUndoState();
+    return;
+  }
+
+  if (state.currentTool === 'move') {
+    moveStart = pos;
+    const frame = getCurrentFrame();
+    moveOriginalData = frame.data.map(row => [...row]);
+    saveUndoState();
+    return;
+  }
+
+  saveUndoState();
+  applyBrush(pos.x, pos.y, useEraser ? null : state.currentColor);
+  renderCanvas();
+  renderTimeline();
+}
+
+function onCanvasMouseMove(e) {
+  const pos = getPixelPos(e);
+  updateStatus(pos);
+
+  if (!isDrawing) return;
+  if (!isInBounds(pos.x, pos.y)) return;
+
+  if (state.currentTool === 'move' && moveStart && moveOriginalData) {
+    const dx = pos.x - moveStart.x;
+    const dy = pos.y - moveStart.y;
+    const frame = getCurrentFrame();
+    const movie = getCurrentMovie();
+    frame.data = new Array(movie.height).fill(null).map(() => new Array(movie.width).fill(null));
+    for (let y = 0; y < movie.height; y++) {
+      for (let x = 0; x < movie.width; x++) {
+        const srcX = x - dx;
+        const srcY = y - dy;
+        if (srcX >= 0 && srcX < movie.width && srcY >= 0 && srcY < movie.height) {
+          frame.data[y][x] = moveOriginalData[srcY][srcX];
+        }
+      }
+    }
+    renderCanvas();
+    renderTimeline();
+    return;
+  }
+
+  if (state.currentTool === 'line' || state.currentTool === 'rect' || state.currentTool === 'circle') {
+    // Preview will be drawn on mouseup
+    return;
+  }
+
+  if (state.currentTool === 'eyedropper') return;
+  if (state.currentTool === 'fill') return;
+
+  const useEraser = state.currentTool === 'eraser';
+  const color = useEraser ? null : state.currentColor;
+
+  // Interpolate between last and current for smooth lines
+  if (lastPixel) {
+    const points = bresenham(lastPixel.x, lastPixel.y, pos.x, pos.y);
+    points.forEach(p => applyBrush(p.x, p.y, color));
+  } else {
+    applyBrush(pos.x, pos.y, color);
+  }
+
+  lastPixel = pos;
+  renderCanvas();
+  renderTimeline();
+}
+
+function onCanvasMouseUp(e) {
+  if (!isDrawing) return;
+
+  if ((state.currentTool === 'line') && lineStart) {
+    const pos = getPixelPos(e);
+    if (isInBounds(pos.x, pos.y)) {
+      const useEraser = state.currentTool === 'eraser';
+      const color = useEraser ? null : state.currentColor;
+      const points = bresenham(lineStart.x, lineStart.y, pos.x, pos.y);
+      points.forEach(p => applyBrush(p.x, p.y, color));
+      renderCanvas();
+      renderTimeline();
+    }
+  }
+
+  if (state.currentTool === 'rect' && shapeStart) {
+    const pos = getPixelPos(e);
+    if (isInBounds(pos.x, pos.y)) {
+      const color = state.currentColor;
+      drawRect(shapeStart.x, shapeStart.y, pos.x, pos.y, color);
+      renderCanvas();
+      renderTimeline();
+    }
+  }
+
+  if (state.currentTool === 'circle' && shapeStart) {
+    const pos = getPixelPos(e);
+    if (isInBounds(pos.x, pos.y)) {
+      const color = state.currentColor;
+      drawEllipse(shapeStart.x, shapeStart.y, pos.x, pos.y, color);
+      renderCanvas();
+      renderTimeline();
+    }
+  }
+
+  isDrawing = false;
+  lastPixel = null;
+  lineStart = null;
+  shapeStart = null;
+  moveStart = null;
+  moveOriginalData = null;
+}
+
+// ==================== DRAWING HELPERS ====================
+function applyBrush(cx, cy, color) {
+  const frame = getCurrentFrame();
+  const movie = getCurrentMovie();
+  const r = Math.floor(state.brushSize / 2);
+  const positions = [];
+
+  for (let dy = -r; dy < state.brushSize - r; dy++) {
+    for (let dx = -r; dx < state.brushSize - r; dx++) {
+      positions.push({ x: cx + dx, y: cy + dy });
+    }
+  }
+
+  // Apply symmetry
+  const allPositions = [];
+  positions.forEach(p => {
+    allPositions.push(p);
+    if (state.symmetryMode === 'h' || state.symmetryMode === 'hv') {
+      allPositions.push({ x: movie.width - 1 - p.x, y: p.y });
+    }
+    if (state.symmetryMode === 'v' || state.symmetryMode === 'hv') {
+      allPositions.push({ x: p.x, y: movie.height - 1 - p.y });
+    }
+    if (state.symmetryMode === 'hv') {
+      allPositions.push({ x: movie.width - 1 - p.x, y: movie.height - 1 - p.y });
+    }
+  });
+
+  allPositions.forEach(p => {
+    if (p.x >= 0 && p.x < movie.width && p.y >= 0 && p.y < movie.height) {
+      frame.data[p.y][p.x] = color;
+    }
+  });
+}
+
+function bresenham(x0, y0, x1, y1) {
+  const points = [];
+  const dx = Math.abs(x1 - x0);
+  const dy = Math.abs(y1 - y0);
+  const sx = x0 < x1 ? 1 : -1;
+  const sy = y0 < y1 ? 1 : -1;
+  let err = dx - dy;
+
+  while (true) {
+    points.push({ x: x0, y: y0 });
+    if (x0 === x1 && y0 === y1) break;
+    const e2 = 2 * err;
+    if (e2 > -dy) { err -= dy; x0 += sx; }
+    if (e2 < dx) { err += dx; y0 += sy; }
+  }
+  return points;
+}
+
+function drawRect(x0, y0, x1, y1, color) {
+  const minX = Math.min(x0, x1), maxX = Math.max(x0, x1);
+  const minY = Math.min(y0, y1), maxY = Math.max(y0, y1);
+  for (let x = minX; x <= maxX; x++) {
+    applyBrush(x, minY, color);
+    applyBrush(x, maxY, color);
+  }
+  for (let y = minY; y <= maxY; y++) {
+    applyBrush(minX, y, color);
+    applyBrush(maxX, y, color);
+  }
+}
+
+function drawEllipse(x0, y0, x1, y1, color) {
+  const cx = (x0 + x1) / 2;
+  const cy = (y0 + y1) / 2;
+  const rx = Math.abs(x1 - x0) / 2;
+  const ry = Math.abs(y1 - y0) / 2;
+
+  if (rx < 1 && ry < 1) {
+    applyBrush(Math.round(cx), Math.round(cy), color);
+    return;
+  }
+
+  // Midpoint ellipse algorithm
+  const steps = Math.max(rx, ry) * 8;
+  let prevX = null, prevY = null;
+  for (let i = 0; i <= steps; i++) {
+    const angle = (2 * Math.PI * i) / steps;
+    const px = Math.round(cx + rx * Math.cos(angle));
+    const py = Math.round(cy + ry * Math.sin(angle));
+    if (px !== prevX || py !== prevY) {
+      applyBrush(px, py, color);
+      prevX = px;
+      prevY = py;
+    }
+  }
+}
+
+function floodFill(startX, startY, newColor) {
+  const frame = getCurrentFrame();
+  const movie = getCurrentMovie();
+  const targetColor = frame.data[startY][startX];
+
+  if (targetColor === newColor) return;
+
+  const stack = [{ x: startX, y: startY }];
+  const visited = new Set();
+
+  while (stack.length > 0) {
+    const { x, y } = stack.pop();
+    const key = `${x},${y}`;
+
+    if (visited.has(key)) continue;
+    if (x < 0 || x >= movie.width || y < 0 || y >= movie.height) continue;
+    if (frame.data[y][x] !== targetColor) continue;
+
+    visited.add(key);
+    frame.data[y][x] = newColor;
+
+    stack.push({ x: x + 1, y });
+    stack.push({ x: x - 1, y });
+    stack.push({ x, y: y + 1 });
+    stack.push({ x, y: y - 1 });
+  }
+}
+
+// ==================== UNDO / REDO ====================
+function saveUndoState() {
+  const movie = getCurrentMovie();
+  const snapshot = {
+    movieIndex: state.currentMovieIndex,
+    frameIndex: state.currentFrameIndex,
+    frameData: movie.frames.map(f => ({
+      data: f.data.map(row => [...row])
+    }))
+  };
+  state.undoStack.push(snapshot);
+  if (state.undoStack.length > state.maxUndo) state.undoStack.shift();
+  state.redoStack = [];
+}
+
+function undo() {
+  if (state.undoStack.length === 0) return;
+  const current = {
+    movieIndex: state.currentMovieIndex,
+    frameIndex: state.currentFrameIndex,
+    frameData: getCurrentMovie().frames.map(f => ({
+      data: f.data.map(row => [...row])
+    }))
+  };
+  state.redoStack.push(current);
+
+  const snapshot = state.undoStack.pop();
+  const movie = state.movies[snapshot.movieIndex];
+  movie.frames = snapshot.frameData;
+  state.currentFrameIndex = Math.min(snapshot.frameIndex, movie.frames.length - 1);
+
+  renderCanvas();
+  renderTimeline();
+  toast('Undo', 'info');
+}
+
+function redo() {
+  if (state.redoStack.length === 0) return;
+  const current = {
+    movieIndex: state.currentMovieIndex,
+    frameIndex: state.currentFrameIndex,
+    frameData: getCurrentMovie().frames.map(f => ({
+      data: f.data.map(row => [...row])
+    }))
+  };
+  state.undoStack.push(current);
+
+  const snapshot = state.redoStack.pop();
+  const movie = state.movies[snapshot.movieIndex];
+  movie.frames = snapshot.frameData;
+  state.currentFrameIndex = Math.min(snapshot.frameIndex, movie.frames.length - 1);
+
+  renderCanvas();
+  renderTimeline();
+  toast('Redo', 'info');
+}
+
+// ==================== FRAME MANAGEMENT ====================
+function addFrame() {
+  const movie = getCurrentMovie();
+  movie.frames.push(createEmptyFrame(movie.width, movie.height));
+  state.currentFrameIndex = movie.frames.length - 1;
+  renderCanvas();
+  renderTimeline();
+  updateStatus();
+}
+
+function duplicateFrame() {
+  const movie = getCurrentMovie();
+  const frame = getCurrentFrame();
+  const newFrame = { data: frame.data.map(row => [...row]) };
+  movie.frames.splice(state.currentFrameIndex + 1, 0, newFrame);
+  state.currentFrameIndex++;
+  renderCanvas();
+  renderTimeline();
+  updateStatus();
+  toast('Frame duplicated', 'success');
+}
+
+function insertBlankFrame() {
+  const movie = getCurrentMovie();
+  movie.frames.splice(state.currentFrameIndex + 1, 0, createEmptyFrame(movie.width, movie.height));
+  state.currentFrameIndex++;
+  renderCanvas();
+  renderTimeline();
+  updateStatus();
+}
+
+function deleteCurrentFrame() {
+  const movie = getCurrentMovie();
+  if (movie.frames.length <= 1) {
+    toast('Cannot delete the last frame', 'error');
+    return;
+  }
+  saveUndoState();
+  movie.frames.splice(state.currentFrameIndex, 1);
+  if (state.currentFrameIndex >= movie.frames.length) {
+    state.currentFrameIndex = movie.frames.length - 1;
+  }
+  renderCanvas();
+  renderTimeline();
+  updateStatus();
+}
+
+function clearCurrentFrame() {
+  saveUndoState();
+  const movie = getCurrentMovie();
+  const frame = getCurrentFrame();
+  frame.data = new Array(movie.height).fill(null).map(() => new Array(movie.width).fill(null));
+  renderCanvas();
+  renderTimeline();
+  toast('Frame cleared', 'info');
+}
+
+function selectFrame(index) {
+  const movie = getCurrentMovie();
+  if (index >= 0 && index < movie.frames.length) {
+    state.currentFrameIndex = index;
+    renderCanvas();
+    renderTimeline();
+    updateStatus();
+  }
+}
+
+function prevFrame() {
+  if (state.currentFrameIndex > 0) {
+    selectFrame(state.currentFrameIndex - 1);
+  }
+}
+
+function nextFrame() {
+  const movie = getCurrentMovie();
+  if (state.currentFrameIndex < movie.frames.length - 1) {
+    selectFrame(state.currentFrameIndex + 1);
+  }
+}
+
+function goToFirstFrame() {
+  selectFrame(0);
+}
+
+function goToLastFrame() {
+  const movie = getCurrentMovie();
+  selectFrame(movie.frames.length - 1);
+}
+
+// ==================== TIMELINE RENDERING ====================
+function renderTimeline() {
+  const container = document.getElementById('framesContainer');
+  container.innerHTML = '';
+  const movie = getCurrentMovie();
+
+  movie.frames.forEach((frame, i) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'frame-thumb' + (i === state.currentFrameIndex ? ' active' : '');
+    thumb.onclick = () => selectFrame(i);
+
+    // Drag support for reordering
+    thumb.draggable = true;
+    thumb.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', i.toString());
+      thumb.style.opacity = '0.5';
+    });
+    thumb.addEventListener('dragend', () => {
+      thumb.style.opacity = '1';
+    });
+    thumb.addEventListener('dragover', e => {
+      e.preventDefault();
+      thumb.classList.add('drag-over');
+    });
+    thumb.addEventListener('dragleave', () => {
+      thumb.classList.remove('drag-over');
+    });
+    thumb.addEventListener('drop', e => {
+      e.preventDefault();
+      thumb.classList.remove('drag-over');
+      const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+      if (fromIndex !== i) {
+        const [moved] = movie.frames.splice(fromIndex, 1);
+        movie.frames.splice(i, 0, moved);
+        if (state.currentFrameIndex === fromIndex) state.currentFrameIndex = i;
+        else if (fromIndex < state.currentFrameIndex && i >= state.currentFrameIndex) state.currentFrameIndex--;
+        else if (fromIndex > state.currentFrameIndex && i <= state.currentFrameIndex) state.currentFrameIndex++;
+        renderTimeline();
+        renderCanvas();
+      }
+    });
+
+    // Mini canvas
+    const miniCanvas = document.createElement('canvas');
+    miniCanvas.width = movie.width;
+    miniCanvas.height = movie.height;
+    const miniCtx = miniCanvas.getContext('2d');
+
+    miniCtx.fillStyle = '#000';
+    miniCtx.fillRect(0, 0, movie.width, movie.height);
+
+    for (let y = 0; y < movie.height; y++) {
+      for (let x = 0; x < movie.width; x++) {
+        if (frame.data[y] && frame.data[y][x]) {
+          miniCtx.fillStyle = frame.data[y][x];
+          miniCtx.fillRect(x, y, 1, 1);
+        }
+      }
+    }
+
+    thumb.appendChild(miniCanvas);
+
+    // Frame number
+    const numLabel = document.createElement('span');
+    numLabel.className = 'frame-number';
+    numLabel.textContent = i + 1;
+    thumb.appendChild(numLabel);
+
+    // Delete button
+    const delBtn = document.createElement('button');
+    delBtn.className = 'frame-delete';
+    delBtn.textContent = '×';
+    delBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      if (movie.frames.length > 1) {
+        saveUndoState();
+        movie.frames.splice(i, 1);
+        if (state.currentFrameIndex >= movie.frames.length) state.currentFrameIndex--;
+        renderCanvas();
+        renderTimeline();
+        updateStatus();
+      }
+    };
+    thumb.appendChild(delBtn);
+
+    container.appendChild(thumb);
+  });
+
+  document.getElementById('frameCounter').textContent =
+    `${state.currentFrameIndex + 1} / ${movie.frames.length}`;
+
+  // Scroll active frame into view
+  const activeThumb = container.querySelector('.frame-thumb.active');
+  if (activeThumb) activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+// ==================== PLAYBACK ====================
+function togglePlay() {
+  if (state.isPlaying) {
+    stopPlay();
+  } else {
+    startPlay();
+  }
+}
+
+function startPlay() {
+  state.isPlaying = true;
+  document.getElementById('playBtn').textContent = '⏸️';
+  pingPongDir = 1;
+
+  playInterval = setInterval(() => {
+    const movie = getCurrentMovie();
+    const mode = document.getElementById('playbackMode').value;
+
+    if (mode === 'loop') {
+      state.currentFrameIndex = (state.currentFrameIndex + 1) % movie.frames.length;
+    } else if (mode === 'pingpong') {
+      state.currentFrameIndex += pingPongDir;
+      if (state.currentFrameIndex >= movie.frames.length - 1) pingPongDir = -1;
+      if (state.currentFrameIndex <= 0) pingPongDir = 1;
+    } else if (mode === 'once') {
+      if (state.currentFrameIndex < movie.frames.length - 1) {
+        state.currentFrameIndex++;
+      } else {
+        stopPlay();
+        return;
+      }
+    }
+
+    renderCanvas();
+    renderTimeline();
+    updateStatus();
+  }, 1000 / state.fps);
+}
+
+function stopPlay() {
+  state.isPlaying = false;
+  document.getElementById('playBtn').textContent = '▶️';
+  if (playInterval) clearInterval(playInterval);
+  playInterval = null;
+}
+
+function updateFPS() {
+  state.fps = parseInt(document.getElementById('fpsSlider').value);
+  document.getElementById('fpsLabel').textContent = state.fps;
+  if (state.isPlaying) {
+    stopPlay();
+    startPlay();
+  }
+}
+
+// ==================== MOVIE MANAGEMENT ====================
+function createNewMovie() {
+  document.getElementById('newMovieName').value = 'Movie ' + (state.movies.length + 1);
+  document.getElementById('newMovieModal').classList.add('show');
+}
+
+function confirmNewMovie() {
+  const name = document.getElementById('newMovieName').value || 'Untitled';
+  const w = parseInt(document.getElementById('newMovieWidth').value) || 16;
+  const h = parseInt(document.getElementById('newMovieHeight').value) || 16;
+
+  const movie = {
+    name,
+    width: w,
+    height: h,
+    fps: 8,
+    frames: [createEmptyFrame(w, h)]
+  };
+
+  state.movies.push(movie);
+  closeModal('newMovieModal');
+  selectMovie(state.movies.length - 1);
+  toast(`Movie "${name}" created`, 'success');
+}
+
+function selectMovie(index) {
+  if (index < 0 || index >= state.movies.length) return;
+  stopPlay();
+  state.currentMovieIndex = index;
+  state.currentFrameIndex = 0;
+  state.undoStack = [];
+  state.redoStack = [];
+
+  const movie = getCurrentMovie();
+  document.getElementById('gridWidth').value = movie.width;
+  document.getElementById('gridHeight').value = movie.height;
+  document.getElementById('movieName').textContent = movie.name;
+  if (movie.fps) {
+    state.fps = movie.fps;
+    document.getElementById('fpsSlider').value = state.fps;
+    document.getElementById('fpsLabel').textContent = state.fps;
+  }
+
+  renderCanvas();
+  renderTimeline();
+  renderMovieList();
+  updateStatus();
+}
+
+function deleteMovie(index) {
+  if (state.movies.length <= 1) {
+    toast('Cannot delete the last movie', 'error');
+    return;
+  }
+  const name = state.movies[index].name;
+  state.movies.splice(index, 1);
+  if (state.currentMovieIndex >= state.movies.length) {
+    state.currentMovieIndex = state.movies.length - 1;
+  }
+  selectMovie(state.currentMovieIndex);
+  toast(`Movie "${name}" deleted`, 'info');
+}
+
+function renameCurrentMovie() {
+  const movie = getCurrentMovie();
+  const name = prompt('Movie name:', movie.name);
+  if (name) {
+    movie.name = name;
+    document.getElementById('movieName').textContent = name;
+    renderMovieList();
+  }
+}
+
+function renderMovieList() {
+  const container = document.getElementById('movieList');
+  container.innerHTML = '';
+
+  state.movies.forEach((movie, i) => {
+    const item = document.createElement('div');
+    item.className = 'movie-item' + (i === state.currentMovieIndex ? ' active' : '');
+    item.onclick = () => selectMovie(i);
+
+    const title = document.createElement('div');
+    title.className = 'movie-title';
+    title.innerHTML = `<span>${escapeHtml(movie.name)}</span><span style="font-size:0.7em; color:var(--text-secondary)">${movie.width}×${movie.height}</span>`;
+    item.appendChild(title);
+
+    const info = document.createElement('div');
+    info.className = 'movie-info';
+    info.textContent = `${movie.frames.length} frame${movie.frames.length !== 1 ? 's' : ''} • ${movie.fps || 8} fps`;
+    item.appendChild(info);
+
+    // Mini previews
+    const preview = document.createElement('div');
+    preview.className = 'movie-preview';
+    movie.frames.slice(0, 6).forEach(frame => {
+      const mc = document.createElement('canvas');
+      mc.width = movie.width;
+      mc.height = movie.height;
+      const mctx = mc.getContext('2d');
+      mctx.fillStyle = '#000';
+      mctx.fillRect(0, 0, movie.width, movie.height);
+      for (let y = 0; y < movie.height; y++) {
+        for (let x = 0; x < movie.width; x++) {
+          if (frame.data[y] && frame.data[y][x]) {
+            mctx.fillStyle = frame.data[y][x];
+            mctx.fillRect(x, y, 1, 1);
+          }
+        }
+      }
+      preview.appendChild(mc);
+    });
+    if (movie.frames.length > 6) {
+      const more = document.createElement('span');
+      more.style.cssText = 'font-size:0.7em; color:var(--text-secondary); align-self:center;';
+      more.textContent = `+${movie.frames.length - 6}`;
+      preview.appendChild(more);
+    }
+    item.appendChild(preview);
+
+    // Actions
+    const actions = document.createElement('div');
+    actions.className = 'movie-actions';
+    const dupBtn = document.createElement('button');
+    dupBtn.className = 'btn btn-secondary btn-sm';
+    dupBtn.textContent = '📋 Clone';
+    dupBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      cloneMovie(i);
+    };
+    actions.appendChild(dupBtn);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-danger btn-sm';
+    delBtn.textContent = '🗑️';
+    delBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      deleteMovie(i);
+    };
+    actions.appendChild(delBtn);
+    item.appendChild(actions);
+
+    container.appendChild(item);
+  });
+}
+
+function cloneMovie(index) {
+  const src = state.movies[index];
+  const clone = {
+    name: src.name + ' (copy)',
+    width: src.width,
+    height: src.height,
+    fps: src.fps,
+    frames: src.frames.map(f => ({
+      data: f.data.map(row => [...row])
+    }))
+  };
+  state.movies.push(clone);
+  selectMovie(state.movies.length - 1);
+  toast(`Movie cloned`, 'success');
+}
+
+// ==================== TRANSFORM ====================
+function mirrorHorizontal() {
+  saveUndoState();
+  const frame = getCurrentFrame();
+  const movie = getCurrentMovie();
+  frame.data = frame.data.map(row => [...row].reverse());
+  renderCanvas();
+  renderTimeline();
+  toast('Mirrored horizontally', 'info');
+}
+
+function mirrorVertical() {
+  saveUndoState();
+  const frame = getCurrentFrame();
+  frame.data = [...frame.data].reverse();
+  renderCanvas();
+  renderTimeline();
+  toast('Mirrored vertically', 'info');
+}
+
+// ==================== ONION SKIN & GRID ====================
+function toggleOnionSkin() {
+  state.showOnionSkin = document.getElementById('onionToggle').checked;
+  renderCanvas();
+}
+
+function toggleGrid() {
+  state.showGrid = document.getElementById('gridToggle').checked;
+  renderCanvas();
+}
+
+// ==================== STORAGE ====================
+function saveToLocalStorage() {
+  const data = {
+    movies: state.movies,
+    currentMovieIndex: state.currentMovieIndex,
+    recentColors: state.recentColors,
+    version: 2
+  };
+  try {
+    localStorage.setItem('pixelStudio', JSON.stringify(data));
+    toast('Saved to browser storage', 'success');
+  } catch (e) {
+    toast('Save failed: ' + e.message, 'error');
+  }
+}
+
+function loadFromLocalStorage(silent = false) {
+  try {
+    const raw = localStorage.getItem('pixelStudio');
+    if (!raw) {
+      if (!silent) toast('No saved data found', 'info');
+      return;
+    }
+    const data = JSON.parse(raw);
+    if (data.movies && data.movies.length > 0) {
+      state.movies = data.movies;
+      state.currentMovieIndex = data.currentMovieIndex || 0;
+      state.recentColors = data.recentColors || [];
+      if (!silent) {
+        selectMovie(state.currentMovieIndex);
+        toast('Loaded from browser storage', 'success');
+      }
+    }
+  } catch (e) {
+    if (!silent) toast('Load failed: ' + e.message, 'error');
+  }
+}
+
+function autoSaveInterval() {
+  setInterval(() => {
+    const data = {
+      movies: state.movies,
+      currentMovieIndex: state.currentMovieIndex,
+      recentColors: state.recentColors,
+      version: 2
+    };
+    try {
+      localStorage.setItem('pixelStudio', JSON.stringify(data));
+    } catch (e) { /* silently ignore */ }
+  }, 30000);
+}
+
+// ==================== IMPORT / EXPORT ====================
+function exportProject() {
+  const data = {
+    pixelStudio: true,
+    version: 2,
+    movies: state.movies,
+    exportDate: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  downloadBlob(blob, 'pixel-studio-project.json');
+  toast('Project exported', 'success');
+}
+
+function importProject() {
+  document.getElementById('fileInput').click();
+}
+
+function handleFileImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.pixelStudio && data.movies) {
+        state.movies = data.movies;
+        state.currentMovieIndex = 0;
+        selectMovie(0);
+        toast(`Imported ${data.movies.length} movie(s)`, 'success');
+      } else {
+        toast('Invalid project file', 'error');
+      }
+    } catch (err) {
+      toast('Import error: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function exportCurrentFrame() {
+  const movie = getCurrentMovie();
+  const frame = getCurrentFrame();
+  const c = document.createElement('canvas');
+  c.width = movie.width;
+  c.height = movie.height;
+  const cCtx = c.getContext('2d');
+  for (let y = 0; y < movie.height; y++) {
+    for (let x = 0; x < movie.width; x++) {
+      if (frame.data[y] && frame.data[y][x]) {
+        cCtx.fillStyle = frame.data[y][x];
+        cCtx.fillRect(x, y, 1, 1);
+      }
+    }
+  }
+  c.toBlob(blob => {
+    downloadBlob(blob, `frame-${state.currentFrameIndex + 1}.png`);
+    toast('Frame exported as PNG', 'success');
+  });
+}
+
+function exportSpriteSheet() {
+  const movie = getCurrentMovie();
+  const cols = Math.ceil(Math.sqrt(movie.frames.length));
+  const rows = Math.ceil(movie.frames.length / cols);
+  const c = document.createElement('canvas');
+  c.width = movie.width * cols;
+  c.height = movie.height * rows;
+  const cCtx = c.getContext('2d');
+
+  movie.frames.forEach((frame, i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    for (let y = 0; y < movie.height; y++) {
+      for (let x = 0; x < movie.width; x++) {
+        if (frame.data[y] && frame.data[y][x]) {
+          cCtx.fillStyle = frame.data[y][x];
+          cCtx.fillRect(col * movie.width + x, row * movie.height + y, 1, 1);
+        }
+      }
+    }
+  });
+
+  c.toBlob(blob => {
+    downloadBlob(blob, `${movie.name}-spritesheet.png`);
+    toast(`Sprite sheet exported (${cols}×${rows} grid)`, 'success');
+  });
+}
+
+function exportGIF() {
+  // Simple animated GIF using canvas frames
+  // We'll create a series of PNGs that auto-download as a zip alternative
+  // For a true GIF, we'd need a library - instead we'll create an animated preview
+  const movie = getCurrentMovie();
+  const scale = 4;
+  const c = document.createElement('canvas');
+  c.width = movie.width * scale;
+  c.height = movie.height * scale;
+  const cCtx = c.getContext('2d');
+  cCtx.imageSmoothingEnabled = false;
+
+  // Create individual frame images
+  const frames = movie.frames.map((frame, i) => {
+    cCtx.fillStyle = '#000';
+    cCtx.fillRect(0, 0, c.width, c.height);
+    for (let y = 0; y < movie.height; y++) {
+      for (let x = 0; x < movie.width; x++) {
+        if (frame.data[y] && frame.data[y][x]) {
+          cCtx.fillStyle = frame.data[y][x];
+          cCtx.fillRect(x * scale, y * scale, scale, scale);
+        }
+      }
+    }
+    return c.toDataURL('image/png');
+  });
+
+  // Export as sprite sheet instead (more reliable without external lib)
+  exportSpriteSheet();
+  toast('Exported as sprite sheet (GIF requires external tool)', 'info');
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ==================== KEYBOARD SHORTCUTS ====================
+function setupKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    // Don't trigger shortcuts when typing in inputs
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+
+    const key = e.key.toLowerCase();
+
+    if (e.ctrlKey || e.metaKey) {
+      if (key === 'z') { e.preventDefault(); undo(); }
+      if (key === 'y') { e.preventDefault(); redo(); }
+      if (key === 's') { e.preventDefault(); saveToLocalStorage(); }
+      return;
+    }
+
+    switch (key) {
+      case 'b': setTool('pencil'); break;
+      case 'e': setTool('eraser'); break;
+      case 'g': setTool('fill'); break;
+      case 'i': setTool('eyedropper'); break;
+      case 'l': setTool('line'); break;
+      case 'r': setTool('rect'); break;
+      case 'c': setTool('circle'); break;
+      case 'm': setTool('move'); break;
+      case 'x': swapColors(); break;
+      case 'n': addFrame(); break;
+      case ' ':
+        e.preventDefault();
+        togglePlay();
+        break;
+      case 'arrowleft': prevFrame(); break;
+      case 'arrowright': nextFrame(); break;
+      case '[':
+        state.brushSize = Math.max(1, state.brushSize - 1);
+        document.getElementById('brushSize').value = state.brushSize;
+        document.getElementById('brushSizeLabel').textContent = state.brushSize;
+        break;
+      case ']':
+        state.brushSize = Math.min(8, state.brushSize + 1);
+        document.getElementById('brushSize').value = state.brushSize;
+        document.getElementById('brushSizeLabel').textContent = state.brushSize;
+        break;
+    }
+  });
+}
+
+// ==================== MODALS ====================
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.classList.remove('show');
+  });
+});
+
+// ==================== TOAST NOTIFICATIONS ====================
+function toast(message, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = message;
+  container.appendChild(t);
+  setTimeout(() => {
+    t.style.animation = 'slideOut 0.3s ease-in forwards';
+    setTimeout(() => t.remove(), 300);
+  }, 2500);
+}
+
+// ==================== STATUS BAR ====================
+function updateStatus(pos = null) {
+  const movie = getCurrentMovie();
+  const posStr = pos ? `(${pos.x}, ${pos.y})` : '';
+  document.getElementById('statusLeft').textContent =
+    `Tool: ${state.currentTool} | Brush: ${state.brushSize} ${posStr}`;
+  document.getElementById('statusRight').textContent =
+    `${movie.width}×${movie.height} | Frame ${state.currentFrameIndex + 1}/${movie.frames.length} | ${movie.name}`;
+}
+
+// ==================== HELPERS ====================
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ==================== START ====================
+init();
+</script>
+</body>
+</html>

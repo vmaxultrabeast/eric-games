@@ -21,6 +21,16 @@ const GAMES_REGISTRY = [
         cover: 'games/pokemon-battle/icon-512.png',
         controls: 'P1: WASD to move, J/K/L/U to attack, Space to dodge. P2: Arrow keys to move, 7/8/9/0 to attack, Enter to dodge.',
         addedDate: '2026-06-09'
+    },
+    {
+        id: 'pixel-studio',
+        title: 'Pixel Studio',
+        category: 'puzzle',
+        description: 'A comprehensive, frame-by-frame pixel art and animation creator. Draw designs, manage frames, customize palettes, and export animations.',
+        folder: 'games/pixel-studio',
+        cover: 'games/pixel-studio/cover.png',
+        controls: 'Left Click to draw and use tools. Hotkeys: B (Pencil), E (Eraser), G (Fill), I (Eyedropper), L (Line).',
+        addedDate: '2026-06-09'
     }
     // New games can be easily appended here in the future
 ];
