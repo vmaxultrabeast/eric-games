@@ -64,7 +64,17 @@ const SNAKE_THEMES = {
     }
 };
 
+const hexToRgba = (hex, alpha) => {
+    hex = hex.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 let currentSnakeColor = localStorage.getItem('neonsnake_color') || '#9d4edd';
+document.documentElement.style.setProperty('--active-theme-color', currentSnakeColor);
+document.documentElement.style.setProperty('--active-theme-color-glow', hexToRgba(currentSnakeColor, 0.4));
 
 // ==========================================================================
 // Initial Boot
@@ -96,6 +106,8 @@ function initColorPicker() {
             btn.classList.add('active');
             currentSnakeColor = btn.getAttribute('data-color');
             localStorage.setItem('neonsnake_color', currentSnakeColor);
+            document.documentElement.style.setProperty('--active-theme-color', currentSnakeColor);
+            document.documentElement.style.setProperty('--active-theme-color-glow', hexToRgba(currentSnakeColor, 0.4));
             drawInitialState();
         });
     });
@@ -386,25 +398,64 @@ startBtn.addEventListener('click', () => {
 
 pauseToggleBtn.addEventListener('click', togglePause);
 
-// Virtual D-Pad Click Bindings
-document.getElementById('btnUp').addEventListener('click', () => {
-    if (gameStarted && !isPaused) changeDirection(0, -GRID_SIZE);
-});
-document.getElementById('btnDown').addEventListener('click', () => {
-    if (gameStarted && !isPaused) changeDirection(0, GRID_SIZE);
-});
-document.getElementById('btnLeft').addEventListener('click', () => {
-    if (gameStarted && !isPaused) changeDirection(-GRID_SIZE, 0);
-});
-document.getElementById('btnRight').addEventListener('click', () => {
-    if (gameStarted && !isPaused) changeDirection(GRID_SIZE, 0);
-});
-
-// Force D-Pad visibility for touchscreens
-if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-    const touchCtrl = document.querySelector('.touch-controls');
-    if (touchCtrl) touchCtrl.style.display = 'flex';
+// Virtual Touch Control Bindings (Click & Touchstart for instant response)
+function bindDirectionBtn(id, targetDx, targetDy) {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    
+    const trigger = (e) => {
+        e.preventDefault();
+        if (gameStarted && !isPaused) {
+            changeDirection(targetDx, targetDy);
+        }
+    };
+    
+    btn.addEventListener('click', trigger);
+    btn.addEventListener('touchstart', trigger, { passive: false });
 }
+
+// Bind Center D-Pad Buttons
+bindDirectionBtn('btnUp', 0, -GRID_SIZE);
+bindDirectionBtn('btnDown', 0, GRID_SIZE);
+bindDirectionBtn('btnLeft', -GRID_SIZE, 0);
+bindDirectionBtn('btnRight', GRID_SIZE, 0);
+
+// Bind Side Control Buttons
+bindDirectionBtn('sideBtnUp', 0, -GRID_SIZE);
+bindDirectionBtn('sideBtnDown', 0, GRID_SIZE);
+bindDirectionBtn('sideBtnLeft', -GRID_SIZE, 0);
+bindDirectionBtn('sideBtnRight', GRID_SIZE, 0);
+
+// Layout updater for Touch Controls (D-pad vs Side Controls)
+function updateTouchControlsLayout() {
+    const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    const sideLeft = document.querySelector('.side-controls-left');
+    const sideRight = document.querySelector('.side-controls-right');
+    const touchCtrl = document.querySelector('.touch-controls');
+    
+    if (isTouch) {
+        // Landscape or wide screens -> Show ergonomic side buttons, hide center D-pad
+        if (window.innerWidth >= 768 || window.innerWidth > window.innerHeight) {
+            if (sideLeft) sideLeft.style.display = 'flex';
+            if (sideRight) sideRight.style.display = 'flex';
+            if (touchCtrl) touchCtrl.style.display = 'none';
+        } else {
+            // Portrait/narrow screen -> Show center D-pad, hide side buttons
+            if (sideLeft) sideLeft.style.display = 'none';
+            if (sideRight) sideRight.style.display = 'none';
+            if (touchCtrl) touchCtrl.style.display = 'flex';
+        }
+    } else {
+        // Desktop / Non-touchscreen -> Hide all virtual controls
+        if (sideLeft) sideLeft.style.display = 'none';
+        if (sideRight) sideRight.style.display = 'none';
+        if (touchCtrl) touchCtrl.style.display = 'none';
+    }
+}
+
+// Watch window resize/rotation to adapt virtual layout
+window.addEventListener('resize', updateTouchControlsLayout);
+updateTouchControlsLayout();
 
 // Swipe Controls for Mobile/Touch
 let touchStartX = 0;
