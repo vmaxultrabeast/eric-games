@@ -46,10 +46,10 @@ const GAMES_REGISTRY = [
         id: 'mariokart',
         title: 'Mario Kart',
         category: 'racing',
-        description: 'A 4-player 3D ghost battle arena. Fight bots solo or go online with friends. Use stealth abilities — hide, force-hide, and jump — to outmaneuver opponents.',
+        description: 'A classic top-down Mario Kart racer. Speed around the track, collect item boxes to get Mushrooms or Banana peels, dodge hazards, and compete against smart AI opponents to win the Mushroom Cup!',
         folder: 'games/mario-kart',
         cover: 'games/mario-kart/cover.png',
-        controls: 'WASD / Arrow Keys to move. K: Hide, L: Force Hide, H: Unhide, J: Jump. Space: Attack.',
+        controls: 'Arrow Keys / WASD to drive. Space to use item.',
         addedDate: '2026-06-09'
     }
     // New games can be easily appended here in the future
