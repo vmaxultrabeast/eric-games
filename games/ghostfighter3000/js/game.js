@@ -307,7 +307,11 @@ class Game {
     };
 
     this.network.onGameStateChanged = (newState) => {
-      if (newState === 'countdown' && this.state === 'lobby') {
+      if (newState === 'lobby') {
+        this._cleanup();
+        this.state = 'lobby';
+        this.ui.showLobby(this.network.roomCode, this.network.isHost);
+      } else if (newState === 'countdown' && this.state === 'lobby') {
         this._beginCountdown();
       } else if (newState === 'playing' && this.state === 'countdown') {
         this._beginPlaying();
@@ -1223,36 +1227,12 @@ class Game {
     }
 
     if (this.network.isHost) {
-      // Reset room
       this.state = 'lobby';
-      await this.network.roomRef.update({
-        state: 'waiting',
-        gameStartTime: null,
-        events: null,
-        bombs: null,
-        rankings: null,
-      });
-      // Reset player state
-      const spawn = Arena.SPAWN_POSITIONS[this.localPlayerIndex];
-      await this.network.roomRef.child(`players/${this.localPlayerId}`).update({
-        x: spawn.x,
-        z: spawn.z,
-        facing: 'up',
-        state: 'alive',
-        ready: false,
-      });
+      this.network.resetRoom();
       this.ui.showLobby(this.network.roomCode, true);
     } else {
-      // Non-host: reset own player
       this.state = 'lobby';
-      const spawn = Arena.SPAWN_POSITIONS[this.localPlayerIndex];
-      await this.network.roomRef.child(`players/${this.localPlayerId}`).update({
-        x: spawn.x,
-        z: spawn.z,
-        facing: 'up',
-        state: 'alive',
-        ready: false,
-      });
+      this.network.resetPlayerState();
       this.ui.showLobby(this.network.roomCode, false);
     }
   }
@@ -1261,10 +1241,10 @@ class Game {
     this.ui.hideEliminated();
     this.ui.hideHUD();
     this._cleanup();
-    this.isDemo = false;
-    if (this.network.roomRef) {
-      await this.network.leaveRoom();
+    if (this.network.roomCode) {
+      this.network.leaveRoom();
     }
+    this.isDemo = false;
     this.state = 'menu';
     this.ui.showMenu();
 
@@ -1276,10 +1256,10 @@ class Game {
   async _backToMenu() {
     this.ui.hideGameOver();
     this._cleanup();
-    this.isDemo = false;
-    if (!this.isDemo) {
-      await this.network.leaveRoom();
+    if (this.network.roomCode) {
+      this.network.leaveRoom();
     }
+    this.isDemo = false;
     this.state = 'menu';
     this.ui.showMenu();
 

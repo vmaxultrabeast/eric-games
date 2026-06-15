@@ -306,6 +306,27 @@ class Network {
           this.onEvent(data.event);
         }
         break;
+
+      case 'client_reset':
+        if (this.roomPlayers[data.id]) {
+          const p = this.roomPlayers[data.id];
+          const spawn = Arena.SPAWN_POSITIONS[p.index];
+          p.x = spawn.x;
+          p.z = spawn.z;
+          p.facing = 'up';
+          p.state = 'alive';
+          p.ready = false;
+          
+          this._broadcast({
+            type: 'players_list',
+            players: this.roomPlayers
+          });
+
+          if (this.onPlayerUpdated) {
+            this.onPlayerUpdated(data.id, p);
+          }
+        }
+        break;
     }
   }
 
@@ -548,6 +569,56 @@ class Network {
       type: 'rankings',
       rankings: rankings
     });
+  }
+
+  /**
+   * Reset room state (host only).
+   */
+  resetRoom() {
+    if (!this.isHost) return;
+
+    for (const [id, player] of Object.entries(this.roomPlayers)) {
+      const spawn = Arena.SPAWN_POSITIONS[player.index];
+      player.x = spawn.x;
+      player.z = spawn.z;
+      player.facing = 'up';
+      player.state = 'alive';
+      player.ready = (id === this.userId); // Host is always ready
+    }
+
+    this._broadcast({
+      type: 'players_list',
+      players: this.roomPlayers
+    });
+
+    this._broadcast({
+      type: 'game_state',
+      state: 'lobby'
+    });
+  }
+
+  /**
+   * Reset player state and notify host (client only).
+   */
+  resetPlayerState() {
+    if (this.isHost) return;
+
+    if (this.roomPlayers[this.userId]) {
+      const p = this.roomPlayers[this.userId];
+      const spawn = Arena.SPAWN_POSITIONS[p.index];
+      p.x = spawn.x;
+      p.z = spawn.z;
+      p.facing = 'up';
+      p.state = 'alive';
+      p.ready = false;
+    }
+
+    if (this.conn && this.conn.open) {
+      this.conn.send({
+        type: 'client_reset',
+        id: this.userId
+      });
+    }
   }
 
   // ─── Relaying / Broadcasting Helpers ───────────────────
