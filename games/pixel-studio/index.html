@@ -939,8 +939,8 @@
     <div class="subtitle">Animation Creator</div>
   </div>
   <div style="display:flex; gap:8px; align-items:center;">
-    <span id="movieName" style="font-size:0.9em; color:var(--text-secondary);">Untitled Movie</span>
-    <button class="btn btn-secondary btn-sm" onclick="renameCurrentMovie()">✏️ Rename</button>
+    <span id="projectName" style="font-size:0.9em; color:var(--text-secondary);">Untitled Project</span>
+    <button class="btn btn-secondary btn-sm" onclick="renameCurrentProject()">✏️ Rename</button>
   </div>
 </header>
 
@@ -1156,11 +1156,11 @@
 
     <div class="movies-section">
       <hr style="border-color:var(--border); margin:10px 0;">
-      <h3>🎬 Movies</h3>
+      <h3>📁 Projects Overview</h3>
       <div style="display:flex; gap:4px; margin-bottom:8px;">
-        <button class="btn btn-primary btn-sm btn-block" onclick="createNewMovie()">➕ New Movie</button>
+        <button class="btn btn-primary btn-sm btn-block" onclick="createNewProject()">➕ New Project</button>
       </div>
-      <div class="movie-list" id="movieList"></div>
+      <div class="movie-list" id="projectList"></div>
     </div>
 
     <div class="storage-section">
@@ -1222,27 +1222,27 @@
   </div>
 </div>
 
-<!-- New Movie Modal -->
-<div class="modal-overlay" id="newMovieModal">
+<!-- New Project Modal -->
+<div class="modal-overlay" id="newProjectModal">
   <div class="modal">
-    <h2>🎬 New Movie</h2>
+    <h2>📁 New Project</h2>
     <div class="form-group">
-      <label>Movie Name</label>
-      <input type="text" id="newMovieName" value="Untitled Movie" placeholder="Movie name...">
+      <label>Project Name</label>
+      <input type="text" id="newProjectName" value="Untitled Project" placeholder="Project name...">
     </div>
     <div class="form-row">
       <div class="form-group" style="flex:1;">
         <label>Width</label>
-        <input type="number" id="newMovieWidth" value="16" min="2" max="128">
+        <input type="number" id="newProjectWidth" value="16" min="2" max="128">
       </div>
       <div class="form-group" style="flex:1;">
         <label>Height</label>
-        <input type="number" id="newMovieHeight" value="16" min="2" max="128">
+        <input type="number" id="newProjectHeight" value="16" min="2" max="128">
       </div>
     </div>
     <div style="display:flex; gap:8px; margin-top:16px;">
-      <button class="btn btn-primary" onclick="confirmNewMovie()">Create</button>
-      <button class="btn btn-secondary" onclick="closeModal('newMovieModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmNewProject()">Create</button>
+      <button class="btn btn-secondary" onclick="closeModal('newProjectModal')">Cancel</button>
     </div>
   </div>
 </div>
@@ -1970,6 +1970,7 @@ function saveUndoState() {
   state.undoStack.push(snapshot);
   if (state.undoStack.length > state.maxUndo) state.undoStack.shift();
   state.redoStack = [];
+  saveToLocalStorage(true); // Instant silent auto-save
 }
 
 function undo() {
@@ -1991,6 +1992,7 @@ function undo() {
   renderCanvas();
   renderTimeline();
   toast('Undo', 'info');
+  saveToLocalStorage(true); // Instant silent auto-save
 }
 
 function redo() {
@@ -2012,6 +2014,7 @@ function redo() {
   renderCanvas();
   renderTimeline();
   toast('Redo', 'info');
+  saveToLocalStorage(true); // Instant silent auto-save
 }
 
 // ==================== FRAME MANAGEMENT ====================
@@ -2022,6 +2025,7 @@ function addFrame() {
   renderCanvas();
   renderTimeline();
   updateStatus();
+  saveToLocalStorage(true); // Instant silent auto-save
 }
 
 function duplicateFrame() {
@@ -2034,6 +2038,7 @@ function duplicateFrame() {
   renderTimeline();
   updateStatus();
   toast('Frame duplicated', 'success');
+  saveToLocalStorage(true); // Instant silent auto-save
 }
 
 function insertBlankFrame() {
@@ -2043,6 +2048,7 @@ function insertBlankFrame() {
   renderCanvas();
   renderTimeline();
   updateStatus();
+  saveToLocalStorage(true); // Instant silent auto-save
 }
 
 function deleteCurrentFrame() {
@@ -2254,18 +2260,20 @@ function updateFPS() {
   }
 }
 
-// ==================== MOVIE MANAGEMENT ====================
-function createNewMovie() {
-  document.getElementById('newMovieName').value = 'Movie ' + (state.movies.length + 1);
-  document.getElementById('newMovieModal').classList.add('show');
+// ==================== PROJECT MANAGEMENT ====================
+const getCurrentProject = getCurrentMovie;
+
+function createNewProject() {
+  document.getElementById('newProjectName').value = 'Project ' + (state.movies.length + 1);
+  document.getElementById('newProjectModal').classList.add('show');
 }
 
-function confirmNewMovie() {
-  const name = document.getElementById('newMovieName').value || 'Untitled';
-  const w = parseInt(document.getElementById('newMovieWidth').value) || 16;
-  const h = parseInt(document.getElementById('newMovieHeight').value) || 16;
+function confirmNewProject() {
+  const name = document.getElementById('newProjectName').value || 'Untitled';
+  const w = parseInt(document.getElementById('newProjectWidth').value) || 16;
+  const h = parseInt(document.getElementById('newProjectHeight').value) || 16;
 
-  const movie = {
+  const project = {
     name,
     width: w,
     height: h,
@@ -2273,13 +2281,14 @@ function confirmNewMovie() {
     frames: [createEmptyFrame(w, h)]
   };
 
-  state.movies.push(movie);
-  closeModal('newMovieModal');
-  selectMovie(state.movies.length - 1);
-  toast(`Movie "${name}" created`, 'success');
+  state.movies.push(project);
+  closeModal('newProjectModal');
+  selectProject(state.movies.length - 1);
+  toast(`Project "${name}" created`, 'success');
+  saveToLocalStorage(true); // Instant auto-save
 }
 
-function selectMovie(index) {
+function selectProject(index) {
   if (index < 0 || index >= state.movies.length) return;
   stopPlay();
   state.currentMovieIndex = index;
@@ -2287,25 +2296,29 @@ function selectMovie(index) {
   state.undoStack = [];
   state.redoStack = [];
 
-  const movie = getCurrentMovie();
-  document.getElementById('gridWidth').value = movie.width;
-  document.getElementById('gridHeight').value = movie.height;
-  document.getElementById('movieName').textContent = movie.name;
-  if (movie.fps) {
-    state.fps = movie.fps;
+  const project = getCurrentProject();
+  document.getElementById('gridWidth').value = project.width;
+  document.getElementById('gridHeight').value = project.height;
+  document.getElementById('projectName').textContent = project.name;
+  if (project.fps) {
+    state.fps = project.fps;
     document.getElementById('fpsSlider').value = state.fps;
     document.getElementById('fpsLabel').textContent = state.fps;
   }
 
   renderCanvas();
   renderTimeline();
-  renderMovieList();
+  renderProjectList();
   updateStatus();
+  saveToLocalStorage(true); // Instant auto-save
 }
 
-function deleteMovie(index) {
+// Keep selectMovie as alias for any backward compatibility
+const selectMovie = selectProject;
+
+function deleteProject(index) {
   if (state.movies.length <= 1) {
-    toast('Cannot delete the last movie', 'error');
+    toast('Cannot delete the last project', 'error');
     return;
   }
   const name = state.movies[index].name;
@@ -2313,51 +2326,54 @@ function deleteMovie(index) {
   if (state.currentMovieIndex >= state.movies.length) {
     state.currentMovieIndex = state.movies.length - 1;
   }
-  selectMovie(state.currentMovieIndex);
-  toast(`Movie "${name}" deleted`, 'info');
+  selectProject(state.currentMovieIndex);
+  toast(`Project "${name}" deleted`, 'info');
+  saveToLocalStorage(true); // Instant auto-save
 }
 
-function renameCurrentMovie() {
-  const movie = getCurrentMovie();
-  const name = prompt('Movie name:', movie.name);
+function renameCurrentProject() {
+  const project = getCurrentProject();
+  const name = prompt('Project name:', project.name);
   if (name) {
-    movie.name = name;
-    document.getElementById('movieName').textContent = name;
-    renderMovieList();
+    project.name = name;
+    document.getElementById('projectName').textContent = name;
+    renderProjectList();
+    saveToLocalStorage(true); // Instant auto-save
   }
 }
 
-function renderMovieList() {
-  const container = document.getElementById('movieList');
+function renderProjectList() {
+  const container = document.getElementById('projectList');
+  if (!container) return;
   container.innerHTML = '';
 
-  state.movies.forEach((movie, i) => {
+  state.movies.forEach((project, i) => {
     const item = document.createElement('div');
     item.className = 'movie-item' + (i === state.currentMovieIndex ? ' active' : '');
-    item.onclick = () => selectMovie(i);
+    item.onclick = () => selectProject(i);
 
     const title = document.createElement('div');
     title.className = 'movie-title';
-    title.innerHTML = `<span>${escapeHtml(movie.name)}</span><span style="font-size:0.7em; color:var(--text-secondary)">${movie.width}×${movie.height}</span>`;
+    title.innerHTML = `<span>${escapeHtml(project.name)}</span><span style="font-size:0.7em; color:var(--text-secondary)">${project.width}×${project.height}</span>`;
     item.appendChild(title);
 
     const info = document.createElement('div');
     info.className = 'movie-info';
-    info.textContent = `${movie.frames.length} frame${movie.frames.length !== 1 ? 's' : ''} • ${movie.fps || 8} fps`;
+    info.textContent = `${project.frames.length} frame${project.frames.length !== 1 ? 's' : ''} • ${project.fps || 8} fps`;
     item.appendChild(info);
 
     // Mini previews
     const preview = document.createElement('div');
     preview.className = 'movie-preview';
-    movie.frames.slice(0, 6).forEach(frame => {
+    project.frames.slice(0, 6).forEach(frame => {
       const mc = document.createElement('canvas');
-      mc.width = movie.width;
-      mc.height = movie.height;
+      mc.width = project.width;
+      mc.height = project.height;
       const mctx = mc.getContext('2d');
       mctx.fillStyle = '#000';
-      mctx.fillRect(0, 0, movie.width, movie.height);
-      for (let y = 0; y < movie.height; y++) {
-        for (let x = 0; x < movie.width; x++) {
+      mctx.fillRect(0, 0, project.width, project.height);
+      for (let y = 0; y < project.height; y++) {
+        for (let x = 0; x < project.width; x++) {
           if (frame.data[y] && frame.data[y][x]) {
             mctx.fillStyle = frame.data[y][x];
             mctx.fillRect(x, y, 1, 1);
@@ -2366,10 +2382,10 @@ function renderMovieList() {
       }
       preview.appendChild(mc);
     });
-    if (movie.frames.length > 6) {
+    if (project.frames.length > 6) {
       const more = document.createElement('span');
       more.style.cssText = 'font-size:0.7em; color:var(--text-secondary); align-self:center;';
-      more.textContent = `+${movie.frames.length - 6}`;
+      more.textContent = `+${project.frames.length - 6}`;
       preview.appendChild(more);
     }
     item.appendChild(preview);
@@ -2382,7 +2398,7 @@ function renderMovieList() {
     dupBtn.textContent = '📋 Clone';
     dupBtn.onclick = (ev) => {
       ev.stopPropagation();
-      cloneMovie(i);
+      cloneProject(i);
     };
     actions.appendChild(dupBtn);
 
@@ -2391,7 +2407,7 @@ function renderMovieList() {
     delBtn.textContent = '🗑️';
     delBtn.onclick = (ev) => {
       ev.stopPropagation();
-      deleteMovie(i);
+      deleteProject(i);
     };
     actions.appendChild(delBtn);
     item.appendChild(actions);
@@ -2400,7 +2416,10 @@ function renderMovieList() {
   });
 }
 
-function cloneMovie(index) {
+// Alias for old renderMovieList calls
+const renderMovieList = renderProjectList;
+
+function cloneProject(index) {
   const src = state.movies[index];
   const clone = {
     name: src.name + ' (copy)',
@@ -2412,8 +2431,9 @@ function cloneMovie(index) {
     }))
   };
   state.movies.push(clone);
-  selectMovie(state.movies.length - 1);
-  toast(`Movie cloned`, 'success');
+  selectProject(state.movies.length - 1);
+  toast(`Project cloned`, 'success');
+  saveToLocalStorage(true); // Instant auto-save
 }
 
 // ==================== TRANSFORM ====================
@@ -2448,18 +2468,24 @@ function toggleGrid() {
 }
 
 // ==================== STORAGE ====================
-function saveToLocalStorage() {
+function saveToLocalStorage(silent = false) {
   const data = {
-    movies: state.movies,
-    currentMovieIndex: state.currentMovieIndex,
+    projects: state.movies,
+    movies: state.movies, // backward compatibility
+    currentProjectIndex: state.currentMovieIndex,
+    currentMovieIndex: state.currentMovieIndex, // backward compatibility
     recentColors: state.recentColors,
-    version: 2
+    version: 3
   };
   try {
     localStorage.setItem('pixelStudio', JSON.stringify(data));
-    toast('Saved to browser storage', 'success');
+    if (!silent) {
+      toast('Saved to browser storage', 'success');
+    }
   } catch (e) {
-    toast('Save failed: ' + e.message, 'error');
+    if (!silent) {
+      toast('Save failed: ' + e.message, 'error');
+    }
   }
 }
 
@@ -2471,12 +2497,15 @@ function loadFromLocalStorage(silent = false) {
       return;
     }
     const data = JSON.parse(raw);
-    if (data.movies && data.movies.length > 0) {
-      state.movies = data.movies;
-      state.currentMovieIndex = data.currentMovieIndex || 0;
+    const savedProjects = data.projects || data.movies;
+    const savedIndex = data.currentProjectIndex !== undefined ? data.currentProjectIndex : data.currentMovieIndex;
+
+    if (savedProjects && savedProjects.length > 0) {
+      state.movies = savedProjects;
+      state.currentMovieIndex = savedIndex || 0;
       state.recentColors = data.recentColors || [];
       if (!silent) {
-        selectMovie(state.currentMovieIndex);
+        selectProject(state.currentMovieIndex);
         toast('Loaded from browser storage', 'success');
       }
     }
@@ -2487,15 +2516,7 @@ function loadFromLocalStorage(silent = false) {
 
 function autoSaveInterval() {
   setInterval(() => {
-    const data = {
-      movies: state.movies,
-      currentMovieIndex: state.currentMovieIndex,
-      recentColors: state.recentColors,
-      version: 2
-    };
-    try {
-      localStorage.setItem('pixelStudio', JSON.stringify(data));
-    } catch (e) { /* silently ignore */ }
+    saveToLocalStorage(true);
   }, 30000);
 }
 
