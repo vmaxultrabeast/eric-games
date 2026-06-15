@@ -195,7 +195,10 @@
   <canvas id="gameCanvas"></canvas>
 
   <div id="hud">
-    <div id="lapBox">LAP 1/3</div>
+    <div id="lapBox">
+      <div>LAP <span id="lapVal">1</span>/3</div>
+      <div id="timerVal" style="font-size: 15px; color: #FFD700; margin-top: 2px;">0:00.00</div>
+    </div>
     <div id="posBox">1ST</div>
     <div id="itemBox"></div>
     <div id="speedBox">0 km/h</div>
@@ -228,7 +231,10 @@
     <h1 id="overTitle">🏆 YOU WIN!</h1>
     <p class="sub" id="overSub">Race Complete</p>
     <ul id="results"></ul>
-    <button class="go-btn" id="restartBtn">Race Again</button>
+    <div class="mode-row" style="margin-top: 10px;">
+      <button class="go-btn" id="restartBtn">Play Again</button>
+      <button class="go-btn go-btn-back" id="leaveRoomBtn" style="display:none;">Leave Room</button>
+    </div>
   </div>
 
   <!-- ── Multiplayer Setup Screen ── -->
@@ -390,6 +396,7 @@ class Kart {
     this.x=x; this.y=y; this.angle=angle; this.speed=0;
     this.lap=1; this.lastProg=null; this.checkpoint=false;
     this.finished=false; this.finishRank=null;
+    this.finishTime=null;
     this.onTrack=true; this.spinTmr=0; this.boostTmr=0;
     this.item=null; this.trail=[];
   }
@@ -429,7 +436,10 @@ class Kart {
       if(this.checkpoint&&this.lastProg>0.88&&prog<0.12){
         if(!this.finished){
           if(this.lap<LAPS){ this.lap++; this.checkpoint=false; }
-          else { this.finished=true; }
+          else {
+            this.finished=true;
+            this.finishTime=Date.now() - raceStartTime;
+          }
         }
       }
     }
@@ -540,6 +550,7 @@ class RemoteKart extends Kart {
     if(s.spinTmr    >  0)         this.spinTmr    = s.spinTmr;
     if(s.boostTmr   >  0)         this.boostTmr   = s.boostTmr;
     if(s.finished   !== undefined) this.finished   = s.finished;
+    if(s.finishTime !== undefined) this.finishTime = s.finishTime;
     if(s.lastProg   !== undefined) this.lastProg   = s.lastProg;
     if(s.checkpoint !== undefined) this.checkpoint = s.checkpoint;
   }
@@ -863,6 +874,7 @@ class MKNetwork {
 let karts=[], boxes=[], bananas=[];
 let state='start'; // start|countdown|race|over
 let finishOrder=[], frame=0;
+let raceStartTime = 0;
 
 const CONFIGS=[
   {name:'BOWSER',color:'#2471A3',accel:.075,maxSpd:4.5,turn:.030,grip:.965},
@@ -870,7 +882,7 @@ const CONFIGS=[
   {name:'YOSHI', color:'#27AE60',accel:.088,maxSpd:4.1, turn:.035,grip:.970},
   {name:'DK',    color:'#8B4513',accel:.082,maxSpd:4.3, turn:.033,grip:.968},
 ];
-const POS_LBL=['1ST','2ND','3RD','4TH'];
+const POS_LBL=['1ST','2ND','3RD','4TH','5TH'];
 
 function gridPos(i){
   const sp=TRACK[0], ep=TRACK[1];
@@ -974,7 +986,9 @@ function renderHUD(){
   const player=karts[playerKartIndex]; if(!player) return;
   const sorted=[...karts].map((k)=>({k,score:(k.lap-1)+(k.lastProg||0)})).sort((a,b)=>b.score-a.score);
   const rank=sorted.findIndex(s=>s.k===player);
-  document.getElementById('lapBox').textContent=`LAP ${Math.min(player.lap,LAPS)} / ${LAPS}`;
+  document.getElementById('lapVal').textContent=Math.min(player.lap,LAPS);
+  const elapsed = Date.now() - raceStartTime;
+  document.getElementById('timerVal').textContent=formatTime(elapsed);
   document.getElementById('posBox').textContent=POS_LBL[Math.max(0,rank)]||'4TH';
   document.getElementById('itemBox').textContent=player.item==='mushroom'?'🍄':player.item==='banana'?'🍌':'';
   document.getElementById('speedBox').textContent=`${Math.round(Math.abs(player.speed)*58)} km/h`;
@@ -1000,16 +1014,40 @@ function renderMinimap(){
 // ═══════════════════════════════════════════
 //  RACE OVER
 // ═══════════════════════════════════════════
-function showOver(){
+function updateResultsUI(){
   const positions=[...finishOrder];
-  karts.filter(k=>!k.finished).sort((a,b)=>(b.lap-1+(b.lastProg||0))-(a.lap-1+(a.lastProg||0))).forEach(k=>positions.push(k));
+  // Add remaining karts that haven't finished, sorting by track progress
+  karts.filter(k=>!finishOrder.includes(k)).sort((a,b)=>(b.lap-1+(b.lastProg||0))-(a.lap-1+(a.lastProg||0))).forEach(k=>positions.push(k));
 
   const player=karts[playerKartIndex];
-  const rank=positions.findIndex(k=>k===player);
+  const rank=finishOrder.includes(player) ? finishOrder.indexOf(player) : positions.indexOf(player);
+
   document.getElementById('overTitle').textContent=rank===0?'🏆 YOU WIN!':rank===1?'🥈 2nd Place!':rank===2?'🥉 3rd Place!':'💨 4th Place';
   document.getElementById('overSub').textContent=rank===0?'Incredible driving!':rank<=1?'So close!':'Better luck next time!';
-  document.getElementById('results').innerHTML=positions.map((k,i)=>`<li>${POS_LBL[i]} — ${k.name}</li>`).join('');
-  document.getElementById('restartBtn').textContent=gameMode==='multiplayer'?'Back to Menu':'Race Again';
+  
+  document.getElementById('results').innerHTML=positions.map((k,i)=>{
+    let suffix = '';
+    if(k.finished && k.finishTime !== null && k.finishTime !== undefined){
+      suffix = ` — ${formatTime(k.finishTime)}`;
+    } else {
+      suffix = ` — Lap ${Math.min(k.lap, LAPS)} (Racing)`;
+    }
+    return `<li>${POS_LBL[i]} — ${k.name}${suffix}</li>`;
+  }).join('');
+}
+
+function showOver(){
+  updateResultsUI();
+
+  const restartBtn = document.getElementById('restartBtn');
+  const leaveBtn = document.getElementById('leaveRoomBtn');
+  if(gameMode==='multiplayer'){
+    restartBtn.textContent='Play Again';
+    leaveBtn.style.display='inline-block';
+  } else {
+    restartBtn.textContent='Play Again';
+    leaveBtn.style.display='none';
+  }
 
   setTimeout(()=>{ document.getElementById('overScreen').style.display='flex'; },1200);
 }
@@ -1019,7 +1057,7 @@ function showOver(){
 // ═══════════════════════════════════════════
 function update(){
   frame++;
-  if(state!=='race') return;
+  if(state!=='race' && state!=='over') return;
 
   const player=karts[playerKartIndex]; if(!player) return;
 
@@ -1039,6 +1077,7 @@ function update(){
       spinTmr:    player.spinTmr,
       boostTmr:   player.boostTmr,
       finished:   player.finished,
+      finishTime: player.finishTime,
       lastProg:   player.lastProg,
       checkpoint: player.checkpoint,
     });
@@ -1092,7 +1131,14 @@ function update(){
   karts.forEach(k=>{ if(k.finished&&!finishOrder.includes(k)){ k.finishRank=finishOrder.length+1; finishOrder.push(k); } });
 
   // End race when local player finishes (or all karts done)
-  if(player.finished||(finishOrder.length===karts.length)){ state='over'; showOver(); }
+  if(state === 'race' && (player.finished || (finishOrder.length === karts.length))){
+    state = 'over';
+    showOver();
+  }
+
+  if(state === 'over'){
+    updateResultsUI();
+  }
 }
 
 function loop(){
@@ -1103,13 +1149,31 @@ function loop(){
 // ═══════════════════════════════════════════
 //  RACE FLOW
 // ═══════════════════════════════════════════
+function formatTime(ms) {
+  if (ms === undefined || ms === null || isNaN(ms)) return '0:00.00';
+  const totalSeconds = ms / 1000;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+  const centiseconds = Math.floor((ms % 1000) / 10);
+  return `${minutes}:${seconds.toString().padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}`;
+}
+
 function runCountdown(onDone){
   let n=3;
   const cd=document.getElementById('cdNum');
   cd.style.display='flex'; cd.textContent=n;
   const iv=setInterval(()=>{
     n--;
-    if(n<=0){ cd.textContent='GO!'; clearInterval(iv); setTimeout(()=>{ cd.style.display='none'; state='race'; if(onDone) onDone(); },650); }
+    if(n<=0){
+      cd.textContent='GO!';
+      clearInterval(iv);
+      setTimeout(()=>{
+        cd.style.display='none';
+        state='race';
+        raceStartTime = Date.now();
+        if(onDone) onDone();
+      },650);
+    }
     else cd.textContent=n;
   },1000);
 }
@@ -1176,6 +1240,17 @@ function returnToMenu(){
   document.getElementById('startScreen').style.display ='flex';
 }
 
+function returnToLobby(){
+  state = 'lobby';
+  finishOrder = [];
+  bananas = [];
+  frame = 0;
+
+  document.getElementById('overScreen').style.display  ='none';
+  document.getElementById('lobbyScreen').style.display ='flex';
+  updateLobbyUI();
+}
+
 function setupNetworkCallbacks(){
   network.onPlayerJoined=(p)=>{
     showToast(`${p.name} joined the race! 🏎️`);
@@ -1185,9 +1260,9 @@ function setupNetworkCallbacks(){
     const name=network.roomPlayers[uid]?.name||'A player';
     showToast(`${name} disconnected.`);
     updateLobbyUI();
-    // During an active race: convert their RemoteKart to AI
+    // During an active race: convert their RemoteKart to AI (only if they haven't finished yet!)
     const rk=remoteKartMap.get(uid);
-    if(rk&&state==='race'){
+    if(rk&&(state==='race'||state==='over')&&!rk.finished){
       const idx=karts.indexOf(rk);
       if(idx>=0){
         const cfg=CONFIGS[(idx-1+CONFIGS.length)%CONFIGS.length];
@@ -1209,6 +1284,8 @@ function setupNetworkCallbacks(){
     if(gs==='countdown'){
       // Client received start signal from host
       startMultiplayerRace();
+    } else if(gs==='lobby'){
+      returnToLobby();
     } else if(gs==='disconnected'){
       showToast('Host disconnected. Returning to menu…',3500);
       setTimeout(returnToMenu,3500);
@@ -1340,11 +1417,22 @@ document.getElementById('lobbyStartBtn').addEventListener('click',()=>{
 // ── Lobby: Leave Room ──
 document.getElementById('lobbyLeaveBtn').addEventListener('click', returnToMenu);
 
-// ── Race Over: Race Again / Back to Menu ──
+// ── Race Over: Play Again ──
 document.getElementById('restartBtn').addEventListener('click',()=>{
-  if(gameMode==='multiplayer') returnToMenu();
-  else startSoloRace();
+  if(gameMode==='multiplayer'){
+    if(network && network.isHost){
+      network._bcast({ type:'game_state', state:'lobby' });
+      returnToLobby();
+    } else {
+      returnToLobby();
+    }
+  } else {
+    startSoloRace();
+  }
 });
+
+// ── Race Over: Leave Room (multiplayer only) ──
+document.getElementById('leaveRoomBtn').addEventListener('click', returnToMenu);
 
 // ── Start render loop ──
 loop();
