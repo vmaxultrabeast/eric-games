@@ -46,9 +46,9 @@ class Network {
   /**
    * Create a new room as Host.
    */
-  createRoom() {
+  createRoom(customCode = null) {
     return new Promise((resolve, reject) => {
-      const code = this._generateRoomCode();
+      const code = customCode ? customCode.toUpperCase().trim() : this._generateRoomCode();
       this.roomCode = code;
       this.isHost = true;
 
@@ -82,9 +82,13 @@ class Network {
       this.peer.on('error', (err) => {
         console.error('[NETWORK] Host PeerJS error:', err);
         if (err.type === 'unavailable-id') {
-          // If code is somehow taken, retry once
           this.peer.destroy();
-          resolve(this.createRoom());
+          if (customCode) {
+            reject(new Error(`Room code "${customCode}" is already in use. Try a different code.`));
+          } else {
+            // If code is somehow taken, retry once
+            resolve(this.createRoom());
+          }
         } else {
           reject(new Error(err.message || 'PeerJS connection error'));
         }

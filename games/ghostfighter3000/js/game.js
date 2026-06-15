@@ -216,15 +216,26 @@ class Game {
     }
     localStorage.setItem('ghostfight3000_username', name);
 
+    const codeInput = document.getElementById('create-code-input');
+    const code = codeInput ? codeInput.value.trim().toUpperCase() : 'ERIC';
+    if (!code || code.length !== 4) {
+      this.ui.showError('Room code must be exactly 4 letters');
+      return;
+    }
+    if (!/^[A-Z]{4}$/.test(code)) {
+      this.ui.showError('Room code must contain only letters A-Z');
+      return;
+    }
+
     try {
       this.network.userName = name;
-      const code = await this.network.createRoom();
+      const createdCode = await this.network.createRoom(code);
       this.localPlayerId = this.network.userId;
       this.localPlayerIndex = 0;
 
       this._setupNetworkCallbacks();
       this.state = 'lobby';
-      this.ui.showLobby(code, true);
+      this.ui.showLobby(createdCode, true);
       this.ui.updateLobbyPlayers({
         [this.localPlayerId]: {
           name: this.network.userName,
