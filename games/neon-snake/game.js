@@ -30,6 +30,42 @@ let gameSpeed = 120; // Initial speed in milliseconds
 let isPaused = false;
 let gameStarted = false;
 
+// Color Themes Configuration
+const SNAKE_THEMES = {
+    '#9d4edd': { // Purple
+        head: '#e879f9',
+        body: '#c084fc',
+        glow: '#9d4edd',
+        headGlow: '#d8b4fe'
+    },
+    '#39ff14': { // Green
+        head: '#a7f3d0',
+        body: '#86efac',
+        glow: '#39ff14',
+        headGlow: '#c6f6d5'
+    },
+    '#ff007f': { // Pink/Red
+        head: '#fbcfe8',
+        body: '#f472b6',
+        glow: '#ff007f',
+        headGlow: '#fce7f3'
+    },
+    '#ffdd44': { // Yellow
+        head: '#fef9c3',
+        body: '#fef08a',
+        glow: '#ffdd44',
+        headGlow: '#fefcd0'
+    },
+    '#00f5ff': { // Cyan
+        head: '#a5f3fc',
+        body: '#67e8f9',
+        glow: '#00f5ff',
+        headGlow: '#cffafe'
+    }
+};
+
+let currentSnakeColor = localStorage.getItem('neonsnake_color') || '#9d4edd';
+
 // ==========================================================================
 // Initial Boot
 // ==========================================================================
@@ -39,9 +75,31 @@ if (localStorage.getItem('neonSnakeHighScore')) {
     highScoreVal.textContent = formatScore(highScore);
 }
 
-// Reset Game State
+// Reset Game State & Init Color Picker
 resetGame();
+initColorPicker();
 drawInitialState();
+
+// Initialize color selection
+function initColorPicker() {
+    const btns = document.querySelectorAll('.color-btn');
+    btns.forEach((btn) => {
+        if (btn.getAttribute('data-color') === currentSnakeColor) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            btns.forEach((b) => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentSnakeColor = btn.getAttribute('data-color');
+            localStorage.setItem('neonsnake_color', currentSnakeColor);
+            drawInitialState();
+        });
+    });
+}
 
 // ==========================================================================
 // Game Engine Loops
@@ -171,17 +229,18 @@ function draw() {
     ctx.arc(food.x + GRID_SIZE / 2, food.y + GRID_SIZE / 2, foodRadius, 0, 2 * Math.PI);
     ctx.fill();
 
-    // Draw Snake with Neon Purple glow
+    // Draw Snake with selected color theme
+    const theme = SNAKE_THEMES[currentSnakeColor] || SNAKE_THEMES['#9d4edd'];
     snake.forEach((part, index) => {
         // Head is slightly brighter
         if (index === 0) {
             ctx.shadowBlur = 20;
-            ctx.shadowColor = '#d8b4fe';
-            ctx.fillStyle = '#e879f9';
+            ctx.shadowColor = theme.headGlow;
+            ctx.fillStyle = theme.head;
         } else {
             ctx.shadowBlur = 12;
-            ctx.shadowColor = '#9d4edd';
-            ctx.fillStyle = '#c084fc';
+            ctx.shadowColor = theme.glow;
+            ctx.fillStyle = theme.body;
         }
         
         // Rounded card styles for grid tiles
@@ -196,11 +255,14 @@ function draw() {
 
 function drawInitialState() {
     ctx.fillStyle = '#05060b';
+    ctx.shadowBlur = 0;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
     // Draw static decorative elements
+    const theme = SNAKE_THEMES[currentSnakeColor] || SNAKE_THEMES['#9d4edd'];
     ctx.shadowBlur = 12;
-    ctx.shadowColor = '#9d4edd';
-    ctx.fillStyle = 'rgba(157, 78, 221, 0.3)';
+    ctx.shadowColor = theme.glow;
+    ctx.fillStyle = theme.body;
     ctx.beginPath();
     ctx.roundRect(GRID_SIZE * 10 + 1, GRID_SIZE * 10 + 1, GRID_SIZE - 2, GRID_SIZE - 2, 4);
     ctx.fill();
@@ -337,3 +399,57 @@ document.getElementById('btnLeft').addEventListener('click', () => {
 document.getElementById('btnRight').addEventListener('click', () => {
     if (gameStarted && !isPaused) changeDirection(GRID_SIZE, 0);
 });
+
+// Force D-Pad visibility for touchscreens
+if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+    const touchCtrl = document.querySelector('.touch-controls');
+    if (touchCtrl) touchCtrl.style.display = 'flex';
+}
+
+// Swipe Controls for Mobile/Touch
+let touchStartX = 0;
+let touchStartY = 0;
+
+canvas.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+canvas.addEventListener('touchmove', (e) => {
+    if (gameStarted && !isPaused) {
+        // Prevent scrolling while playing
+        e.preventDefault();
+    }
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+    if (!gameStarted || isPaused) return;
+
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+
+    const diffX = touchEndX - touchStartX;
+    const diffY = touchEndY - touchStartY;
+
+    const minSwipeDistance = 30; // pixels
+
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+        // Horizontal swipe
+        if (Math.abs(diffX) > minSwipeDistance) {
+            if (diffX > 0) {
+                changeDirection(GRID_SIZE, 0); // Right
+            } else {
+                changeDirection(-GRID_SIZE, 0); // Left
+            }
+        }
+    } else {
+        // Vertical swipe
+        if (Math.abs(diffY) > minSwipeDistance) {
+            if (diffY > 0) {
+                changeDirection(0, GRID_SIZE); // Down
+            } else {
+                changeDirection(0, -GRID_SIZE); // Up
+            }
+        }
+    }
+}, { passive: true });
