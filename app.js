@@ -10,7 +10,8 @@ const GAMES_REGISTRY = [
         folder: 'games/neon-snake',
         cover: 'games/neon-snake/cover.png',
         controls: 'WASD / Arrow Keys to change direction. P to pause.',
-        addedDate: '2026-06-08'
+        addedDate: '2026-06-08',
+        updatedDate: '2026-06-08'
     },
     {
         id: 'pokemon-battle',
@@ -20,7 +21,8 @@ const GAMES_REGISTRY = [
         folder: 'games/pokemon-battle',
         cover: 'games/pokemon-battle/icon-512.png',
         controls: 'P1: WASD to move, J/K/L/U to attack, Space to dodge. P2: Arrow keys to move, 7/8/9/0 to attack, Enter to dodge.',
-        addedDate: '2026-06-09'
+        addedDate: '2026-06-09',
+        updatedDate: '2026-06-09'
     },
     {
         id: 'pixel-studio',
@@ -30,7 +32,8 @@ const GAMES_REGISTRY = [
         folder: 'games/pixel-studio',
         cover: 'games/pixel-studio/cover.png',
         controls: 'Left Click to draw and use tools. Hotkeys: B (Pencil), E (Eraser), G (Fill), I (Eyedropper), L (Line).',
-        addedDate: '2026-06-09'
+        addedDate: '2026-06-09',
+        updatedDate: '2026-06-14'
     },
     {
         id: 'ghostfighter3000',
@@ -40,7 +43,8 @@ const GAMES_REGISTRY = [
         folder: 'games/ghostfighter3000',
         cover: 'games/ghostfighter3000/cover.png',
         controls: 'WASD / Arrow Keys to move. K: Hide, L: Force Hide, H: Unhide, J: Jump. Space: Attack.',
-        addedDate: '2026-06-09'
+        addedDate: '2026-06-09',
+        updatedDate: '2026-06-14'
     },
     {
         id: 'mariokart',
@@ -50,7 +54,8 @@ const GAMES_REGISTRY = [
         folder: 'games/mario-kart',
         cover: 'games/mario-kart/cover.png',
         controls: 'Arrow Keys / WASD to drive. Space to use item.',
-        addedDate: '2026-06-09'
+        addedDate: '2026-06-09',
+        updatedDate: '2026-06-14'
     }
     // New games can be easily appended here in the future
 ];
@@ -121,6 +126,12 @@ function renderGames() {
             day: 'numeric'
         });
 
+        const formattedUpdateDate = new Date(game.updatedDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+
         card.innerHTML = `
             <div class="game-cover-wrap">
                 <span class="game-tag-badge">${game.category}</span>
@@ -130,7 +141,10 @@ function renderGames() {
                 <h3 class="game-title">${game.title}</h3>
                 <p class="game-description">${game.description}</p>
                 <div class="game-actions">
-                    <span class="game-metadata">Added: ${formattedDate}</span>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span class="game-metadata">Added: ${formattedDate}</span>
+                        <span class="game-metadata">Updated: ${formattedUpdateDate}</span>
+                    </div>
                     <button class="play-card-btn" onclick="launchGame('${game.id}')">Play Now</button>
                 </div>
             </div>
