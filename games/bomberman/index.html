@@ -254,13 +254,6 @@ body {
 
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
-window.onerror = function(msg, url, line, col, error) {
-  console.log("WINDOW ERROR:", msg, "at", url, ":", line, ":", col, error ? error.stack : "");
-};
-window.addEventListener('unhandledrejection', function(event) {
-  console.log("UNHANDLED REJECTION:", event.reason ? (event.reason.stack || event.reason) : event);
-});
-
 // ═══════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════
@@ -699,7 +692,6 @@ function handleInput(){
 // ═══════════════════════════════
 let gbuf=null;
 function buildGrid(){
-  console.log("buildGrid starting. grid dimensions:", grid.length, "x", grid[0] ? grid[0].length : 0);
   gbuf=document.createElement('canvas');
   gbuf.width=CW; gbuf.height=CH;
   const gc=gbuf.getContext('2d');
@@ -841,14 +833,9 @@ function initGame(mapData){
 // ═══════════════════════════════
 //  RENDER
 // ═══════════════════════════════
-let renderCount = 0;
 function render(){
-  renderCount++;
-  if (renderCount % 60 === 0) {
-    console.log("render loop running. gstate:", gstate, "gbuf:", !!gbuf, "players:", players.map(p => ({name: p.name, x: p.x, y: p.y, alive: p.alive})));
-  }
   ctx.fillStyle='#0d0d1c'; ctx.fillRect(0,0,CW,CH);
-  if (gstate === 'menu') return;
+  if(gstate==='menu') return;
   if(gbuf) ctx.drawImage(gbuf,0,0);
 
   // Dynamic soft blocks
@@ -870,13 +857,8 @@ function render(){
 // ═══════════════════════════════
 //  UPDATE
 // ═══════════════════════════════
-let updateCount = 0;
 function update(){
   if(gstate!=='play') return;
-  updateCount++;
-  if (updateCount % 60 === 0) {
-    console.log("update loop running. players alive:", players.filter(p=>p.alive).length);
-  }
   handleInput();
   players.forEach(p=>p.update());
 
