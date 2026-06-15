@@ -8,30 +8,19 @@
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
     background: #2d5a1b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; overflow: hidden;
     font-family: 'Arial Black', Arial, sans-serif;
-    user-select: none;
-    -webkit-user-select: none;
+    user-select: none; -webkit-user-select: none;
   }
-  #wrapper {
-    position: relative;
-  }
+  #wrapper { position: relative; }
   #gameCanvas {
-    display: block;
-    border: 4px solid #FF6B00;
-    border-radius: 6px;
+    display: block; border: 4px solid #FF6B00; border-radius: 6px;
     box-shadow: 0 0 40px rgba(255,107,0,0.5), 0 0 80px rgba(255,107,0,0.2);
   }
+
   /* ── HUD ── */
-  #hud {
-    position: absolute; inset: 0;
-    pointer-events: none;
-    z-index: 10;
-  }
+  #hud { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
   #posBox {
     position: absolute; top: 10px; right: 12px;
     color: white; font-size: 38px; font-weight: 900;
@@ -44,8 +33,7 @@
     line-height: 1.4;
   }
   #itemBox {
-    position: absolute; bottom: 54px; left: 50%;
-    transform: translateX(-50%);
+    position: absolute; bottom: 54px; left: 50%; transform: translateX(-50%);
     font-size: 38px; line-height: 1;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
   }
@@ -54,76 +42,152 @@
     color: white; font-size: 14px; font-weight: 900;
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
   }
+
   /* Minimap */
   #minimap {
     position: absolute; bottom: 10px; left: 12px;
     width: 110px; height: 75px;
-    background: rgba(0,0,0,0.65);
-    border: 2px solid rgba(255,255,255,0.35);
-    border-radius: 6px;
-    overflow: hidden;
+    background: rgba(0,0,0,0.65); border: 2px solid rgba(255,255,255,0.35); border-radius: 6px; overflow: hidden;
   }
   #mmCanvas { width: 100%; height: 100%; }
+
   /* ── Overlays ── */
   .overlay {
     position: absolute; inset: 0;
-    background: rgba(0,0,0,0.82);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    color: white; z-index: 20;
+    background: rgba(0,0,0,0.88);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: white; z-index: 20; overflow-y: auto; padding: 20px 12px;
   }
   .overlay h1 {
     font-size: 52px; color: #FFD700;
     text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000;
     margin-bottom: 4px;
   }
-  .overlay .sub {
-    font-size: 16px; color: #ccc; margin-bottom: 22px; font-weight: 400;
-  }
+  .overlay .sub { font-size: 16px; color: #ccc; margin-bottom: 22px; font-weight: 400; }
+
   .go-btn {
     background: linear-gradient(135deg,#FF6B00,#FF3300);
     color: white; border: 3px solid #FFD700;
     padding: 12px 40px; font-family: 'Arial Black', Arial;
     font-size: 20px; border-radius: 8px; cursor: pointer;
     transition: transform .15s, box-shadow .15s;
-    text-transform: uppercase; letter-spacing: 1px;
-    pointer-events: all;
+    text-transform: uppercase; letter-spacing: 1px; pointer-events: all;
   }
-  .go-btn:hover { transform: scale(1.06); box-shadow: 0 0 18px rgba(255,215,0,.55); }
+  .go-btn:hover  { transform: scale(1.06); box-shadow: 0 0 18px rgba(255,215,0,.55); }
+  .go-btn:disabled { opacity: .55; pointer-events: none; }
+
   #hint { font-size: 12px; color: #777; margin-top: 10px; font-weight: 400; }
-  #results {
-    list-style: none; margin: 10px 0 18px;
-    font-size: 15px; width: 220px;
-  }
+  #results { list-style: none; margin: 10px 0 18px; font-size: 15px; width: 220px; }
   #results li { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,.12); }
   #results li:first-child { color:#FFD700; font-size:17px; }
+
   /* Countdown */
   #cdNum {
-    position: absolute; inset: 0;
-    display: none; align-items: center; justify-content: center;
+    position: absolute; inset: 0; display: none;
+    align-items: center; justify-content: center;
     font-size: 130px; color: #FFD700; font-weight: 900; pointer-events:none; z-index:25;
     text-shadow: -5px -5px 0 #000, 5px -5px 0 #000, -5px 5px 0 #000, 5px 5px 0 #000;
   }
-  /* Mobile touch D-pad */
-  #dpad {
-    display: none;
-    position: absolute; bottom: 10px; right: 10px;
-    pointer-events: all; z-index: 15;
-  }
+
+  /* Mobile D-pad */
+  #dpad { display: none; position: absolute; bottom: 10px; right: 10px; pointer-events: all; z-index: 15; }
   .dpad-btn {
     position: absolute; width: 44px; height: 44px;
     background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3);
     border-radius: 8px; color: white; font-size: 20px;
-    display: flex; align-items:center; justify-content:center;
-    cursor: pointer; touch-action: none;
+    display: flex; align-items:center; justify-content:center; cursor: pointer; touch-action: none;
   }
   .dpad-btn:active { background: rgba(255,107,0,.5); }
-  #dUp    { top: 0;   left: 48px; }
-  #dDown  { top: 96px; left: 48px; }
-  #dLeft  { top: 48px; left: 0; }
-  #dRight { top: 48px; left: 96px; }
-  #dItem  { top: 48px; left: 48px; font-size: 12px; }
-  @media (pointer: coarse) { #dpad { display: block; } #minimap { bottom:160px; } #speedBox { bottom:160px; } }
+  #dUp   { top: 0;    left: 48px; } #dDown { top: 96px; left: 48px; }
+  #dLeft { top: 48px; left: 0;   } #dRight{ top: 48px; left: 96px; }
+  #dItem { top: 48px; left: 48px; font-size: 12px; }
+  @media (pointer: coarse) {
+    #dpad { display: block; } #minimap { bottom:160px; } #speedBox { bottom:160px; }
+  }
+
+  /* ═══════════════════════════════════════════
+     MULTIPLAYER UI
+  ═══════════════════════════════════════════ */
+  .go-btn-mp  { background: linear-gradient(135deg,#1565C0,#0D47A1); border-color: #64B5F6; }
+  .go-btn-mp:hover { box-shadow: 0 0 18px rgba(100,181,246,.5); }
+  .go-btn-back {
+    background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.28);
+    font-size: 14px; padding: 8px 24px; letter-spacing: 0;
+  }
+  .go-btn-back:hover { box-shadow: none; background: rgba(255,255,255,.2); transform: none; }
+  .go-btn-sm  { padding: 10px 20px; font-size: 16px; }
+  .go-btn-green { background: linear-gradient(135deg,#1b7a3e,#0f4d25); border-color: #4CAF50; }
+  .go-btn-green:hover { box-shadow: 0 0 18px rgba(76,175,80,.5); }
+
+  .mp-section { width: 300px; margin-bottom: 12px; }
+  .mp-label {
+    display: block; font-size: 11px; color: #aaa; margin-bottom: 5px;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .mp-input {
+    width: 100%; padding: 9px 12px;
+    background: rgba(255,255,255,.1); border: 2px solid rgba(255,255,255,.25); border-radius: 6px;
+    color: white; font-size: 16px; font-family: 'Arial Black', Arial;
+    outline: none; transition: border-color .2s;
+  }
+  .mp-input:focus { border-color: #FF6B00; }
+  .mp-input-code { text-transform: uppercase; letter-spacing: 6px; font-size: 22px; text-align: center; }
+  .mp-row { display: flex; gap: 8px; align-items: center; }
+  .mp-row .mp-input { flex: 1; }
+
+  .mp-colors { display: flex; gap: 9px; flex-wrap: wrap; justify-content: center; }
+  .mp-color-dot {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 3px solid transparent; cursor: pointer;
+    transition: transform .15s, border-color .15s; outline: none;
+  }
+  .mp-color-dot:hover  { transform: scale(1.2); }
+  .mp-color-dot.active { border-color: #fff; transform: scale(1.15);
+    box-shadow: 0 0 8px rgba(255,255,255,.5); }
+
+  .mp-divider {
+    display: flex; align-items: center; gap: 8px;
+    width: 300px; color: #555; font-size: 13px;
+    margin: 8px 0; font-weight: 400;
+  }
+  .mp-divider::before, .mp-divider::after { content:''; flex:1; height:1px; background:#444; }
+
+  /* Lobby */
+  .lobby-code {
+    font-size: 56px; font-weight: 900; letter-spacing: 12px; color: #FFD700;
+    margin: 4px 0 18px;
+    text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000;
+  }
+  .lobby-players { list-style: none; width: 300px; margin: 0 0 14px; padding: 0; }
+  .lobby-player {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px; background: rgba(255,255,255,.07);
+    border-radius: 8px; margin-bottom: 6px;
+    border-left: 4px solid #555; transition: border-color .3s;
+  }
+  .lp-dot   { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; }
+  .lp-name  { flex: 1; font-size: 15px; }
+  .lp-badge { font-size: 10px; background: #FFD700; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: 900; }
+  .lp-you   { font-size: 10px; color: #aaa; margin-left: 2px; font-weight: 400; }
+  #lobbyWaiting { color: #777; font-size: 13px; margin-bottom: 10px; font-weight: 400; }
+  .lobby-hint   { font-size: 11px; color: #555; margin-bottom: 12px; text-align: center; font-weight: 400; }
+
+  /* Toast */
+  #mkToast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: rgba(18,18,18,.97); color: #fff;
+    padding: 10px 22px; border-radius: 8px;
+    font-family: 'Arial Black', Arial; font-size: 13px;
+    border: 2px solid #FF6B00; z-index: 200;
+    opacity: 0; pointer-events: none;
+    transition: transform .3s ease, opacity .3s ease;
+    white-space: nowrap;
+  }
+  #mkToast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  /* Mode-select row */
+  .mode-row { display: flex; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; justify-content: center; }
 </style>
 </head>
 <body>
@@ -148,22 +212,79 @@
 
   <div id="cdNum"></div>
 
-  <!-- Start screen -->
+  <!-- ── Start Screen ── -->
   <div class="overlay" id="startScreen">
     <h1>🏎️ KART RACE</h1>
-    <p class="sub">Mushroom Cup — 3 Laps · 3 Opponents</p>
-    <button class="go-btn" id="startBtn">Start Race!</button>
+    <p class="sub">Mushroom Cup — 3 Laps</p>
+    <div class="mode-row">
+      <button class="go-btn" id="startBtn">🏎️ Solo Race</button>
+      <button class="go-btn go-btn-mp" id="multiplayerBtn">🌐 Multiplayer</button>
+    </div>
     <p id="hint">⬆️ Arrow Keys / WASD to drive &nbsp;·&nbsp; Space to use item</p>
   </div>
 
-  <!-- Race over screen -->
+  <!-- ── Race Over Screen ── -->
   <div class="overlay" id="overScreen" style="display:none">
     <h1 id="overTitle">🏆 YOU WIN!</h1>
     <p class="sub" id="overSub">Race Complete</p>
     <ul id="results"></ul>
     <button class="go-btn" id="restartBtn">Race Again</button>
   </div>
+
+  <!-- ── Multiplayer Setup Screen ── -->
+  <div class="overlay" id="mpScreen" style="display:none">
+    <h1 style="font-size:40px;">🌐 Multiplayer</h1>
+    <p class="sub">Race online with friends · Up to 4 players</p>
+
+    <div class="mp-section">
+      <span class="mp-label">Your Racing Name</span>
+      <input type="text" id="mpName" class="mp-input" placeholder="Enter your name" maxlength="12" autocomplete="off">
+    </div>
+
+    <div class="mp-section">
+      <span class="mp-label">Kart Color</span>
+      <div class="mp-colors" id="mpColorPicker"></div>
+    </div>
+
+    <div class="mp-section">
+      <span class="mp-label">Create a Room</span>
+      <div class="mp-row">
+        <input type="text" id="mpCreateCode" class="mp-input mp-input-code" value="RACE" maxlength="4" placeholder="CODE">
+        <button class="go-btn go-btn-sm" id="mpCreateBtn">Create</button>
+      </div>
+    </div>
+
+    <div class="mp-divider">or join existing room</div>
+
+    <div class="mp-section">
+      <span class="mp-label">Join a Room</span>
+      <div class="mp-row">
+        <input type="text" id="mpJoinCode" class="mp-input mp-input-code" placeholder="CODE" maxlength="4">
+        <button class="go-btn go-btn-mp go-btn-sm" id="mpJoinBtn">Join</button>
+      </div>
+    </div>
+
+    <button class="go-btn go-btn-back" id="mpBackBtn" style="margin-top:10px;">← Back</button>
+  </div>
+
+  <!-- ── Lobby Screen ── -->
+  <div class="overlay" id="lobbyScreen" style="display:none">
+    <h1 style="font-size:40px;">🏁 Race Lobby</h1>
+    <p class="sub">Share this code with friends:</p>
+    <div class="lobby-code" id="lobbyCode">----</div>
+    <ul class="lobby-players" id="lobbyPlayers"></ul>
+    <p class="lobby-hint">Slots without a player will be filled by AI 🤖</p>
+    <button class="go-btn go-btn-green" id="lobbyStartBtn" style="display:none;margin-bottom:10px;">🚦 Start Race!</button>
+    <p id="lobbyWaiting">Waiting for host to start the race…</p>
+    <button class="go-btn go-btn-back" id="lobbyLeaveBtn" style="margin-top:6px;">Leave Room</button>
+  </div>
 </div>
+
+<!-- Toast notification (fixed, outside wrapper) -->
+<div id="mkToast"></div>
+
+<!-- PeerJS — must load before the game script -->
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
 <script>
 // ═══════════════════════════════════════════
@@ -171,7 +292,7 @@
 // ═══════════════════════════════════════════
 const CW = 900, CH = 580;
 const LAPS = 3;
-const TW = 68;   // track half-width for on-track detection
+const TW = 68; // track half-width for on-track detection
 
 // ═══════════════════════════════════════════
 //  CANVAS SETUP
@@ -202,36 +323,18 @@ window.addEventListener('resize', resize);
 //  TRACK DEFINITION (Catmull-Rom smoothed)
 // ═══════════════════════════════════════════
 const RAW = [
-  {x:450,y:535}, // 0 = start/finish
-  {x:580,y:530},
-  {x:690,y:515},
-  {x:775,y:475},
-  {x:835,y:415},
-  {x:858,y:340},
-  {x:842,y:260},
-  {x:795,y:196},
-  {x:724,y:155},
-  {x:642,y:145},
-  {x:560,y:158},
-  {x:490,y:172},
-  {x:415,y:158},
-  {x:338,y:145},
-  {x:256,y:155},
-  {x:186,y:196},
-  {x:143,y:262},
-  {x:130,y:342},
-  {x:152,y:416},
-  {x:210,y:474},
-  {x:296,y:514},
-  {x:380,y:530},
+  {x:450,y:535},{x:580,y:530},{x:690,y:515},{x:775,y:475},{x:835,y:415},
+  {x:858,y:340},{x:842,y:260},{x:795,y:196},{x:724,y:155},{x:642,y:145},
+  {x:560,y:158},{x:490,y:172},{x:415,y:158},{x:338,y:145},{x:256,y:155},
+  {x:186,y:196},{x:143,y:262},{x:130,y:342},{x:152,y:416},{x:210,y:474},
+  {x:296,y:514},{x:380,y:530},
 ];
-const RN = RAW.length;
 
 function crPt(p0,p1,p2,p3,t){
   const t2=t*t,t3=t2*t;
   return {
-    x: .5*((2*p1.x)+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
-    y: .5*((2*p1.y)+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3)
+    x:.5*((2*p1.x)+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
+    y:.5*((2*p1.y)+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3)
   };
 }
 function smooth(pts, steps=10){
@@ -243,19 +346,16 @@ function smooth(pts, steps=10){
   return out;
 }
 
-const TRACK = smooth(RAW,10);
+const TRACK = smooth(RAW, 10);
 const TN = TRACK.length;
 
-// Cumulative arc-length for progress calc
-const TDISTS=[0];
-let TLEN=0;
+const TDISTS=[0]; let TLEN=0;
 for(let i=1;i<TN;i++){
   const dx=TRACK[i].x-TRACK[i-1].x, dy=TRACK[i].y-TRACK[i-1].y;
   TLEN+=Math.hypot(dx,dy); TDISTS.push(TLEN);
 }
 { const dx=TRACK[0].x-TRACK[TN-1].x, dy=TRACK[0].y-TRACK[TN-1].y; TLEN+=Math.hypot(dx,dy); }
 
-// Closest track point + distance from (x,y)
 function trackInfo(x,y){
   let best=1e9, bi=0, bt=0;
   for(let i=0;i<TN;i++){
@@ -291,20 +391,13 @@ class Kart {
     this.lap=1; this.lastProg=null; this.checkpoint=false;
     this.finished=false; this.finishRank=null;
     this.onTrack=true; this.spinTmr=0; this.boostTmr=0;
-    this.item=null;
-    // Particle trail
-    this.trail=[];
+    this.item=null; this.trail=[];
   }
-  get effMax(){ return this.boostTmr>0 ? this.maxSpd*1.65 : this.onTrack ? this.maxSpd : this.maxSpd*0.42; }
+  get effMax(){ return this.boostTmr>0?this.maxSpd*1.65:this.onTrack?this.maxSpd:this.maxSpd*0.42; }
 
   update(thr, str){
     if(this.finished){ this.speed*=0.94; this.x+=Math.cos(this.angle)*this.speed; this.y+=Math.sin(this.angle)*this.speed; return; }
-    if(this.spinTmr>0){
-      this.spinTmr--;
-      this.angle += 0.24; // Spin kart rapidly
-      str=0;
-      thr=-0.08;
-    }
+    if(this.spinTmr>0){ this.spinTmr--; this.angle+=0.24; str=0; thr=-0.08; }
     if(this.boostTmr>0) this.boostTmr--;
 
     if(Math.abs(this.speed)>0.15) this.angle+=str*this.turn*Math.sign(this.speed);
@@ -318,7 +411,6 @@ class Kart {
     this.x+=Math.cos(this.angle)*this.speed;
     this.y+=Math.sin(this.angle)*this.speed;
 
-    // Track check & soft push-back
     const info=trackInfo(this.x,this.y);
     this.onTrack=(info.dist<TW*0.88);
     if(info.dist>TW){
@@ -328,17 +420,13 @@ class Kart {
     }
     this.x=clamp(this.x,10,CW-10); this.y=clamp(this.y,10,CH-10);
 
-    // Dust trail when off-track or drifting
-    if(Math.abs(this.speed)>0.5){
-      this.trail.push({x:this.x,y:this.y,life:22,onTrack:this.onTrack});
-    }
+    if(Math.abs(this.speed)>0.5) this.trail.push({x:this.x,y:this.y,life:22,onTrack:this.onTrack});
     this.trail=this.trail.filter(p=>(p.life--,p.life>0));
 
-    // Lap counting
     const prog=trackProg(this.x,this.y);
     if(this.lastProg!==null){
       if(prog>0.42&&prog<0.58) this.checkpoint=true;
-      if(this.checkpoint && this.lastProg>0.88 && prog<0.12){
+      if(this.checkpoint&&this.lastProg>0.88&&prog<0.12){
         if(!this.finished){
           if(this.lap<LAPS){ this.lap++; this.checkpoint=false; }
           else { this.finished=true; }
@@ -349,7 +437,6 @@ class Kart {
   }
 
   draw(ctx){
-    // Dust trail
     this.trail.forEach(p=>{
       const alpha=p.life/22*0.5;
       ctx.fillStyle=p.onTrack?`rgba(100,80,40,${alpha})`:`rgba(80,120,50,${alpha})`;
@@ -357,52 +444,38 @@ class Kart {
     });
 
     ctx.save(); ctx.translate(this.x,this.y); ctx.rotate(this.angle);
-
-    // Shadow
     ctx.fillStyle='rgba(0,0,0,0.28)';
     ctx.beginPath(); ctx.ellipse(2,4,11,5,0,0,Math.PI*2); ctx.fill();
 
-    // Body
     ctx.fillStyle=this.color;
     ctx.beginPath(); ctx.roundRect(-11,-7,22,14,3); ctx.fill();
-
-    // Cockpit / windshield
     ctx.fillStyle='rgba(160,225,255,0.75)';
     ctx.beginPath(); ctx.roundRect(-11,-5,10,10,2); ctx.fill();
-
-    // Racing stripe
     ctx.fillStyle='rgba(255,255,255,0.3)';
     ctx.fillRect(-2,-7,4,14);
 
-    // Wheels
     ctx.fillStyle='#1a1a1a';
-    [[-10,-9],[ 8,-9],[-10, 4],[ 8, 4]].forEach(([dx,dy])=>{
+    [[-10,-9],[8,-9],[-10,4],[8,4]].forEach(([dx,dy])=>{
       ctx.beginPath(); ctx.roundRect(dx,dy,5,5,1); ctx.fill();
       ctx.fillStyle='rgba(255,255,255,0.15)'; ctx.beginPath(); ctx.arc(dx+2.5,dy+2.5,1.5,0,Math.PI*2); ctx.fill();
       ctx.fillStyle='#1a1a1a';
     });
 
-    // Boost flame
-    if(this.boostTmr>0 && this.boostTmr%4<2){
+    if(this.boostTmr>0&&this.boostTmr%4<2){
       const g=ctx.createLinearGradient(-22,0,-11,0);
       g.addColorStop(0,'rgba(255,100,0,0)'); g.addColorStop(1,'rgba(255,220,0,0.9)');
       ctx.fillStyle=g;
       ctx.beginPath(); ctx.moveTo(-11,-4); ctx.lineTo(-22,0); ctx.lineTo(-11,4); ctx.closePath(); ctx.fill();
     }
-
-    // Spin stars
     if(this.spinTmr>0){
       ctx.strokeStyle='#FFD700'; ctx.lineWidth=1.5;
       for(let i=0;i<6;i++){
         const a=(i/6)*Math.PI*2+this.spinTmr*.15;
-        ctx.beginPath(); ctx.moveTo(Math.cos(a)*13,Math.sin(a)*13);
-        ctx.lineTo(Math.cos(a)*19,Math.sin(a)*19); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(Math.cos(a)*13,Math.sin(a)*13); ctx.lineTo(Math.cos(a)*19,Math.sin(a)*19); ctx.stroke();
       }
     }
-
     ctx.restore();
 
-    // Name tag (above kart)
     ctx.save(); ctx.textAlign='center'; ctx.font='bold 9px Arial';
     ctx.lineWidth=2.5; ctx.strokeStyle='#000';
     ctx.strokeText(this.name,this.x,this.y-14);
@@ -415,29 +488,61 @@ class Kart {
 //  AI KART
 // ═══════════════════════════════════════════
 class AIKart extends Kart {
-  constructor(cfg,x,y,angle,skill){
-    super(cfg,x,y,angle);
-    this.skill=skill;
-    this.wpIdx=0;
-    this.look=Math.round(4+skill*9);
-    this.rubberband=0;
-  }
+  constructor(cfg,x,y,angle,skill){ super(cfg,x,y,angle); this.skill=skill; this.wpIdx=0; this.look=Math.round(4+skill*9); this.rubberband=0; }
   ai(){
     if(this.finished) return {thr:0,str:0};
     const target=TRACK[(this.wpIdx+this.look)%TN];
     const dx=target.x-this.x, dy=target.y-this.y;
     const da=aDiff(this.angle,Math.atan2(dy,dx));
-    if(Math.hypot(TRACK[this.wpIdx].x-this.x,TRACK[this.wpIdx].y-this.y)<28)
-      this.wpIdx=(this.wpIdx+1)%TN;
+    if(Math.hypot(TRACK[this.wpIdx].x-this.x,TRACK[this.wpIdx].y-this.y)<28) this.wpIdx=(this.wpIdx+1)%TN;
     const str=clamp(da,-1,1);
     const slowCorner=1-Math.abs(da)*0.5;
     let thr=lerp(0.55,1,this.skill)*slowCorner;
     if(!this.onTrack) thr*=0.45;
-    // rubber-band: if far behind player, speed up
     thr=Math.min(1,thr+this.rubberband*0.15);
     return {thr,str};
   }
   update(){ const c=this.ai(); super.update(c.thr,c.str); }
+}
+
+// ═══════════════════════════════════════════
+//  REMOTE KART  (network-driven, interpolated)
+// ═══════════════════════════════════════════
+class RemoteKart extends Kart {
+  constructor(cfg, x, y, angle){
+    super(cfg, x, y, angle);
+    this.isRemote = true;
+    this.netX = x; this.netY = y; this.netAngle = angle; this.netSpeed = 0;
+  }
+  // Override update — interpolate toward latest network state, no physics
+  update(){
+    this.x     += (this.netX - this.x) * 0.22;
+    this.y     += (this.netY - this.y) * 0.22;
+    let da = this.netAngle - this.angle;
+    while(da >  Math.PI) da -= Math.PI*2;
+    while(da < -Math.PI) da += Math.PI*2;
+    this.angle += da * 0.22;
+    this.speed  = this.netSpeed;
+    this.onTrack = trackInfo(this.x, this.y).dist < TW * 0.88;
+
+    if(Math.abs(this.speed) > 0.5) this.trail.push({x:this.x,y:this.y,life:22,onTrack:this.onTrack});
+    this.trail = this.trail.filter(p => (p.life--, p.life > 0));
+    if(this.spinTmr  > 0) this.spinTmr--;
+    if(this.boostTmr > 0) this.boostTmr--;
+  }
+  applyNetworkState(s){
+    this.netX    = s.x;
+    this.netY    = s.y;
+    this.netAngle= s.angle;
+    this.netSpeed= s.speed || 0;
+    if(s.lap        !== undefined) this.lap        = s.lap;
+    if(s.item       !== undefined) this.item       = s.item;
+    if(s.spinTmr    >  0)         this.spinTmr    = s.spinTmr;
+    if(s.boostTmr   >  0)         this.boostTmr   = s.boostTmr;
+    if(s.finished   !== undefined) this.finished   = s.finished;
+    if(s.lastProg   !== undefined) this.lastProg   = s.lastProg;
+    if(s.checkpoint !== undefined) this.checkpoint = s.checkpoint;
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -456,8 +561,7 @@ class ItemBox {
     c.fillStyle=g; c.strokeStyle='rgba(255,255,255,0.9)'; c.lineWidth=2;
     c.beginPath(); c.roundRect(-12,-12,24,24,4); c.fill(); c.stroke();
     c.fillStyle='white'; c.font='bold 13px Arial'; c.textAlign='center'; c.textBaseline='middle';
-    c.fillText('?',0,0);
-    c.restore();
+    c.fillText('?',0,0); c.restore();
   }
   check(k){
     if(!this.active||Math.hypot(k.x-this.x,k.y-this.y)>18) return false;
@@ -465,7 +569,6 @@ class ItemBox {
   }
 }
 
-// Banana peel hazard
 class Banana {
   constructor(x,y){ this.x=x; this.y=y; this.life=540; }
   update(){ this.life--; }
@@ -477,64 +580,44 @@ class Banana {
 }
 
 // ═══════════════════════════════════════════
-//  TRACK OFFSCREEN CANVAS (for background)
+//  TRACK OFFSCREEN CANVAS
 // ═══════════════════════════════════════════
 const trackBuf = document.createElement('canvas');
 trackBuf.width=CW; trackBuf.height=CH;
 const tb=trackBuf.getContext('2d');
 
 function buildTrackBuf(){
-  // Grass
   tb.fillStyle='#3e8c2f'; tb.fillRect(0,0,CW,CH);
-  // Grass texture blobs
   tb.fillStyle='#367a28';
   for(let i=0;i<35;i++){
-    tb.beginPath();
-    tb.ellipse((i*137+50)%CW,(i*89+30)%CH,28,16,(i*.4)%Math.PI,0,Math.PI*2); tb.fill();
+    tb.beginPath(); tb.ellipse((i*137+50)%CW,(i*89+30)%CH,28,16,(i*.4)%Math.PI,0,Math.PI*2); tb.fill();
   }
-
-  // Draw road curb (red/white thick outer)
   const drawPath=(lw,col)=>{
     tb.strokeStyle=col; tb.lineWidth=lw; tb.lineCap='round'; tb.lineJoin='round';
     tb.beginPath(); TRACK.forEach((p,i)=>i===0?tb.moveTo(p.x,p.y):tb.lineTo(p.x,p.y)); tb.closePath(); tb.stroke();
   };
   drawPath(TW*2+22,'#cc1111');
-
-  // Alternate red/white curb checkers
   for(let i=0;i<TN;i+=5){
-    const col= Math.floor(i/5)%2===0 ? '#cc1111' : '#eeeeee';
+    const col=Math.floor(i/5)%2===0?'#cc1111':'#eeeeee';
     tb.strokeStyle=col; tb.lineWidth=TW*2+22; tb.lineCap='butt';
     tb.beginPath(); tb.moveTo(TRACK[i].x,TRACK[i].y); tb.lineTo(TRACK[(i+5)%TN].x,TRACK[(i+5)%TN].y); tb.stroke();
   }
-
-  // Asphalt
   drawPath(TW*2,'#5c5c5c');
-
-  // Road detail lines / slight texture
-  tb.strokeStyle='rgba(0,0,0,0.12)'; tb.lineWidth=TW*2;
-  tb.setLineDash([40,20]);
+  tb.strokeStyle='rgba(0,0,0,0.12)'; tb.lineWidth=TW*2; tb.setLineDash([40,20]);
   tb.beginPath(); TRACK.forEach((p,i)=>i===0?tb.moveTo(p.x,p.y):tb.lineTo(p.x,p.y)); tb.closePath(); tb.stroke();
   tb.setLineDash([]);
-
-  // Centre dashes
   tb.strokeStyle='rgba(255,255,255,0.35)'; tb.lineWidth=2; tb.setLineDash([18,18]);
   tb.beginPath(); TRACK.forEach((p,i)=>i===0?tb.moveTo(p.x,p.y):tb.lineTo(p.x,p.y)); tb.closePath(); tb.stroke();
   tb.setLineDash([]);
-
-  // Start/Finish checkerboard line
-  const p0=TRACK[0], p1=TRACK[1];
+  const p0=TRACK[0],p1=TRACK[1];
   const ang=Math.atan2(p1.y-p0.y,p1.x-p0.x)+Math.PI/2;
   tb.save(); tb.translate(p0.x,p0.y); tb.rotate(ang);
   const sq=8, cols=Math.floor(TW*2/sq);
-  for(let i=0;i<cols;i++)for(let j=0;j<4;j++){
-    tb.fillStyle=(i+j)%2===0?'white':'black';
-    tb.fillRect(-TW+i*sq,-sq*2+j*sq,sq,sq);
+  for(let i=0;i<cols;i++) for(let j=0;j<4;j++){
+    tb.fillStyle=(i+j)%2===0?'white':'black'; tb.fillRect(-TW+i*sq,-sq*2+j*sq,sq,sq);
   }
   tb.restore();
-
-  // Trees / decorations
-  const trees=[{x:450,y:75},{x:170,y:95},{x:750,y:100},{x:50,y:310},
-                {x:875,y:290},{x:55,y:510},{x:855,y:510},{x:450,y:35}];
+  const trees=[{x:450,y:75},{x:170,y:95},{x:750,y:100},{x:50,y:310},{x:875,y:290},{x:55,y:510},{x:855,y:510},{x:450,y:35}];
   trees.forEach(t=>{
     tb.fillStyle='#5c2e00'; tb.fillRect(t.x-4,t.y+4,8,13);
     tb.fillStyle='#1a5c0a'; tb.beginPath(); tb.arc(t.x,t.y,19,0,Math.PI*2); tb.fill();
@@ -545,6 +628,236 @@ function buildTrackBuf(){
 buildTrackBuf();
 
 // ═══════════════════════════════════════════
+//  MULTIPLAYER STATE & COLORS
+// ═══════════════════════════════════════════
+let gameMode        = 'solo';  // 'solo' | 'multiplayer'
+let playerKartIndex = 0;       // which karts[] slot is local player
+let network         = null;    // MKNetwork instance
+let remoteKartMap   = new Map(); // userId → RemoteKart
+
+const MP_COLORS = ['#E74C3C','#2471A3','#F5A623','#27AE60','#9B59B6','#1ABC9C','#F1C40F','#E91E8C'];
+let mpSelectedColor = MP_COLORS[0];
+
+// Base kart stats for multiplayer (same for all human players, fair race)
+const MP_BASE = { accel:.092, maxSpd:4.2, turn:.038, grip:.972 };
+
+// ═══════════════════════════════════════════
+//  MKNetwork  —  PeerJS star-topology P2P
+//  Prefix: MKR-  (Mario Kart Race)
+// ═══════════════════════════════════════════
+class MKNetwork {
+  constructor(){
+    this.peer        = null;
+    this.connections = {};  // Host: { clientId → conn }
+    this.conn        = null; // Client: conn to host
+    this.userId      = 'mk_' + Math.random().toString(36).slice(2,9);
+    this.userName    = 'Racer';
+    this.userColor   = MP_COLORS[0];
+    this.roomCode    = null;
+    this.isHost      = false;
+    this.myIndex     = 0;
+    this.roomPlayers = {}; // { userId: { name, color, index } }
+
+    // Callbacks (set by caller)
+    this.onPlayerJoined = null; // ({ id, name, color, index }) => {}
+    this.onPlayerLeft   = null; // (userId) => {}
+    this.onKartSync     = null; // (userId, state) => {}
+    this.onGameState    = null; // (state: string) => {}
+    this.onBanana       = null; // (x, y) => {}
+    this.onItemPickup   = null; // (boxIdx, userId) => {}
+
+    this._lastSync = 0;
+    this._syncHz   = 66; // ~15 Hz
+  }
+
+  // ── Host: create room ───────────────────
+  createRoom(code = null){
+    return new Promise((resolve, reject) => {
+      const c = code ? code.toUpperCase().trim() : this._genCode();
+      this.roomCode = c;
+      this.isHost   = true;
+      this.myIndex  = 0;
+
+      this.peer = new Peer('MKR-' + c);
+      this.peer.on('open', () => {
+        this.roomPlayers[this.userId] = { name:this.userName, color:this.userColor, index:0 };
+        resolve(c);
+      });
+      this.peer.on('connection', conn => this._onIncoming(conn));
+      this.peer.on('error', err => {
+        if(err.type === 'unavailable-id'){
+          this.peer.destroy();
+          reject(new Error(`Room "${c}" is already in use. Try a different code.`));
+        } else reject(new Error(err.message || 'PeerJS error'));
+      });
+    });
+  }
+
+  // ── Client: join room ──────────────────
+  joinRoom(code){
+    return new Promise((resolve, reject) => {
+      code = code.toUpperCase().trim();
+      this.roomCode = code;
+      this.isHost   = false;
+      let done = false;
+
+      this.peer = new Peer();
+      this.peer.on('open', () => {
+        this.conn = this.peer.connect('MKR-' + code);
+        this.conn.on('open', () => {
+          this.conn.send({ type:'join', id:this.userId, name:this.userName, color:this.userColor });
+        });
+        this.conn.on('data', data => {
+          // Initial handshake messages resolve/reject the Promise
+          if(!done && data.type === 'welcome'){
+            done = true;
+            this.myIndex     = data.index;
+            this.roomPlayers = data.players;
+            resolve(data.index);
+          } else if(!done && data.type === 'join_denied'){
+            done = true;
+            reject(new Error(data.reason));
+          } else {
+            // Runtime messages go through normal handler
+            this._runtimeClientMsg(data);
+          }
+        });
+        this.conn.on('close', () => { if(this.onGameState) this.onGameState('disconnected'); });
+        this.conn.on('error', err => { if(!done){ done=true; reject(new Error('Connection error: '+err.message)); } });
+      });
+      this.peer.on('error', err => { if(!done){ done=true; reject(new Error('Failed to connect: '+err.type)); } });
+    });
+  }
+
+  // ── Host: handle incoming client connection ──
+  _onIncoming(conn){
+    conn.on('data', data => this._hostMsg(conn, data));
+    conn.on('close', () => {
+      let leftId = null;
+      for(const [id, c] of Object.entries(this.connections)){ if(c === conn){ leftId = id; break; } }
+      if(leftId){
+        delete this.connections[leftId];
+        delete this.roomPlayers[leftId];
+        if(this.onPlayerLeft) this.onPlayerLeft(leftId);
+        this._bcast({ type:'player_left', id:leftId, players:this.roomPlayers });
+      }
+    });
+  }
+
+  // ── Host: process messages from a client ──
+  _hostMsg(conn, data){
+    switch(data.type){
+      case 'join': {
+        const used = Object.values(this.roomPlayers).map(p => p.index);
+        let idx = -1;
+        for(let i=1;i<=3;i++){ if(!used.includes(i)){ idx=i; break; } }
+        if(idx === -1){ conn.send({ type:'join_denied', reason:'Room is full (4/4)' }); conn.close(); return; }
+
+        this.connections[data.id] = conn;
+        this.roomPlayers[data.id] = { name:data.name, color:data.color, index:idx };
+
+        conn.send({ type:'welcome', id:data.id, index:idx, players:this.roomPlayers });
+        this._bcast({ type:'player_joined', id:data.id, playerData:this.roomPlayers[data.id], players:this.roomPlayers }, data.id);
+        if(this.onPlayerJoined) this.onPlayerJoined({ id:data.id, ...this.roomPlayers[data.id] });
+        break;
+      }
+      case 'sync_kart':
+        this._bcast({ type:'sync_kart', id:data.id, state:data.state }, data.id);
+        if(this.onKartSync) this.onKartSync(data.id, data.state);
+        break;
+      case 'banana':
+        this._bcast({ type:'banana', x:data.x, y:data.y }, data.id);
+        if(this.onBanana) this.onBanana(data.x, data.y);
+        break;
+      case 'item_pickup':
+        this._bcast({ type:'item_pickup', boxIdx:data.boxIdx, id:data.id }, data.id);
+        if(this.onItemPickup) this.onItemPickup(data.boxIdx, data.id);
+        break;
+    }
+  }
+
+  // ── Client: runtime messages from host ──
+  _runtimeClientMsg(data){
+    switch(data.type){
+      case 'player_joined':
+        this.roomPlayers = data.players;
+        if(this.onPlayerJoined) this.onPlayerJoined({ id:data.id, ...data.playerData });
+        break;
+      case 'player_left':
+        this.roomPlayers = data.players;
+        if(this.onPlayerLeft) this.onPlayerLeft(data.id);
+        break;
+      case 'game_state':
+        if(this.onGameState) this.onGameState(data.state);
+        break;
+      case 'sync_kart':
+        if(this.onKartSync) this.onKartSync(data.id, data.state);
+        break;
+      case 'banana':
+        if(this.onBanana) this.onBanana(data.x, data.y);
+        break;
+      case 'item_pickup':
+        if(this.onItemPickup) this.onItemPickup(data.boxIdx, data.id);
+        break;
+    }
+  }
+
+  // ── Real-time sync ──────────────────────
+  syncKart(s){
+    const now = Date.now();
+    if(now - this._lastSync < this._syncHz) return;
+    this._lastSync = now;
+    const msg = { type:'sync_kart', id:this.userId, state:s };
+    if(this.isHost) this._bcast(msg);
+    else if(this.conn && this.conn.open) this.conn.send(msg);
+  }
+
+  sendBanana(x, y){
+    const msg = { type:'banana', x, y };
+    if(this.isHost){ this._bcast(msg); if(this.onBanana) this.onBanana(x,y); }
+    else if(this.conn && this.conn.open) this.conn.send(msg);
+  }
+
+  sendItemPickup(boxIdx){
+    const msg = { type:'item_pickup', boxIdx, id:this.userId };
+    if(this.isHost) this._bcast(msg);
+    else if(this.conn && this.conn.open) this.conn.send(msg);
+  }
+
+  // Host only: broadcast countdown to all clients (host starts independently)
+  startGame(){
+    if(!this.isHost) return;
+    this._bcast({ type:'game_state', state:'countdown' });
+  }
+
+  _bcast(data, excludeId = null){
+    if(!this.isHost) return;
+    for(const [id, conn] of Object.entries(this.connections)){
+      if(id !== excludeId && conn.open) conn.send(data);
+    }
+  }
+
+  leaveRoom(){
+    if(this.isHost){
+      this._bcast({ type:'game_state', state:'disconnected' });
+      for(const conn of Object.values(this.connections)) conn.close();
+      this.connections = {};
+    } else if(this.conn){
+      this.conn.close(); this.conn = null;
+    }
+    if(this.peer){ this.peer.destroy(); this.peer = null; }
+    this.roomCode = null; this.isHost = false; this.roomPlayers = {};
+  }
+
+  _genCode(){
+    const ch = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let s = '';
+    for(let i=0;i<4;i++) s += ch[Math.floor(Math.random()*ch.length)];
+    return s;
+  }
+}
+
+// ═══════════════════════════════════════════
 //  GAME STATE
 // ═══════════════════════════════════════════
 let karts=[], boxes=[], bananas=[];
@@ -552,36 +865,65 @@ let state='start'; // start|countdown|race|over
 let finishOrder=[], frame=0;
 
 const CONFIGS=[
-  {name:'YOU',    color:'#E74C3C', accel:.092, maxSpd:4.2, turn:.038, grip:.972},
-  {name:'BOWSER', color:'#2471A3', accel:.075, maxSpd:4.5, turn:.030, grip:.965},
-  {name:'TOAD',   color:'#F5A623', accel:.105, maxSpd:3.85,turn:.042, grip:.975},
-  {name:'YOSHI',  color:'#27AE60', accel:.088, maxSpd:4.1, turn:.035, grip:.970},
+  {name:'BOWSER',color:'#2471A3',accel:.075,maxSpd:4.5,turn:.030,grip:.965},
+  {name:'TOAD',  color:'#F5A623',accel:.105,maxSpd:3.85,turn:.042,grip:.975},
+  {name:'YOSHI', color:'#27AE60',accel:.088,maxSpd:4.1, turn:.035,grip:.970},
+  {name:'DK',    color:'#8B4513',accel:.082,maxSpd:4.3, turn:.033,grip:.968},
 ];
 const POS_LBL=['1ST','2ND','3RD','4TH'];
 
-function initGame(){
-  finishOrder=[]; bananas=[]; frame=0;
-
-  // Item boxes from track progress positions
-  boxes = BOX_PROG.map(p=>{
-    const idx=Math.round(p*TN)%TN;
-    return new ItemBox(TRACK[idx]);
-  });
-
-  // Starting grid
+function gridPos(i){
   const sp=TRACK[0], ep=TRACK[1];
   const sa=Math.atan2(ep.y-sp.y,ep.x-sp.x);
   const perp=sa+Math.PI/2;
+  const row=Math.floor(i/2), col=i%2;
+  const side=(col-0.5)*TW*0.55;
+  const back=row*38;
+  return {
+    x: sp.x+Math.cos(perp)*side-Math.cos(sa)*back,
+    y: sp.y+Math.sin(perp)*side-Math.sin(sa)*back,
+    angle: sa
+  };
+}
 
-  karts=CONFIGS.map((cfg,i)=>{
-    const row=Math.floor(i/2), col=i%2;
-    const side=(col-0.5)*TW*0.55;
-    const back=row*38;
-    const x=sp.x+Math.cos(perp)*side-Math.cos(sa)*back;
-    const y=sp.y+Math.sin(perp)*side-Math.sin(sa)*back;
-    if(i===0) return new Kart(cfg,x,y,sa);
-    return new AIKart(cfg,x,y,sa,0.52+(i-1)*.12);
-  });
+function initGame(){
+  finishOrder=[]; bananas=[]; frame=0;
+  remoteKartMap.clear();
+
+  boxes = BOX_PROG.map(p=>{ const idx=Math.round(p*TN)%TN; return new ItemBox(TRACK[idx]); });
+
+  if(gameMode === 'solo'){
+    playerKartIndex = 0;
+    karts = [{name:'YOU',color:'#E74C3C',accel:.092,maxSpd:4.2,turn:.038,grip:.972}, ...CONFIGS].map((cfg,i)=>{
+      const {x,y,angle} = gridPos(i);
+      if(i===0) return new Kart(cfg,x,y,angle);
+      return new AIKart(cfg,x,y,angle,0.52+(i-1)*.12);
+    });
+  } else {
+    // Multiplayer: build karts from network room state
+    playerKartIndex = network.myIndex;
+    const players   = network.roomPlayers;
+    karts = [];
+    for(let i=0;i<4;i++){
+      const {x,y,angle} = gridPos(i);
+      const entry = Object.entries(players).find(([,p]) => p.index === i);
+      if(entry){
+        const [uid, p] = entry;
+        const cfg = { ...MP_BASE, name:p.name, color:p.color };
+        if(uid === network.userId){
+          karts[i] = new Kart(cfg, x, y, angle);
+        } else {
+          const rk = new RemoteKart(cfg, x, y, angle);
+          karts[i] = rk;
+          remoteKartMap.set(uid, rk);
+        }
+      } else {
+        // Fill empty slot with an AI kart
+        const ai = CONFIGS[(i-1+CONFIGS.length)%CONFIGS.length];
+        karts[i] = new AIKart({...ai}, x, y, angle, 0.52+(i)*.10);
+      }
+    }
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -591,30 +933,27 @@ const keys={};
 window.addEventListener('keydown',e=>{ keys[e.key]=true; if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault(); });
 window.addEventListener('keyup',e=>{ keys[e.key]=false; });
 
-// Mobile D-pad
-const dmap={ dUp:'up', dDown:'dn', dLeft:'lt', dRight:'rt', dItem:'item' };
+const dmap={ dUp:'up',dDown:'dn',dLeft:'lt',dRight:'rt',dItem:'item' };
 Object.entries(dmap).forEach(([id,flag])=>{
-  const el=document.getElementById(id);
-  if(!el) return;
-  const on=()=>{ keys['_'+flag]=true; };
-  const off=()=>{ keys['_'+flag]=false; };
+  const el=document.getElementById(id); if(!el) return;
+  const on=()=>{ keys['_'+flag]=true; }, off=()=>{ keys['_'+flag]=false; };
   el.addEventListener('touchstart',e=>{ e.preventDefault(); on(); },{passive:false});
   el.addEventListener('touchend',off);
   el.addEventListener('mousedown',on); el.addEventListener('mouseup',off);
 });
 
 function getThrottle(){ return (keys['ArrowUp']||keys['w']||keys['W']||keys['_up'])?1:(keys['ArrowDown']||keys['s']||keys['S']||keys['_dn'])?-0.6:0; }
-function getSteer(){ return (keys['ArrowLeft']||keys['a']||keys['A']||keys['_lt'])?-1:(keys['ArrowRight']||keys['d']||keys['D']||keys['_rt'])?1:0; }
+function getSteer(){    return (keys['ArrowLeft']||keys['a']||keys['A']||keys['_lt'])?-1:(keys['ArrowRight']||keys['d']||keys['D']||keys['_rt'])?1:0; }
+
 function useItem(){
   if(keys[' ']||keys['_item']){
-    const p=karts[0];
+    const p=karts[playerKartIndex]; if(!p) return;
     if(p.item==='mushroom'){ p.boostTmr=80; p.item=null; }
-    else if(p.item==='banana'){ 
-      // Spawn banana behind the kart to avoid instant self-collision
-      const bx = p.x - Math.cos(p.angle) * 28;
-      const by = p.y - Math.sin(p.angle) * 28;
-      bananas.push(new Banana(bx,by)); 
-      p.item=null; 
+    else if(p.item==='banana'){
+      const bx=p.x-Math.cos(p.angle)*28, by=p.y-Math.sin(p.angle)*28;
+      bananas.push(new Banana(bx,by));
+      if(gameMode==='multiplayer'&&network) network.sendBanana(bx,by);
+      p.item=null;
     }
     keys[' ']=false; keys['_item']=false;
   }
@@ -624,48 +963,37 @@ function useItem(){
 //  RENDER
 // ═══════════════════════════════════════════
 function renderScene(){
-  // Pre-built track
   ctx.drawImage(trackBuf,0,0);
-
-  // Bananas & item boxes
   bananas.forEach(b=>b.draw(ctx));
   boxes.forEach(b=>b.draw(ctx));
-
-  // Karts sorted by Y (depth)
   [...karts].sort((a,b)=>a.y-b.y).forEach(k=>k.draw(ctx));
 }
 
 function renderHUD(){
   if(state!=='race') return;
-  const player=karts[0];
-  const sorted=[...karts].map((k,i)=>({k,i,score:(k.lap-1)+(k.lastProg||0)}))
-    .sort((a,b)=>b.score-a.score);
-  const rank=sorted.findIndex(s=>s.i===0);
-
+  const player=karts[playerKartIndex]; if(!player) return;
+  const sorted=[...karts].map((k)=>({k,score:(k.lap-1)+(k.lastProg||0)})).sort((a,b)=>b.score-a.score);
+  const rank=sorted.findIndex(s=>s.k===player);
   document.getElementById('lapBox').textContent=`LAP ${Math.min(player.lap,LAPS)} / ${LAPS}`;
-  document.getElementById('posBox').textContent=POS_LBL[rank];
+  document.getElementById('posBox').textContent=POS_LBL[Math.max(0,rank)]||'4TH';
   document.getElementById('itemBox').textContent=player.item==='mushroom'?'🍄':player.item==='banana'?'🍌':'';
   document.getElementById('speedBox').textContent=`${Math.round(Math.abs(player.speed)*58)} km/h`;
 }
 
 function renderMinimap(){
   if(state!=='race') return;
-  const mc=mmCv;
-  const sc=Math.min(mc.width/CW,mc.height/CH)*0.88;
-  const ox=(mc.width-CW*sc)/2, oy=(mc.height-CH*sc)/2;
-  mmCtx.clearRect(0,0,mc.width,mc.height);
-
-  // Track line
+  const sc=Math.min(mmCv.width/CW,mmCv.height/CH)*0.88;
+  const ox=(mmCv.width-CW*sc)/2, oy=(mmCv.height-CH*sc)/2;
+  mmCtx.clearRect(0,0,mmCv.width,mmCv.height);
   mmCtx.strokeStyle='#777'; mmCtx.lineWidth=5; mmCtx.lineJoin='round';
   mmCtx.beginPath();
-  TRACK.forEach((p,i)=>{ const x=ox+p.x*sc, y=oy+p.y*sc; i===0?mmCtx.moveTo(x,y):mmCtx.lineTo(x,y); });
+  TRACK.forEach((p,i)=>{ const x=ox+p.x*sc,y=oy+p.y*sc; i===0?mmCtx.moveTo(x,y):mmCtx.lineTo(x,y); });
   mmCtx.closePath(); mmCtx.stroke();
-
-  // Kart dots
   karts.forEach((k,i)=>{
+    const isLocal=(i===playerKartIndex);
     mmCtx.fillStyle=k.color;
-    mmCtx.beginPath(); mmCtx.arc(ox+k.x*sc,oy+k.y*sc,i===0?4:3,0,Math.PI*2); mmCtx.fill();
-    if(i===0){ mmCtx.strokeStyle='white'; mmCtx.lineWidth=1.5; mmCtx.stroke(); }
+    mmCtx.beginPath(); mmCtx.arc(ox+k.x*sc,oy+k.y*sc,isLocal?4:3,0,Math.PI*2); mmCtx.fill();
+    if(isLocal){ mmCtx.strokeStyle='white'; mmCtx.lineWidth=1.5; mmCtx.stroke(); }
   });
 }
 
@@ -673,20 +1001,16 @@ function renderMinimap(){
 //  RACE OVER
 // ═══════════════════════════════════════════
 function showOver(){
-  const sorted=[...karts].map((k,i)=>({k,i,score:k.finished?100+(k.finishRank||99):(k.lap-1)+(k.lastProg||0)}))
-    .sort((a,b)=>a.score-b.score||b.score-a.score);
-  // Build real ranking by finish order first, then track progress for non-finishers
   const positions=[...finishOrder];
-  karts.filter(k=>!k.finished).sort((a,b)=>(b.lap-1+(b.lastProg||0))-(a.lap-1+(a.lastProg||0)))
-    .forEach(k=>positions.push(k));
+  karts.filter(k=>!k.finished).sort((a,b)=>(b.lap-1+(b.lastProg||0))-(a.lap-1+(a.lastProg||0))).forEach(k=>positions.push(k));
 
-  const rank=positions.findIndex(k=>k===karts[0]);
-  document.getElementById('overTitle').textContent=
-    rank===0?'🏆 YOU WIN!':rank===1?'🥈 2nd Place!':rank===2?'🥉 3rd Place!':'💨 4th Place';
-  document.getElementById('overSub').textContent=
-    rank===0?'Incredible driving!':rank<=1?'So close!':'Better luck next time!';
-  const ul=document.getElementById('results');
-  ul.innerHTML=positions.map((k,i)=>`<li>${POS_LBL[i]} — ${k.name}</li>`).join('');
+  const player=karts[playerKartIndex];
+  const rank=positions.findIndex(k=>k===player);
+  document.getElementById('overTitle').textContent=rank===0?'🏆 YOU WIN!':rank===1?'🥈 2nd Place!':rank===2?'🥉 3rd Place!':'💨 4th Place';
+  document.getElementById('overSub').textContent=rank===0?'Incredible driving!':rank<=1?'So close!':'Better luck next time!';
+  document.getElementById('results').innerHTML=positions.map((k,i)=>`<li>${POS_LBL[i]} — ${k.name}</li>`).join('');
+  document.getElementById('restartBtn').textContent=gameMode==='multiplayer'?'Back to Menu':'Race Again';
+
   setTimeout(()=>{ document.getElementById('overScreen').style.display='flex'; },1200);
 }
 
@@ -697,49 +1021,66 @@ function update(){
   frame++;
   if(state!=='race') return;
 
-  // Player
+  const player=karts[playerKartIndex]; if(!player) return;
+
+  // Local player input
   useItem();
-  const player=karts[0];
   player.update(getThrottle(), getSteer());
 
-  // AI — rubber-band: check player lap lead
+  // Sync local kart state over network (~15 Hz, throttled inside)
+  if(gameMode==='multiplayer'&&network){
+    network.syncKart({
+      x:          Math.round(player.x     * 10)/10,
+      y:          Math.round(player.y     * 10)/10,
+      angle:      Math.round(player.angle * 1000)/1000,
+      speed:      Math.round(player.speed * 1000)/1000,
+      lap:        player.lap,
+      item:       player.item,
+      spinTmr:    player.spinTmr,
+      boostTmr:   player.boostTmr,
+      finished:   player.finished,
+      lastProg:   player.lastProg,
+      checkpoint: player.checkpoint,
+    });
+  }
+
+  // AI karts  +  remote kart interpolation
   const pScore=(player.lap-1)+(player.lastProg||0);
-  karts.slice(1).forEach(k=>{
-    k.rubberband = clamp(pScore-((k.lap-1)+(k.lastProg||0)), 0, 2);
-    k.update();
-    // AI random item use
-    if(k.item && Math.random()<0.006){
-      if(k.item==='mushroom'){ k.boostTmr=80; k.item=null; }
-      else{ 
-        // Spawn banana behind the AI kart
-        const bx = k.x - Math.cos(k.angle) * 28;
-        const by = k.y - Math.sin(k.angle) * 28;
-        bananas.push(new Banana(bx,by)); 
-        k.item=null; 
+  karts.forEach((k,i)=>{
+    if(i===playerKartIndex) return;
+    if(k instanceof RemoteKart){ k.update(); return; }
+    if(k instanceof AIKart){
+      k.rubberband=clamp(pScore-((k.lap-1)+(k.lastProg||0)),0,2);
+      k.update();
+      if(k.item&&Math.random()<0.006){
+        if(k.item==='mushroom'){ k.boostTmr=80; k.item=null; }
+        else{ bananas.push(new Banana(k.x-Math.cos(k.angle)*28, k.y-Math.sin(k.angle)*28)); k.item=null; }
       }
     }
   });
 
-  // Boxes
-  boxes.forEach(b=>{
+  // Item boxes
+  boxes.forEach((b,idx)=>{
     b.update();
-    karts.forEach(k=>{ if(!k.item&&b.check(k)) k.item=Math.random()<.5?'mushroom':'banana'; });
+    karts.forEach(k=>{
+      if(!k.item&&b.check(k)){
+        k.item=Math.random()<.5?'mushroom':'banana';
+        if(gameMode==='multiplayer'&&network&&k===player) network.sendItemPickup(idx);
+      }
+    });
   });
 
   // Bananas
-  bananas.forEach(b=>{
-    b.update();
-    karts.forEach(k=>{ if(b.check(k)){ k.spinTmr=85; k.speed*=0.25; } });
-  });
+  bananas.forEach(b=>{ b.update(); karts.forEach(k=>{ if(b.check(k)){ k.spinTmr=85; k.speed*=0.25; } }); });
   bananas=bananas.filter(b=>b.life>0);
 
-  // Kart-kart push
+  // Kart–kart push (works for local + remote + AI)
   for(let i=0;i<karts.length;i++){
     for(let j=i+1;j<karts.length;j++){
       const a=karts[i],b=karts[j];
       const dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy);
       if(d<22&&d>0){
-        const push=(22-d)*0.45, nx=dx/d, ny=dy/d;
+        const push=(22-d)*0.45,nx=dx/d,ny=dy/d;
         a.x-=nx*push*.5; a.y-=ny*push*.5;
         b.x+=nx*push*.5; b.y+=ny*push*.5;
         const rv=(a.speed-b.speed)*.28; a.speed-=rv; b.speed+=rv;
@@ -748,17 +1089,10 @@ function update(){
   }
 
   // Finish tracking
-  karts.forEach(k=>{
-    if(k.finished&&!finishOrder.includes(k)){
-      k.finishRank=finishOrder.length+1;
-      finishOrder.push(k);
-    }
-  });
+  karts.forEach(k=>{ if(k.finished&&!finishOrder.includes(k)){ k.finishRank=finishOrder.length+1; finishOrder.push(k); } });
 
-  // Race ends when player finishes or all karts done
-  if(karts[0].finished||(finishOrder.length===karts.length)){
-    state='over'; showOver();
-  }
+  // End race when local player finishes (or all karts done)
+  if(player.finished||(finishOrder.length===karts.length)){ state='over'; showOver(); }
 }
 
 function loop(){
@@ -769,25 +1103,250 @@ function loop(){
 // ═══════════════════════════════════════════
 //  RACE FLOW
 // ═══════════════════════════════════════════
-function startRace(){
-  document.getElementById('startScreen').style.display='none';
-  document.getElementById('overScreen').style.display='none';
-  initGame(); state='countdown';
+function runCountdown(onDone){
   let n=3;
   const cd=document.getElementById('cdNum');
   cd.style.display='flex'; cd.textContent=n;
   const iv=setInterval(()=>{
     n--;
-    if(n<=0){
-      cd.textContent='GO!'; clearInterval(iv);
-      setTimeout(()=>{ cd.style.display='none'; state='race'; },650);
-    } else { cd.textContent=n; }
+    if(n<=0){ cd.textContent='GO!'; clearInterval(iv); setTimeout(()=>{ cd.style.display='none'; state='race'; if(onDone) onDone(); },650); }
+    else cd.textContent=n;
   },1000);
 }
 
-document.getElementById('startBtn').addEventListener('click', startRace);
-document.getElementById('restartBtn').addEventListener('click', startRace);
+function startSoloRace(){
+  if(network){ network.leaveRoom(); network=null; }
+  gameMode='solo'; playerKartIndex=0;
+  document.getElementById('startScreen').style.display='none';
+  document.getElementById('overScreen').style.display='none';
+  initGame(); state='countdown';
+  runCountdown();
+}
 
+function startMultiplayerRace(){
+  document.getElementById('lobbyScreen').style.display='none';
+  document.getElementById('overScreen').style.display='none';
+  initGame(); state='countdown';
+  runCountdown();
+}
+
+// ═══════════════════════════════════════════
+//  MULTIPLAYER UI HELPERS
+// ═══════════════════════════════════════════
+let _toastTimer = null;
+function showToast(msg, duration=3000){
+  const t=document.getElementById('mkToast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>t.classList.remove('show'), duration);
+}
+
+function updateLobbyUI(){
+  if(!network) return;
+  const list=document.getElementById('lobbyPlayers');
+  list.innerHTML='';
+  Object.entries(network.roomPlayers)
+    .sort(([,a],[,b])=>a.index-b.index)
+    .forEach(([uid,p])=>{
+      const li=document.createElement('li');
+      li.className='lobby-player';
+      li.style.borderLeftColor=p.color;
+      const isMe=uid===network.userId;
+      const isHost=p.index===0;
+      li.innerHTML=`
+        <div class="lp-dot" style="background:${p.color};box-shadow:0 0 6px ${p.color}88;"></div>
+        <span class="lp-name">${p.name}${isMe?'<span class="lp-you">(you)</span>':''}</span>
+        ${isHost?'<span class="lp-badge">HOST</span>':''}
+      `;
+      list.appendChild(li);
+    });
+  const startBtn=document.getElementById('lobbyStartBtn');
+  const waiting =document.getElementById('lobbyWaiting');
+  startBtn.style.display=network.isHost?'block':'none';
+  waiting.style.display =network.isHost?'none':'block';
+}
+
+function returnToMenu(){
+  if(network){ network.leaveRoom(); network=null; }
+  gameMode='solo'; playerKartIndex=0; remoteKartMap.clear();
+  state='start';
+  document.getElementById('overScreen').style.display  ='none';
+  document.getElementById('lobbyScreen').style.display ='none';
+  document.getElementById('mpScreen').style.display    ='none';
+  document.getElementById('startScreen').style.display ='flex';
+}
+
+function setupNetworkCallbacks(){
+  network.onPlayerJoined=(p)=>{
+    showToast(`${p.name} joined the race! 🏎️`);
+    updateLobbyUI();
+  };
+  network.onPlayerLeft=(uid)=>{
+    const name=network.roomPlayers[uid]?.name||'A player';
+    showToast(`${name} disconnected.`);
+    updateLobbyUI();
+    // During an active race: convert their RemoteKart to AI
+    const rk=remoteKartMap.get(uid);
+    if(rk&&state==='race'){
+      const idx=karts.indexOf(rk);
+      if(idx>=0){
+        const cfg=CONFIGS[(idx-1+CONFIGS.length)%CONFIGS.length];
+        karts[idx]=new AIKart({...cfg,name:rk.name,color:rk.color},rk.x,rk.y,rk.angle,0.6);
+      }
+      remoteKartMap.delete(uid);
+    }
+  };
+  network.onKartSync=(uid,s)=>{
+    const rk=remoteKartMap.get(uid);
+    if(rk) rk.applyNetworkState(s);
+  };
+  network.onBanana=(x,y)=>{ bananas.push(new Banana(x,y)); };
+  network.onItemPickup=(boxIdx)=>{
+    const b=boxes[boxIdx];
+    if(b&&b.active){ b.active=false; b.respawn=320; }
+  };
+  network.onGameState=(gs)=>{
+    if(gs==='countdown'){
+      // Client received start signal from host
+      startMultiplayerRace();
+    } else if(gs==='disconnected'){
+      showToast('Host disconnected. Returning to menu…',3500);
+      setTimeout(returnToMenu,3500);
+    }
+  };
+}
+
+// ═══════════════════════════════════════════
+//  BUILD COLOR PICKER
+// ═══════════════════════════════════════════
+(function buildColorPicker(){
+  const container=document.getElementById('mpColorPicker');
+  MP_COLORS.forEach(hex=>{
+    const btn=document.createElement('button');
+    btn.className='mp-color-dot'+(hex===mpSelectedColor?' active':'');
+    btn.style.background=hex;
+    btn.style.boxShadow=`0 0 0 0 ${hex}`;
+    btn.type='button';
+    btn.title=hex;
+    btn.addEventListener('click',()=>{
+      mpSelectedColor=hex;
+      container.querySelectorAll('.mp-color-dot').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+    container.appendChild(btn);
+  });
+})();
+
+// Auto-uppercase code inputs
+['mpCreateCode','mpJoinCode'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',function(){
+    const s=this.selectionStart;
+    this.value=this.value.toUpperCase().replace(/[^A-Z]/g,'');
+    this.setSelectionRange(s,s);
+  });
+});
+
+// ═══════════════════════════════════════════
+//  EVENT LISTENERS
+// ═══════════════════════════════════════════
+
+// ── Solo Race ──
+document.getElementById('startBtn').addEventListener('click', startSoloRace);
+
+// ── Open Multiplayer Screen ──
+document.getElementById('multiplayerBtn').addEventListener('click',()=>{
+  document.getElementById('startScreen').style.display='none';
+  document.getElementById('mpScreen').style.display='flex';
+  const saved=localStorage.getItem('mk_racerName');
+  if(saved) document.getElementById('mpName').value=saved;
+});
+
+// ── Back from MP Screen ──
+document.getElementById('mpBackBtn').addEventListener('click',()=>{
+  document.getElementById('mpScreen').style.display='none';
+  document.getElementById('startScreen').style.display='flex';
+});
+
+// ── Create Room ──
+document.getElementById('mpCreateBtn').addEventListener('click', async()=>{
+  const name  =(document.getElementById('mpName').value.trim()||'Racer').slice(0,12);
+  const code  = document.getElementById('mpCreateCode').value.trim().toUpperCase()||'RACE';
+  localStorage.setItem('mk_racerName', name);
+
+  const btn=document.getElementById('mpCreateBtn');
+  btn.textContent='⏳'; btn.disabled=true;
+
+  try {
+    gameMode='multiplayer';
+    network=new MKNetwork();
+    network.userName =name;
+    network.userColor=mpSelectedColor;
+    setupNetworkCallbacks();
+
+    await network.createRoom(code);
+
+    document.getElementById('mpScreen').style.display    ='none';
+    document.getElementById('lobbyScreen').style.display ='flex';
+    document.getElementById('lobbyCode').textContent     = network.roomCode;
+    updateLobbyUI();
+  } catch(err){
+    showToast('❌ '+err.message, 4000);
+    if(network){ network.leaveRoom(); network=null; }
+    gameMode='solo';
+  } finally {
+    btn.textContent='Create'; btn.disabled=false;
+  }
+});
+
+// ── Join Room ──
+document.getElementById('mpJoinBtn').addEventListener('click', async()=>{
+  const name=(document.getElementById('mpName').value.trim()||'Racer').slice(0,12);
+  const code= document.getElementById('mpJoinCode').value.trim();
+  if(!code||code.length<4){ showToast('Enter a 4-letter room code'); return; }
+  localStorage.setItem('mk_racerName', name);
+
+  const btn=document.getElementById('mpJoinBtn');
+  btn.textContent='⏳'; btn.disabled=true;
+
+  try {
+    gameMode='multiplayer';
+    network=new MKNetwork();
+    network.userName =name;
+    network.userColor=mpSelectedColor;
+    setupNetworkCallbacks();
+
+    await network.joinRoom(code);
+
+    document.getElementById('mpScreen').style.display    ='none';
+    document.getElementById('lobbyScreen').style.display ='flex';
+    document.getElementById('lobbyCode').textContent     = network.roomCode;
+    updateLobbyUI();
+  } catch(err){
+    showToast('❌ '+err.message, 4000);
+    if(network){ network.leaveRoom(); network=null; }
+    gameMode='solo';
+  } finally {
+    btn.textContent='Join'; btn.disabled=false;
+  }
+});
+
+// ── Lobby: Start Race (host only) ──
+document.getElementById('lobbyStartBtn').addEventListener('click',()=>{
+  if(!network||!network.isHost) return;
+  network.startGame();      // broadcast 'countdown' to clients
+  startMultiplayerRace();   // host starts locally
+});
+
+// ── Lobby: Leave Room ──
+document.getElementById('lobbyLeaveBtn').addEventListener('click', returnToMenu);
+
+// ── Race Over: Race Again / Back to Menu ──
+document.getElementById('restartBtn').addEventListener('click',()=>{
+  if(gameMode==='multiplayer') returnToMenu();
+  else startSoloRace();
+});
+
+// ── Start render loop ──
 loop();
 </script>
 </body>
