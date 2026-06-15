@@ -22,17 +22,6 @@
  * ─────────────────────────────────────────────────────
  */
 
-// ⚠️ REPLACE THIS with your Firebase project config!
-const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'YOUR_PROJECT.firebaseapp.com',
-  databaseURL: 'https://YOUR_PROJECT-default-rtdb.firebaseio.com',
-  projectId: 'YOUR_PROJECT',
-  storageBucket: 'YOUR_PROJECT.appspot.com',
-  messagingSenderId: 'YOUR_SENDER_ID',
-  appId: 'YOUR_APP_ID',
-};
-
 // ─── Initialize ──────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -45,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Create and initialize the game
   const game = new Game();
-  game.init(firebaseConfig);
+  game.init();
 
   // Expose for debugging
   window.game = game;

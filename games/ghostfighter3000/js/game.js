@@ -55,10 +55,11 @@ class Game {
 
   // ─── Initialization ────────────────────────────────────
 
-  init(firebaseConfig) {
+  init() {
     this._initThreeJS();
-    this._initFirebase(firebaseConfig);
+    this._initNetwork();
     this._initColorPicker();
+    this._initUsername();
     this._initEventListeners();
     this.ui.showMenu();
     this._animate();
@@ -93,17 +94,15 @@ class Game {
     });
   }
 
-  _initFirebase(config) {
-    // Check if Firebase config is valid
-    if (!config.apiKey || config.apiKey === 'YOUR_API_KEY') {
-      console.warn('Firebase not configured. Running in demo mode.');
-      this.demoMode = true;
-      return;
-    }
+  _initNetwork() {
+    this.network.init();
+  }
 
-    const ok = this.network.init(config);
-    if (!ok) {
-      this.demoMode = true;
+  _initUsername() {
+    const savedName = localStorage.getItem('ghostfight3000_username') || '';
+    const nameInput = document.getElementById('guest-name');
+    if (nameInput && savedName) {
+      nameInput.value = savedName;
     }
   }
 
@@ -130,21 +129,6 @@ class Game {
   }
 
   _initEventListeners() {
-    // Menu buttons
-    document.getElementById('login-btn')?.addEventListener('click', () => this._handleLogin());
-    document.getElementById('signup-btn')?.addEventListener('click', () => this._handleSignup());
-    document.getElementById('guest-btn')?.addEventListener('click', () => this._handleGuest());
-
-    // Auth tabs
-    document.querySelectorAll('.auth-tab').forEach((tab) => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.auth-tab').forEach((t) => t.classList.remove('active'));
-        document.querySelectorAll('.auth-form').forEach((f) => f.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById(tab.dataset.form).classList.add('active');
-      });
-    });
-
     // Lobby buttons
     document.getElementById('create-room-btn')?.addEventListener('click', () => this._createRoom());
     document.getElementById('join-room-btn')?.addEventListener('click', () => this._joinRoom());
@@ -160,6 +144,7 @@ class Game {
         this.ui.showError('Please enter a display name first');
         return;
       }
+      localStorage.setItem('ghostfight3000_username', name);
       this._demoPlayerName = name;
       this.ui._hideAll();
       document.getElementById('difficulty-screen').classList.add('active');
@@ -194,82 +179,19 @@ class Game {
     });
   }
 
-  // ─── Auth Handlers ─────────────────────────────────────
-
-  async _handleLogin() {
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
-
-    if (!email || !password) {
-      this.ui.showError('Please enter email and password');
-      return;
-    }
-
-    try {
-      await this.network.signInWithEmail(email, password);
-      this._showRoomActions();
-    } catch (e) {
-      this.ui.showError(e.message);
-    }
-  }
-
-  async _handleSignup() {
-    const name = document.getElementById('signup-name').value.trim();
-    const email = document.getElementById('signup-email').value.trim();
-    const password = document.getElementById('signup-password').value;
-
-    if (!name || !email || !password) {
-      this.ui.showError('Please fill in all fields');
-      return;
-    }
-
-    try {
-      await this.network.createAccount(email, password, name);
-      this._showRoomActions();
-    } catch (e) {
-      this.ui.showError(e.message);
-    }
-  }
-
-  async _handleGuest() {
-    const nameInput = document.getElementById('guest-name');
-    const name = nameInput ? nameInput.value.trim() : '';
-
-    if (!name) {
-      this.ui.showError('Please enter a display name');
-      return;
-    }
-
-    if (this.demoMode) {
-      // Demo mode - fake auth
-      this.network.userId = 'demo_' + Math.random().toString(36).slice(2, 8);
-      this.network.userName = name;
-      this._showRoomActions();
-      return;
-    }
-
-    try {
-      await this.network.signInAnonymously(name);
-      this._showRoomActions();
-    } catch (e) {
-      this.ui.showError(e.message);
-    }
-  }
-
-  _showRoomActions() {
-    document.getElementById('auth-section').style.display = 'none';
-    document.getElementById('room-actions').style.display = 'block';
-  }
-
   // ─── Room Management ──────────────────────────────────
 
   async _createRoom() {
-    if (this.demoMode) {
-      this.ui.showError('Firebase not configured. Please update firebaseConfig in main.js');
+    const nameInput = document.getElementById('guest-name');
+    const name = nameInput ? nameInput.value.trim() : '';
+    if (!name) {
+      this.ui.showError('Please enter a display name first');
       return;
     }
+    localStorage.setItem('ghostfight3000_username', name);
 
     try {
+      this.network.userName = name;
       const code = await this.network.createRoom();
       this.localPlayerId = this.network.userId;
       this.localPlayerIndex = 0;
@@ -290,10 +212,13 @@ class Game {
   }
 
   async _joinRoom() {
-    if (this.demoMode) {
-      this.ui.showError('Firebase not configured. Please update firebaseConfig in main.js');
+    const nameInput = document.getElementById('guest-name');
+    const name = nameInput ? nameInput.value.trim() : '';
+    if (!name) {
+      this.ui.showError('Please enter a display name first');
       return;
     }
+    localStorage.setItem('ghostfight3000_username', name);
 
     const code = document.getElementById('join-code-input').value.trim().toUpperCase();
     if (!code || code.length !== 4) {
@@ -302,6 +227,7 @@ class Game {
     }
 
     try {
+      this.network.userName = name;
       this.localPlayerIndex = await this.network.joinRoom(code);
       this.localPlayerId = this.network.userId;
 
@@ -1062,7 +988,7 @@ class Game {
     // Update player status
     const statusData = {};
     Object.values(this.players).forEach((p) => {
-      statusData[p.id] = { id: p.id, name: p.name, index: p.index, state: p.state };
+      statusData[p.id] = { id: p.id, name: p.name, index: p.index, state: p.state, color: p.color };
     });
     this.ui.updatePlayerStatus(statusData, this.localPlayerId);
   }
