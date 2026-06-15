@@ -1643,6 +1643,8 @@ function renderPreview() {
 }
 
 // ==================== CANVAS EVENTS ====================
+let lastTouch = null;
+
 function setupCanvasEvents() {
   canvas.addEventListener('mousedown', onCanvasMouseDown);
   canvas.addEventListener('mousemove', onCanvasMouseMove);
@@ -1654,7 +1656,7 @@ function setupCanvasEvents() {
   canvas.addEventListener('touchstart', e => {
     e.preventDefault();
     const touch = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
+    lastTouch = { clientX: touch.clientX, clientY: touch.clientY };
     const fakeEvent = { clientX: touch.clientX, clientY: touch.clientY, button: 0, preventDefault: () => {} };
     onCanvasMouseDown(fakeEvent);
   }, { passive: false });
@@ -1662,13 +1664,14 @@ function setupCanvasEvents() {
   canvas.addEventListener('touchmove', e => {
     e.preventDefault();
     const touch = e.touches[0];
+    lastTouch = { clientX: touch.clientX, clientY: touch.clientY };
     const fakeEvent = { clientX: touch.clientX, clientY: touch.clientY, buttons: 1 };
     onCanvasMouseMove(fakeEvent);
   }, { passive: false });
 
   canvas.addEventListener('touchend', e => {
     e.preventDefault();
-    const touch = e.changedTouches[0] || e.touches[0];
+    const touch = e.changedTouches[0] || e.touches[0] || lastTouch;
     const fakeEvent = touch ? { clientX: touch.clientX, clientY: touch.clientY } : {};
     onCanvasMouseUp(fakeEvent);
   }, { passive: false });
@@ -1792,36 +1795,38 @@ function onCanvasMouseMove(e) {
 function onCanvasMouseUp(e) {
   if (!isDrawing) return;
 
+  const movie = getCurrentMovie();
+
   if ((state.currentTool === 'line') && lineStart) {
     const pos = getPixelPos(e);
-    if (isInBounds(pos.x, pos.y)) {
-      const useEraser = state.currentTool === 'eraser';
-      const color = useEraser ? null : state.currentColor;
-      const points = bresenham(lineStart.x, lineStart.y, pos.x, pos.y);
-      points.forEach(p => applyBrush(p.x, p.y, color));
-      renderCanvas();
-      renderTimeline();
-    }
+    const cx = Math.max(0, Math.min(movie.width - 1, pos.x));
+    const cy = Math.max(0, Math.min(movie.height - 1, pos.y));
+    const useEraser = state.currentTool === 'eraser';
+    const color = useEraser ? null : state.currentColor;
+    const points = bresenham(lineStart.x, lineStart.y, cx, cy);
+    points.forEach(p => applyBrush(p.x, p.y, color));
+    renderCanvas();
+    renderTimeline();
   }
 
   if (state.currentTool === 'rect' && shapeStart) {
     const pos = getPixelPos(e);
-    if (isInBounds(pos.x, pos.y)) {
-      const color = state.currentColor;
-      drawRect(shapeStart.x, shapeStart.y, pos.x, pos.y, color);
-      renderCanvas();
-      renderTimeline();
-    }
+    const cx = Math.max(0, Math.min(movie.width - 1, pos.x));
+    const cy = Math.max(0, Math.min(movie.height - 1, pos.y));
+    const color = state.currentColor;
+    drawRect(shapeStart.x, shapeStart.y, cx, cy, color);
+    renderCanvas();
+    renderTimeline();
   }
 
   if (state.currentTool === 'circle' && shapeStart) {
     const pos = getPixelPos(e);
-    if (isInBounds(pos.x, pos.y)) {
-      const color = state.currentColor;
-      drawEllipse(shapeStart.x, shapeStart.y, pos.x, pos.y, color);
-      renderCanvas();
-      renderTimeline();
-    }
+    const cx = Math.max(0, Math.min(movie.width - 1, pos.x));
+    const cy = Math.max(0, Math.min(movie.height - 1, pos.y));
+    const color = state.currentColor;
+    drawEllipse(shapeStart.x, shapeStart.y, cx, cy, color);
+    renderCanvas();
+    renderTimeline();
   }
 
   isDrawing = false;
