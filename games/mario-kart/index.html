@@ -299,7 +299,12 @@ class Kart {
 
   update(thr, str){
     if(this.finished){ this.speed*=0.94; this.x+=Math.cos(this.angle)*this.speed; this.y+=Math.sin(this.angle)*this.speed; return; }
-    if(this.spinTmr>0){ this.spinTmr--; str=0.08; thr=-0.15; }
+    if(this.spinTmr>0){
+      this.spinTmr--;
+      this.angle += 0.24; // Spin kart rapidly
+      str=0;
+      thr=-0.08;
+    }
     if(this.boostTmr>0) this.boostTmr--;
 
     if(Math.abs(this.speed)>0.15) this.angle+=str*this.turn*Math.sign(this.speed);
@@ -466,7 +471,7 @@ class Banana {
   update(){ this.life--; }
   draw(c){ c.font='18px serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText('🍌',this.x,this.y); }
   check(k){
-    if(this.life<=0||Math.hypot(k.x-this.x,k.y-this.y)>14) return false;
+    if(this.life<=0||Math.hypot(k.x-this.x,k.y-this.y)>20) return false;
     this.life=0; return true;
   }
 }
@@ -604,7 +609,13 @@ function useItem(){
   if(keys[' ']||keys['_item']){
     const p=karts[0];
     if(p.item==='mushroom'){ p.boostTmr=80; p.item=null; }
-    else if(p.item==='banana'){ bananas.push(new Banana(p.x,p.y)); p.item=null; }
+    else if(p.item==='banana'){ 
+      // Spawn banana behind the kart to avoid instant self-collision
+      const bx = p.x - Math.cos(p.angle) * 28;
+      const by = p.y - Math.sin(p.angle) * 28;
+      bananas.push(new Banana(bx,by)); 
+      p.item=null; 
+    }
     keys[' ']=false; keys['_item']=false;
   }
 }
@@ -699,7 +710,13 @@ function update(){
     // AI random item use
     if(k.item && Math.random()<0.006){
       if(k.item==='mushroom'){ k.boostTmr=80; k.item=null; }
-      else{ bananas.push(new Banana(k.x,k.y)); k.item=null; }
+      else{ 
+        // Spawn banana behind the AI kart
+        const bx = k.x - Math.cos(k.angle) * 28;
+        const by = k.y - Math.sin(k.angle) * 28;
+        bananas.push(new Banana(bx,by)); 
+        k.item=null; 
+      }
     }
   });
 
