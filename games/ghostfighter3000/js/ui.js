@@ -335,6 +335,7 @@ class UI {
     const overlay = document.getElementById('eliminated-overlay');
     if (!overlay) return;
     overlay.style.display = 'block';
+    overlay.style.pointerEvents = 'auto';
     const subtitle = overlay.querySelector('.eliminated-subtitle');
     if (subtitle) {
       subtitle.textContent = byName ? `Eliminated by ${byName} • Spectating...` : 'Spectating...';
@@ -343,7 +344,10 @@ class UI {
 
   hideEliminated() {
     const overlay = document.getElementById('eliminated-overlay');
-    if (overlay) overlay.style.display = 'none';
+    if (overlay) {
+      overlay.style.display = 'none';
+      overlay.style.pointerEvents = 'none';
+    }
   }
 
   // ─── Helpers ───────────────────────────────────────────

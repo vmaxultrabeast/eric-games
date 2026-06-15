@@ -51,6 +51,9 @@ class Game {
     // Demo mode with bots
     this.isDemo = false;
     this.bots = [];   // BotAI instances
+
+    // Spectator mode
+    this.spectatePlayerId = null;
   }
 
   // ─── Initialization ────────────────────────────────────
@@ -203,6 +206,30 @@ class Game {
     document.getElementById('join-code-input')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') this._joinRoom();
     });
+
+    // Spectator switching on keydown
+    window.addEventListener('keydown', (e) => {
+      if (this.state === 'playing' && this.localPlayer && this.localPlayer.state === 'eliminated') {
+        if (e.key === 'ArrowLeft') {
+          this._selectNextSpectateTarget(-1);
+        } else if (e.key === 'ArrowRight' || e.key === ' ') {
+          this._selectNextSpectateTarget(1);
+        }
+      }
+    });
+
+    // Spectator switching on screen click/touch
+    const eliminatedOverlay = document.getElementById('eliminated-overlay');
+    if (eliminatedOverlay) {
+      eliminatedOverlay.addEventListener('click', (e) => {
+        if (e.target.id === 'leave-game-btn' || e.target.closest('#leave-game-btn')) {
+          return;
+        }
+        if (this.state === 'playing' && this.localPlayer && this.localPlayer.state === 'eliminated') {
+          this._selectNextSpectateTarget(1);
+        }
+      });
+    }
   }
 
   // ─── Room Management ──────────────────────────────────
@@ -313,6 +340,10 @@ class Game {
         if (this.players[playerId]) {
           this.players[playerId].eliminate('disconnect');
           this._checkGameEnd();
+          // If we were spectating this player, cycle target
+          if (this.localPlayer && this.localPlayer.state === 'eliminated' && playerId === this.spectatePlayerId) {
+            this._selectNextSpectateTarget(1);
+          }
         }
       }
     };
@@ -894,10 +925,15 @@ class Game {
     if (playerId === this.localPlayerId) {
       this.ui.addKillFeedEntry(`You were eliminated by <b>${byName}</b>!`, '#e94560');
       this.ui.showEliminated(byName);
+      this._startSpectating();
     } else {
       this.ui.addKillFeedEntry(
         `<b>${byName}</b> eliminated <b>${playerName}</b>`, '#e94560'
       );
+      // If we are spectating this player, switch to next target
+      if (this.localPlayer && this.localPlayer.state === 'eliminated' && playerId === this.spectatePlayerId) {
+        this._selectNextSpectateTarget(1);
+      }
     }
 
     this._checkGameEnd();
@@ -916,10 +952,15 @@ class Game {
     if (targetId === this.localPlayerId) {
       this.ui.addKillFeedEntry(`You were eliminated by <b>${byName}</b>!`, '#e94560');
       this.ui.showEliminated(byName);
+      this._startSpectating();
     } else {
       this.ui.addKillFeedEntry(
         `<b>${byName}</b> eliminated <b>${this.players[targetId]?.name}</b>`, '#e94560'
       );
+      // If we are spectating this player, switch to next target
+      if (this.localPlayer && this.localPlayer.state === 'eliminated' && targetId === this.spectatePlayerId) {
+        this._selectNextSpectateTarget(1);
+      }
     }
 
     this._checkGameEnd();
@@ -971,6 +1012,60 @@ class Game {
     }
   }
 
+  // ─── Spectator Mode Helpers ───────────────────────────
+
+  _startSpectating() {
+    const alivePlayers = Object.values(this.players).filter(
+      (p) => p.id !== this.localPlayerId && p.state !== 'eliminated'
+    );
+    if (alivePlayers.length > 0) {
+      this.spectatePlayerId = alivePlayers[0].id;
+      this._updateSpectatorUI();
+    } else {
+      this.spectatePlayerId = null;
+    }
+  }
+
+  _selectNextSpectateTarget(dir = 1) {
+    const alivePlayers = Object.values(this.players).filter(
+      (p) => p.id !== this.localPlayerId && p.state !== 'eliminated'
+    );
+    if (alivePlayers.length === 0) {
+      this.spectatePlayerId = null;
+      const overlay = document.getElementById('eliminated-overlay');
+      if (overlay) {
+        const subtitle = overlay.querySelector('.eliminated-subtitle');
+        if (subtitle) {
+          subtitle.textContent = 'Spectating...';
+        }
+      }
+      return;
+    }
+
+    let currentIndex = alivePlayers.findIndex((p) => p.id === this.spectatePlayerId);
+    if (currentIndex === -1) {
+      currentIndex = 0;
+    } else {
+      currentIndex = (currentIndex + dir + alivePlayers.length) % alivePlayers.length;
+    }
+
+    this.spectatePlayerId = alivePlayers[currentIndex].id;
+    this._updateSpectatorUI();
+  }
+
+  _updateSpectatorUI() {
+    if (!this.spectatePlayerId) return;
+    const specPlayer = this.players[this.spectatePlayerId];
+    if (!specPlayer) return;
+
+    const overlay = document.getElementById('eliminated-overlay');
+    if (!overlay) return;
+    const subtitle = overlay.querySelector('.eliminated-subtitle');
+    if (subtitle) {
+      subtitle.innerHTML = `Spectating: <b style="color: ${specPlayer.color}">${this.ui._escapeHtml(specPlayer.name)}</b><br><span style="font-size: 0.75rem; opacity: 0.6; margin-top: 4px; display: inline-block;">Click screen or use ← / → / Space to cycle players</span>`;
+    }
+  }
+
   // ─── Updates ───────────────────────────────────────────
 
   _updatePlayers(dt) {
@@ -986,6 +1081,39 @@ class Game {
 
   _updateCamera(dt) {
     if (!this.localPlayer) return;
+
+    // Spectator view
+    if (this.localPlayer.state === 'eliminated' && this.spectatePlayerId) {
+      const specPlayer = this.players[this.spectatePlayerId];
+      if (specPlayer) {
+        // Third-person camera behind and above the spectated player
+        const dist = 5;
+        const height = 2.5;
+        const angle = specPlayer.facingAngle;
+
+        // Target camera position
+        const targetCamX = specPlayer.x - Math.sin(angle) * dist;
+        const targetCamZ = specPlayer.z + Math.cos(angle) * dist;
+        const targetCamY = (specPlayer.group ? specPlayer.group.position.y : 0) + height;
+
+        // Smoothly interpolate camera position
+        if (dt) {
+          this.camera.position.x += (targetCamX - this.camera.position.x) * Math.min(1, dt * 5);
+          this.camera.position.y += (targetCamY - this.camera.position.y) * Math.min(1, dt * 5);
+          this.camera.position.z += (targetCamZ - this.camera.position.z) * Math.min(1, dt * 5);
+        } else {
+          this.camera.position.set(targetCamX, targetCamY, targetCamZ);
+        }
+
+        // Look at the player
+        this.camera.lookAt(
+          specPlayer.x,
+          (specPlayer.group ? specPlayer.group.position.y : 0) + Player.EYE_HEIGHT * 0.8,
+          specPlayer.z
+        );
+        return;
+      }
+    }
 
     // First-person camera at player position
     const eyeHeight = Player.EYE_HEIGHT;
@@ -1299,6 +1427,7 @@ class Game {
     this.rankings = [];
     this.processedEvents = new Set();
     this.cameraAngle = 0;
+    this.spectatePlayerId = null;
     this.ui.hideHUD();
     this.ui.showHideOverlay(false);
   }
