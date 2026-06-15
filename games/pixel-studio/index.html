@@ -743,13 +743,176 @@
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-  /* Responsive tweaks */
-  @media (max-width: 1024px) {
+  /* Hide mobile navigation bar on desktop */
+  .mobile-nav-bar {
+    display: none;
+  }
+
+  /* Responsive tweaks for mobile devices */
+  @media (max-width: 768px) {
     .app-container {
       grid-template-columns: 1fr;
-      grid-template-rows: auto auto 1fr auto;
+      grid-template-rows: auto 1fr auto auto auto auto;
+      height: calc(100vh - 56px);
+      overflow: hidden;
     }
-    .panel { border: none; border-bottom: 1px solid var(--border); }
+
+    /* Toolbar adjustments */
+    .toolbar {
+      grid-row: 1;
+      grid-column: 1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 4px;
+      padding: 6px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tool-btn {
+      width: 38px;
+      height: 38px;
+      font-size: 1.1em;
+      border-radius: 6px;
+    }
+
+    .toolbar .separator {
+      height: 20px;
+      margin: 0 2px;
+    }
+
+    /* Canvas Area constraints */
+    .canvas-area {
+      grid-row: 2;
+      grid-column: 1;
+      padding: 8px;
+      height: 100%;
+      width: 100%;
+      min-height: 180px;
+      overflow: hidden;
+    }
+
+    .canvas-wrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Panel styles for mobile tabs */
+    .panel {
+      grid-row: 3;
+      grid-column: 1;
+      height: 230px;
+      border: none;
+      border-top: 1px solid var(--border);
+      padding: 10px 12px;
+      overflow-y: auto;
+      background: var(--panel-bg);
+    }
+
+    /* Timeline styling on mobile */
+    .timeline {
+      grid-row: 4;
+      grid-column: 1;
+      border: none;
+      border-top: 1px solid var(--border);
+      padding: 6px 10px;
+      background: var(--bg-secondary);
+    }
+
+    /* Hide panels and timeline by default on mobile */
+    #leftPanel, #rightPanel, .timeline {
+      display: none;
+    }
+
+    /* Colors Tab active styles */
+    .app-container.tab-colors #leftPanel {
+      display: block;
+    }
+    .app-container.tab-colors #leftPanel .colors-section {
+      display: block;
+    }
+    .app-container.tab-colors #leftPanel .shortcuts-section {
+      display: none;
+    }
+
+    /* Animation Tab active styles */
+    .app-container.tab-anim #rightPanel {
+      display: block;
+    }
+    .app-container.tab-anim #rightPanel .preview-section {
+      display: block;
+    }
+    .app-container.tab-anim #rightPanel .movies-section,
+    .app-container.tab-anim #rightPanel .storage-section,
+    .app-container.tab-anim #rightPanel .export-section,
+    .app-container.tab-anim .mobile-grid-settings-placeholder {
+      display: none;
+    }
+    .app-container.tab-anim .timeline {
+      display: flex;
+    }
+
+    /* Project/Storage Tab active styles */
+    .app-container.tab-project #rightPanel {
+      display: block;
+    }
+    .app-container.tab-project #rightPanel .preview-section {
+      display: none;
+    }
+    .app-container.tab-project #rightPanel .movies-section,
+    .app-container.tab-project #rightPanel .storage-section,
+    .app-container.tab-project #rightPanel .export-section,
+    .app-container.tab-project .mobile-grid-settings-placeholder {
+      display: block;
+    }
+
+    /* Mobile Nav Bar and Tabs buttons */
+    .mobile-nav-bar {
+      grid-row: 5;
+      grid-column: 1;
+      display: flex;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      height: 52px;
+      z-index: 10;
+    }
+
+    .mobile-nav-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 0.9em;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      transition: all 0.2s;
+    }
+
+    .mobile-nav-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .mobile-nav-btn.active {
+      color: var(--accent);
+      background: rgba(233, 69, 96, 0.05);
+      border-top: 2px solid var(--accent);
+    }
+
+    /* Status Bar mobile alignment */
+    .status-bar {
+      grid-row: 6;
+      grid-column: 1;
+      border-top: 1px solid var(--border);
+    }
   }
 
   /* Drag frame indicator */
@@ -874,73 +1037,79 @@
 
   <!-- Left Panel: Tools & Colors -->
   <div class="panel" id="leftPanel">
-    <h3>🎨 Colors</h3>
+    <div class="colors-section">
+      <h3>🎨 Colors</h3>
 
-    <div class="current-colors">
-      <div class="current-color-display" id="currentColorDisplay" style="background:#000;"></div>
-      <input type="color" id="colorPicker" value="#000000" oninput="setColor(this.value)">
-      <div style="flex:1;">
-        <label>Hex</label>
-        <input type="text" id="hexInput" value="#000000" maxlength="7"
-          onchange="setColor(this.value)" style="font-family:monospace;">
+      <div class="current-colors">
+        <div class="current-color-display" id="currentColorDisplay" style="background:#000;"></div>
+        <input type="color" id="colorPicker" value="#000000" oninput="setColor(this.value)">
+        <div style="flex:1;">
+          <label>Hex</label>
+          <input type="text" id="hexInput" value="#000000" maxlength="7"
+            onchange="setColor(this.value)" style="font-family:monospace;">
+        </div>
+      </div>
+
+      <div class="color-palette" id="colorPalette"></div>
+
+      <div class="form-group">
+        <label>Recent Colors</label>
+        <div class="color-palette" id="recentColors" style="grid-template-columns: repeat(10, 1fr);"></div>
       </div>
     </div>
 
-    <div class="color-palette" id="colorPalette"></div>
-
-    <div class="form-group">
-      <label>Recent Colors</label>
-      <div class="color-palette" id="recentColors" style="grid-template-columns: repeat(10, 1fr);"></div>
-    </div>
-
-    <hr style="border-color:var(--border); margin:10px 0;">
-
-    <h3>📐 Grid Settings</h3>
-    <div class="form-row" style="margin-bottom: 8px;">
-      <div class="form-group" style="flex:1;">
-        <label>Width</label>
-        <input type="number" id="gridWidth" value="16" min="2" max="128">
+    <div class="desktop-grid-settings-placeholder">
+      <div class="grid-settings-section">
+        <hr style="border-color:var(--border); margin:10px 0;">
+        <h3>📐 Grid Settings</h3>
+        <div class="form-row" style="margin-bottom: 8px;">
+          <div class="form-group" style="flex:1;">
+            <label>Width</label>
+            <input type="number" id="gridWidth" value="16" min="2" max="128">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label>Height</label>
+            <input type="number" id="gridHeight" value="16" min="2" max="128">
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom: 8px;">
+          <button class="btn btn-primary btn-sm" onclick="resizeGrid()">Apply Size</button>
+          <select id="presetSizes" onchange="applyPreset()" style="width:auto; padding:4px 6px; font-size:0.8em;">
+            <option value="">Presets...</option>
+            <option value="8,8">8×8</option>
+            <option value="16,16">16×16</option>
+            <option value="24,24">24×24</option>
+            <option value="32,32">32×32</option>
+            <option value="48,48">48×48</option>
+            <option value="64,64">64×64</option>
+            <option value="16,24">16×24</option>
+            <option value="32,16">32×16</option>
+          </select>
+        </div>
       </div>
-      <div class="form-group" style="flex:1;">
-        <label>Height</label>
-        <input type="number" id="gridHeight" value="16" min="2" max="128">
+    </div>
+
+    <div class="shortcuts-section">
+      <hr style="border-color:var(--border); margin:10px 0;">
+      <h3>⌨️ Shortcuts</h3>
+      <div class="shortcuts-list">
+        <div><span>Pencil</span><kbd>B</kbd></div>
+        <div><span>Eraser</span><kbd>E</kbd></div>
+        <div><span>Fill</span><kbd>G</kbd></div>
+        <div><span>Eyedropper</span><kbd>I</kbd></div>
+        <div><span>Line</span><kbd>L</kbd></div>
+        <div><span>Rectangle</span><kbd>R</kbd></div>
+        <div><span>Circle</span><kbd>C</kbd></div>
+        <div><span>Move</span><kbd>M</kbd></div>
+        <div><span>Undo</span><kbd>Ctrl+Z</kbd></div>
+        <div><span>Redo</span><kbd>Ctrl+Y</kbd></div>
+        <div><span>Prev Frame</span><kbd>←</kbd></div>
+        <div><span>Next Frame</span><kbd>→</kbd></div>
+        <div><span>New Frame</span><kbd>N</kbd></div>
+        <div><span>Play/Pause</span><kbd>Space</kbd></div>
+        <div><span>Swap Color</span><kbd>X</kbd></div>
+        <div><span>Brush Size ±</span><kbd>[ / ]</kbd></div>
       </div>
-    </div>
-    <div class="form-row" style="margin-bottom: 8px;">
-      <button class="btn btn-primary btn-sm" onclick="resizeGrid()">Apply Size</button>
-      <select id="presetSizes" onchange="applyPreset()" style="width:auto; padding:4px 6px; font-size:0.8em;">
-        <option value="">Presets...</option>
-        <option value="8,8">8×8</option>
-        <option value="16,16">16×16</option>
-        <option value="24,24">24×24</option>
-        <option value="32,32">32×32</option>
-        <option value="48,48">48×48</option>
-        <option value="64,64">64×64</option>
-        <option value="16,24">16×24</option>
-        <option value="32,16">32×16</option>
-      </select>
-    </div>
-
-    <hr style="border-color:var(--border); margin:10px 0;">
-
-    <h3>⌨️ Shortcuts</h3>
-    <div class="shortcuts-list">
-      <div><span>Pencil</span><kbd>B</kbd></div>
-      <div><span>Eraser</span><kbd>E</kbd></div>
-      <div><span>Fill</span><kbd>G</kbd></div>
-      <div><span>Eyedropper</span><kbd>I</kbd></div>
-      <div><span>Line</span><kbd>L</kbd></div>
-      <div><span>Rectangle</span><kbd>R</kbd></div>
-      <div><span>Circle</span><kbd>C</kbd></div>
-      <div><span>Move</span><kbd>M</kbd></div>
-      <div><span>Undo</span><kbd>Ctrl+Z</kbd></div>
-      <div><span>Redo</span><kbd>Ctrl+Y</kbd></div>
-      <div><span>Prev Frame</span><kbd>←</kbd></div>
-      <div><span>Next Frame</span><kbd>→</kbd></div>
-      <div><span>New Frame</span><kbd>N</kbd></div>
-      <div><span>Play/Pause</span><kbd>Space</kbd></div>
-      <div><span>Swap Color</span><kbd>X</kbd></div>
-      <div><span>Brush Size ±</span><kbd>[ / ]</kbd></div>
     </div>
   </div>
 
@@ -953,49 +1122,56 @@
 
   <!-- Right Panel: Preview & Movies -->
   <div class="panel" id="rightPanel">
-    <h3>▶️ Preview</h3>
-    <div class="preview-area">
-      <canvas id="previewCanvas" width="128" height="128"></canvas>
+    <div class="preview-section">
+      <h3>▶️ Preview</h3>
+      <div class="preview-area">
+        <canvas id="previewCanvas" width="128" height="128"></canvas>
+      </div>
+
+      <div class="form-group">
+        <label>FPS: <span id="fpsLabel">8</span></label>
+        <input type="range" id="fpsSlider" min="1" max="30" value="8" oninput="updateFPS()">
+      </div>
+
+      <div class="playback-controls" style="justify-content:center; margin-bottom: 12px;">
+        <button class="btn btn-secondary" onclick="prevFrame()">⏮</button>
+        <button class="btn btn-primary" id="playBtn" onclick="togglePlay()">▶️</button>
+        <button class="btn btn-secondary" onclick="nextFrame()">⏭</button>
+        <button class="btn btn-secondary" onclick="goToFirstFrame()">⏪</button>
+        <button class="btn btn-secondary" onclick="goToLastFrame()">⏩</button>
+      </div>
+
+      <div class="form-group">
+        <label>Playback Mode</label>
+        <select id="playbackMode">
+          <option value="loop">Loop</option>
+          <option value="pingpong">Ping-Pong</option>
+          <option value="once">Play Once</option>
+        </select>
+      </div>
     </div>
 
-    <div class="form-group">
-      <label>FPS: <span id="fpsLabel">8</span></label>
-      <input type="range" id="fpsSlider" min="1" max="30" value="8" oninput="updateFPS()">
+    <!-- Placeholder to move Grid Settings into Project tab on mobile -->
+    <div class="mobile-grid-settings-placeholder"></div>
+
+    <div class="movies-section">
+      <hr style="border-color:var(--border); margin:10px 0;">
+      <h3>🎬 Movies</h3>
+      <div style="display:flex; gap:4px; margin-bottom:8px;">
+        <button class="btn btn-primary btn-sm btn-block" onclick="createNewMovie()">➕ New Movie</button>
+      </div>
+      <div class="movie-list" id="movieList"></div>
     </div>
 
-    <div class="playback-controls" style="justify-content:center; margin-bottom: 12px;">
-      <button class="btn btn-secondary" onclick="prevFrame()">⏮</button>
-      <button class="btn btn-primary" id="playBtn" onclick="togglePlay()">▶️</button>
-      <button class="btn btn-secondary" onclick="nextFrame()">⏭</button>
-      <button class="btn btn-secondary" onclick="goToFirstFrame()">⏪</button>
-      <button class="btn btn-secondary" onclick="goToLastFrame()">⏩</button>
-    </div>
-
-    <div class="form-group">
-      <label>Playback Mode</label>
-      <select id="playbackMode">
-        <option value="loop">Loop</option>
-        <option value="pingpong">Ping-Pong</option>
-        <option value="once">Play Once</option>
-      </select>
-    </div>
-
-    <hr style="border-color:var(--border); margin:10px 0;">
-
-    <h3>🎬 Movies</h3>
-    <div style="display:flex; gap:4px; margin-bottom:8px;">
-      <button class="btn btn-primary btn-sm btn-block" onclick="createNewMovie()">➕ New Movie</button>
-    </div>
-    <div class="movie-list" id="movieList"></div>
-
-    <hr style="border-color:var(--border); margin:10px 0;">
-
-    <h3>💾 Storage</h3>
-    <div style="display:flex; flex-direction:column; gap:4px;">
-      <button class="btn btn-success btn-sm btn-block" onclick="saveToLocalStorage()">💾 Save All</button>
-      <button class="btn btn-secondary btn-sm btn-block" onclick="loadFromLocalStorage()">📂 Load Saved</button>
-      <button class="btn btn-secondary btn-sm btn-block" onclick="exportProject()">📤 Export JSON</button>
-      <button class="btn btn-secondary btn-sm btn-block" onclick="importProject()">📥 Import JSON</button>
+    <div class="storage-section">
+      <hr style="border-color:var(--border); margin:10px 0;">
+      <h3>💾 Storage</h3>
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <button class="btn btn-success btn-sm btn-block" onclick="saveToLocalStorage()">💾 Save All</button>
+        <button class="btn btn-secondary btn-sm btn-block" onclick="loadFromLocalStorage()">📂 Load Saved</button>
+        <button class="btn btn-secondary btn-sm btn-block" onclick="exportProject()">📤 Export JSON</button>
+        <button class="btn btn-secondary btn-sm btn-block" onclick="importProject()">📥 Import JSON</button>
+      </div>
     </div>
 
     <div class="export-section">
@@ -1020,6 +1196,22 @@
       </div>
     </div>
     <div class="frames-container" id="framesContainer"></div>
+  </div>
+
+  <!-- Mobile Navigation Bar -->
+  <div class="mobile-nav-bar">
+    <button class="mobile-nav-btn active" data-tab="colors" onclick="setMobileTab('colors')">
+      <span>🎨</span>
+      <span>Colors</span>
+    </button>
+    <button class="mobile-nav-btn" data-tab="anim" onclick="setMobileTab('anim')">
+      <span>🎞️</span>
+      <span>Animation</span>
+    </button>
+    <button class="mobile-nav-btn" data-tab="project" onclick="setMobileTab('project')">
+      <span>📂</span>
+      <span>Project</span>
+    </button>
   </div>
 
   <!-- Status bar -->
@@ -1143,6 +1335,11 @@ function init() {
   if (state.movies.length === 0) {
     createDefaultMovie();
   }
+  
+  // Set default tab on mobile
+  document.querySelector('.app-container').classList.add('tab-colors');
+  adjustGridSettingsParent();
+  
   selectMovie(state.currentMovieIndex);
   renderCanvas();
   renderTimeline();
@@ -1151,6 +1348,38 @@ function init() {
   setupCanvasEvents();
   setupKeyboardShortcuts();
   autoSaveInterval();
+
+  // Responsive event listeners
+  window.addEventListener('resize', () => {
+    adjustGridSettingsParent();
+  });
+}
+
+function setMobileTab(tab) {
+  const container = document.querySelector('.app-container');
+  container.classList.remove('tab-colors', 'tab-anim', 'tab-project');
+  container.classList.add('tab-' + tab);
+  
+  document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-tab') === tab);
+  });
+}
+
+function adjustGridSettingsParent() {
+  const gridSettings = document.querySelector('.grid-settings-section');
+  if (!gridSettings) return;
+  
+  if (window.innerWidth <= 768) {
+    const target = document.querySelector('.mobile-grid-settings-placeholder');
+    if (target && gridSettings.parentElement !== target) {
+      target.appendChild(gridSettings);
+    }
+  } else {
+    const target = document.querySelector('.desktop-grid-settings-placeholder');
+    if (target && gridSettings.parentElement !== target) {
+      target.appendChild(gridSettings);
+    }
+  }
 }
 
 function createDefaultMovie() {
@@ -1439,7 +1668,9 @@ function setupCanvasEvents() {
 
   canvas.addEventListener('touchend', e => {
     e.preventDefault();
-    onCanvasMouseUp({});
+    const touch = e.changedTouches[0] || e.touches[0];
+    const fakeEvent = touch ? { clientX: touch.clientX, clientY: touch.clientY } : {};
+    onCanvasMouseUp(fakeEvent);
   }, { passive: false });
 
   // Resize observer
