@@ -1063,3 +1063,54 @@ canvas {
     height: 60px;
   }
 }
+
+/* ─── Color Picker ───────────────────────────────────────── */
+.color-picker-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 4px;
+}
+
+.color-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  outline: none;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  position: relative;
+}
+
+.color-dot:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 12px var(--color-theme);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.color-dot.active {
+  transform: scale(1.2);
+  border-color: #ffffff;
+  box-shadow: 0 0 16px var(--color-theme);
+}
+
+.color-dot.active::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-theme);
+  animation: pulseDot 2s infinite;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+

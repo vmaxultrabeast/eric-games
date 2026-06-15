@@ -14,7 +14,7 @@ class Player {
   static BODY_HEIGHT = 1.4;   // capsule body height
   static HEAD_RADIUS = 0.3;   // sphere head
 
-  constructor(id, index, name, isLocal, scene) {
+  constructor(id, index, name, isLocal, scene, customColor) {
     this.id = id;
     this.index = index;
     this.name = name;
@@ -40,7 +40,7 @@ class Player {
     this.bodyMesh = null;
     this.headMesh = null;
     this.nameSprite = null;
-    this.color = Arena.PLAYER_COLORS[index];
+    this.color = customColor || Arena.PLAYER_COLORS[index];
 
     if (!isLocal) {
       this._createModel();

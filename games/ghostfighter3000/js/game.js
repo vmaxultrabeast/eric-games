@@ -58,6 +58,7 @@ class Game {
   init(firebaseConfig) {
     this._initThreeJS();
     this._initFirebase(firebaseConfig);
+    this._initColorPicker();
     this._initEventListeners();
     this.ui.showMenu();
     this._animate();
@@ -104,6 +105,28 @@ class Game {
     if (!ok) {
       this.demoMode = true;
     }
+  }
+
+  _initColorPicker() {
+    this.selectedColor = localStorage.getItem('ghostfight3000_color') || '#ff4444';
+    
+    // Select the active color dot on startup
+    const dots = document.querySelectorAll('.color-dot');
+    dots.forEach((dot) => {
+      if (dot.getAttribute('data-color') === this.selectedColor) {
+        dot.classList.add('active');
+      } else {
+        dot.classList.remove('active');
+      }
+
+      dot.addEventListener('click', (e) => {
+        e.preventDefault();
+        dots.forEach((d) => d.classList.remove('active'));
+        dot.classList.add('active');
+        this.selectedColor = dot.getAttribute('data-color');
+        localStorage.setItem('ghostfight3000_color', this.selectedColor);
+      });
+    });
   }
 
   _initEventListeners() {
@@ -258,6 +281,7 @@ class Game {
         [this.localPlayerId]: {
           name: this.network.userName,
           index: 0,
+          color: this.selectedColor || localStorage.getItem('ghostfight3000_color') || '#ff4444',
         },
       });
     } catch (e) {
@@ -467,12 +491,17 @@ class Game {
 
     const botNames = ['AlphaBot', 'BetaBot', 'GammaBot'];
 
+    const localColor = this.selectedColor || localStorage.getItem('ghostfight3000_color') || '#ff4444';
+    const presetColors = ['#ff4444', '#4488ff', '#44dd44', '#ffdd44', '#b544ff', '#ff8844', '#44ffff', '#ff44a8'];
+    const availableColors = presetColors.filter(c => c !== localColor);
+
     for (let i = 0; i < 4; i++) {
       const isLocal = (i === 0);
       const id = isLocal ? this.localPlayerId : `bot_${i}`;
       const pName = isLocal ? playerName : botNames[i - 1];
+      const pColor = isLocal ? localColor : availableColors[i - 1];
 
-      const player = new Player(id, i, pName, isLocal, this.scene);
+      const player = new Player(id, i, pName, isLocal, this.scene, pColor);
 
       // Set initial facing toward center
       const spawn = Arena.SPAWN_POSITIONS[i];
@@ -516,7 +545,7 @@ class Game {
     for (const [id, data] of Object.entries(allPlayers)) {
       const isLocal = (id === this.localPlayerId);
       const player = new Player(
-        id, data.index, data.name, isLocal, this.scene
+        id, data.index, data.name, isLocal, this.scene, data.color
       );
 
       if (isLocal) {
@@ -543,7 +572,7 @@ class Game {
     if (this.players[data.id]) return;
 
     const player = new Player(
-      data.id, data.index, data.name, false, this.scene
+      data.id, data.index, data.name, false, this.scene, data.color
     );
     this.players[data.id] = player;
   }
@@ -940,7 +969,7 @@ class Game {
 
       // Winner(s)
       alivePlayers.forEach((p) => {
-        rankings.push({ id: p.id, name: p.name, index: p.index });
+        rankings.push({ id: p.id, name: p.name, index: p.index, color: p.color });
       });
 
       // Then eliminated players in reverse order (last eliminated = better rank)
@@ -948,14 +977,14 @@ class Game {
         const pid = this.eliminationOrder[i];
         const p = this.players[pid];
         if (p && !rankings.find((r) => r.id === p.id)) {
-          rankings.push({ id: p.id, name: p.name, index: p.index });
+          rankings.push({ id: p.id, name: p.name, index: p.index, color: p.color });
         }
       }
 
       // Add any remaining players not in rankings
       Object.values(this.players).forEach((p) => {
         if (!rankings.find((r) => r.id === p.id)) {
-          rankings.push({ id: p.id, name: p.name, index: p.index });
+          rankings.push({ id: p.id, name: p.name, index: p.index, color: p.color });
         }
       });
 

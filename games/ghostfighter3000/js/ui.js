@@ -39,14 +39,14 @@ class UI {
     list.innerHTML = '';
 
     const sortedPlayers = Object.values(players).sort((a, b) => a.index - b.index);
-    const colorNames = ['Red', 'Blue', 'Green', 'Yellow'];
 
     sortedPlayers.forEach((p) => {
+      const colorHex = p.color || this._colorHex(Arena.PLAYER_COLORS[p.index]);
       const li = document.createElement('li');
       li.innerHTML = `
-        <span class="player-color-dot" style="background: ${this._colorHex(Arena.PLAYER_COLORS[p.index])}"></span>
+        <span class="player-color-dot" style="background: ${colorHex}"></span>
         <span class="player-name">${this._escapeHtml(p.name)}</span>
-        <span class="player-team">${colorNames[p.index]}</span>
+        <span class="player-team">Player ${p.index + 1}</span>
       `;
       list.appendChild(li);
     });
@@ -176,8 +176,6 @@ class UI {
     if (!container) return;
 
     container.innerHTML = '';
-    const colorNames = ['Red', 'Blue', 'Green', 'Yellow'];
-
     const sortedPlayers = Object.values(players).sort((a, b) => a.index - b.index);
 
     sortedPlayers.forEach((p) => {
@@ -188,8 +186,10 @@ class UI {
       const stateIcon = p.state === 'alive' ? '●' :
                          p.state === 'hidden' ? '◌' : '✕';
 
+      const colorHex = p.color || this._colorHex(Arena.PLAYER_COLORS[p.index]);
+
       div.innerHTML = `
-        <span class="ps-color" style="color: ${this._colorHex(Arena.PLAYER_COLORS[p.index])}">${stateIcon}</span>
+        <span class="ps-color" style="color: ${colorHex}">${stateIcon}</span>
         <span class="ps-name">${this._escapeHtml(p.name)}</span>
       `;
       container.appendChild(div);
@@ -212,8 +212,6 @@ class UI {
     if (!modal || !list) return;
 
     list.innerHTML = '';
-    const colorNames = ['Red', 'Blue', 'Green', 'Yellow'];
-
     let targetIndex = 1;
     players.forEach((p) => {
       if (p.state === 'eliminated') return;
@@ -221,9 +219,10 @@ class UI {
       const btn = document.createElement('button');
       btn.className = 'target-btn';
       const keyNum = targetIndex;
+      const colorHex = p.color || this._colorHex(Arena.PLAYER_COLORS[p.index]);
       btn.innerHTML = `
         <span class="target-key">${keyNum}</span>
-        <span class="target-color" style="background: ${this._colorHex(Arena.PLAYER_COLORS[p.index])}"></span>
+        <span class="target-color" style="background: ${colorHex}"></span>
         <span class="target-name">${this._escapeHtml(p.name)}</span>
       `;
       btn.onclick = () => {
@@ -306,14 +305,14 @@ class UI {
     list.innerHTML = '';
 
     const medals = ['🥇', '🥈', '🥉', '💀'];
-    const colorNames = ['Red', 'Blue', 'Green', 'Yellow'];
 
     rankings.forEach((r, i) => {
       const li = document.createElement('li');
       li.className = i === 0 ? 'winner' : '';
+      const colorHex = r.color || this._colorHex(Arena.PLAYER_COLORS[r.index]);
       li.innerHTML = `
         <span class="rank-medal">${medals[i] || ''}</span>
-        <span class="rank-color" style="background: ${this._colorHex(Arena.PLAYER_COLORS[r.index])}"></span>
+        <span class="rank-color" style="background: ${colorHex}"></span>
         <span class="rank-name">${this._escapeHtml(r.name)}</span>
       `;
       list.appendChild(li);

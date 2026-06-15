@@ -163,10 +163,12 @@ class Network {
   }
 
   async _addPlayerToRoom(index) {
+    const userColor = localStorage.getItem('ghostfight3000_color') || '#ff4444';
     const playerRef = this.roomRef.child(`players/${this.userId}`);
     await playerRef.set({
       name: this.userName,
       index: index,
+      color: userColor,
       x: Arena.SPAWN_POSITIONS[index].x,
       z: Arena.SPAWN_POSITIONS[index].z,
       facing: 'up',
