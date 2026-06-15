@@ -51,10 +51,14 @@
 
       <button id="demo-btn" class="btn btn-primary btn-full" style="margin-top: 10px;">👻 Play with Bots</button>
 
-      <div class="divider" style="margin-top: 16px;">or play online (P2P)</div>
+      <!-- Lobby Entry Buttons -->
+      <div id="lobby-entry-section">
+        <button id="multiplayer-btn" class="btn btn-secondary btn-full" style="margin-top: 12px;">🎮 Multiplayer</button>
+      </div>
 
-      <!-- Room Actions -->
-      <div id="room-actions">
+      <!-- Room Actions (hidden by default) -->
+      <div id="room-actions" style="display: none; margin-top: 16px;">
+        <div class="divider" style="margin-top: 16px;">Create or Join a Room</div>
         <div class="btn-row">
           <button id="create-room-btn" class="btn btn-primary btn-full" style="margin-top: 0;">Create Room</button>
         </div>
@@ -66,6 +70,7 @@
                  maxlength="4" style="text-transform: uppercase; text-align: center; font-size: 1.4rem; letter-spacing: 4px;">
         </div>
         <button id="join-room-btn" class="btn btn-secondary btn-full" style="margin-top: 0;">Join Room</button>
+        <button id="back-to-lobby-entry-btn" class="btn btn-guest btn-full" style="margin-top: 12px;">← Back</button>
       </div>
     </div>
   </div>

@@ -135,6 +135,32 @@ class Game {
     document.getElementById('start-game-btn')?.addEventListener('click', () => this._startGame());
     document.getElementById('leave-room-btn')?.addEventListener('click', () => this._leaveRoom());
 
+    // Multiplayer transition buttons
+    document.getElementById('multiplayer-btn')?.addEventListener('click', () => {
+      const nameInput = document.getElementById('guest-name');
+      const name = nameInput ? nameInput.value.trim() : '';
+      if (!name) {
+        this.ui.showError('Please enter a display name first');
+        return;
+      }
+      localStorage.setItem('ghostfight3000_username', name);
+      const lobbyEntry = document.getElementById('lobby-entry-section');
+      const demoBtn = document.getElementById('demo-btn');
+      const roomActions = document.getElementById('room-actions');
+      if (lobbyEntry) lobbyEntry.style.display = 'none';
+      if (demoBtn) demoBtn.style.display = 'none';
+      if (roomActions) roomActions.style.display = 'block';
+    });
+
+    document.getElementById('back-to-lobby-entry-btn')?.addEventListener('click', () => {
+      const lobbyEntry = document.getElementById('lobby-entry-section');
+      const demoBtn = document.getElementById('demo-btn');
+      const roomActions = document.getElementById('room-actions');
+      if (lobbyEntry) lobbyEntry.style.display = 'block';
+      if (demoBtn) demoBtn.style.display = 'block';
+      if (roomActions) roomActions.style.display = 'none';
+    });
+
     // Demo mode button
     // "Play with Bots" → show difficulty screen
     document.getElementById('demo-btn')?.addEventListener('click', () => {

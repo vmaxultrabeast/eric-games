@@ -14,6 +14,12 @@ class UI {
   showMenu() {
     this._hideAll();
     document.getElementById('menu-screen').classList.add('active');
+    const lobbyEntry = document.getElementById('lobby-entry-section');
+    const demoBtn = document.getElementById('demo-btn');
+    const roomActions = document.getElementById('room-actions');
+    if (lobbyEntry) lobbyEntry.style.display = 'block';
+    if (demoBtn) demoBtn.style.display = 'block';
+    if (roomActions) roomActions.style.display = 'none';
   }
 
   hideMenu() {
