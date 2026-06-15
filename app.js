@@ -50,12 +50,12 @@ const GAMES_REGISTRY = [
         id: 'mariokart',
         title: 'Mario Kart',
         category: 'racing',
-        description: 'A classic top-down Mario Kart racer. Speed around the track, collect item boxes to get Mushrooms or Banana peels, dodge hazards, and compete against smart AI opponents to win the Mushroom Cup!',
+        description: 'A top-down Mario Kart racer — now with online multiplayer! Race solo against AI or create/join a room and race with up to 4 friends in real-time. Collect Mushrooms and Banana peels, dodge hazards, and fight for the Mushroom Cup!',
         folder: 'games/mario-kart',
         cover: 'games/mario-kart/cover.png',
-        controls: 'Arrow Keys / WASD to drive. Space to use item.',
+        controls: 'Arrow Keys / WASD to drive. Space to use item. Multiplayer: click 🌐 Multiplayer, enter a name & room code.',
         addedDate: '2026-06-09',
-        updatedDate: '2026-06-14'
+        updatedDate: '2026-06-15'
     }
     // New games can be easily appended here in the future
 ];
