@@ -358,10 +358,15 @@ class Player{
       this.x+=(this.netX-this.x)*.22; this.y+=(this.netY-this.y)*.22; return;
     }
     this._move();
-    // Ghost: once player leaves bomb cell, clear ghost
+    // Ghost: clear once player hitbox fully exits the bomb cell
     if(this.ghostId){
       const b=bombs.find(b=>b.id===this.ghostId);
-      if(!b||this.col!==b.col||this.row!==b.row) this.ghostId=null;
+      if(!b){ this.ghostId=null; }
+      else{
+        const bx=GX+b.col*TS, by=GY+b.row*TS;
+        if(this.x+P_HB<=bx||this.x-P_HB>=bx+TS||this.y+P_HB<=by||this.y-P_HB>=by+TS)
+          this.ghostId=null;
+      }
     }
   }
 
@@ -476,7 +481,12 @@ class Bot extends Player{
     } else { this.dx=0;this.dy=0; }
     if(this.ghostId){
       const b=bombs.find(b=>b.id===this.ghostId);
-      if(!b||this.col!==b.col||this.row!==b.row) this.ghostId=null;
+      if(!b){ this.ghostId=null; }
+      else{
+        const bx=GX+b.col*TS, by=GY+b.row*TS;
+        if(this.x+P_HB<=bx||this.x-P_HB>=bx+TS||this.y+P_HB<=by||this.y-P_HB>=by+TS)
+          this.ghostId=null;
+      }
     }
   }
   _setTarget(col,row){ this.tx=GX+col*TS+TS/2; this.ty=GY+row*TS+TS/2; }
@@ -650,15 +660,18 @@ function explode(bomb){
   bombs=bombs.filter(b=>b!==bomb);
   const owner=players.find(p=>p.id===bomb.ownerId);
   if(owner) owner.bactive=Math.max(0,owner.bactive-1);
-  for(const [dc,dr] of [[0,0],[0,-1],[0,1],[-1,0],[1,0]]){
-    const max=(dc===0&&dr===0)?0:bomb.range;
-    for(let i=0;i<=max;i++){
+  // Center cell
+  flames.push(new Flame(bomb.col,bomb.row));
+  // Four directional rays
+  for(const [dc,dr] of [[0,-1],[0,1],[-1,0],[1,0]]){
+    for(let i=1;i<=bomb.range;i++){
       const nc=bomb.col+dc*i, nr=bomb.row+dr*i;
       if(nc<0||nc>=COLS||nr<0||nr>=ROWS) break;
       if(grid[nr][nc]===WALL) break;
       if(!flames.some(f=>f.col===nc&&f.row===nr)) flames.push(new Flame(nc,nr));
       if(grid[nr][nc]===SOFT){
         grid[nr][nc]=EMPTY;
+        buildGrid(); // rebuild static canvas so floor shows through
         const pt=pmap[nr][nc];
         if(pt){const fc=nc,fr=nr,ft=pt; setTimeout(()=>{if(gstate==='play'&&grid[fr][fc]===EMPTY) pups.push(new Pup(fc,fr,ft));},350);}
         break;
@@ -666,7 +679,6 @@ function explode(bomb){
       // Chain reaction
       const cb=bombs.find(b=>b.col===nc&&b.row===nr);
       if(cb) cb.timer=Math.min(cb.timer,6);
-      if(i===0) break; // center only loops once
     }
   }
 }
