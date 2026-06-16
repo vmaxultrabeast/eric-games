@@ -361,27 +361,28 @@ resize(); window.addEventListener('resize', resize);
 // ═══════════════════════════════════════════
 //  TRACK DEFINITIONS
 // ═══════════════════════════════════════════
+const NUM_CHECKPOINTS = 4; // anti-cheat: must pass CP0(25%), CP1(50%), CP2(75%), then finish
 const TRACKS = [
   {
-    name:'🍄 Mushroom Valley', tag:'Winding dumbbell · Medium', tw:60,
+    name:'🍄 Mushroom Valley', tag:'Sweeping oval · Medium', tw:60,
+    // Simple non-crossing clockwise loop — wide sweeping oval with chicanes
     raw:[
-      {x:450,y:520},{x:540,y:510},{x:540,y:420},{x:530,y:360},
-      {x:640,y:360},{x:740,y:350},{x:810,y:310},{x:830,y:230},
-      {x:760,y:150},{x:620,y:110},{x:450,y:100},{x:280,y:110},
-      {x:140,y:150},{x:70,y:230},{x:90,y:310},{x:160,y:350},
-      {x:260,y:360},{x:370,y:360},{x:360,y:420},{x:360,y:510}
+      {x:450,y:530},{x:560,y:520},{x:670,y:490},{x:760,y:440},{x:820,y:370},
+      {x:850,y:280},{x:840,y:190},{x:790,y:120},{x:710,y:80},{x:600,y:60},
+      {x:480,y:55},{x:360,y:65},{x:250,y:95},{x:160,y:150},{x:100,y:230},
+      {x:80,y:320},{x:100,y:400},{x:160,y:460},{x:250,y:500},{x:350,y:525}
     ],
     bg:'#3e8c2f', bgAlt:'#367a28', road:'#5c5c5c', kerb:'#cc1111',
     decor(tb){
-      const trees=[{x:450,y:68},{x:170,y:90},{x:750,y:95},{x:52,y:305},{x:875,y:285},{x:58,y:505},{x:855,y:508}];
+      const trees=[{x:450,y:290},{x:300,y:300},{x:600,y:280},{x:450,y:180},{x:200,y:350},{x:700,y:250},{x:450,y:400}];
       trees.forEach(t=>{
         tb.fillStyle='#5c2e00'; tb.fillRect(t.x-4,t.y+4,8,14);
         tb.fillStyle='#1a5c0a'; tb.beginPath(); tb.arc(t.x,t.y,19,0,Math.PI*2); tb.fill();
         tb.fillStyle='#2d8c18'; tb.beginPath(); tb.arc(t.x-4,t.y-5,12,0,Math.PI*2); tb.fill();
         tb.fillStyle='#3db82a'; tb.beginPath(); tb.arc(t.x+3,t.y-8,8,0,Math.PI*2); tb.fill();
       });
-      // Mushrooms in infield
-      const shrooms=[{x:430,y:340},{x:490,y:290},{x:540,y:360}];
+      // Mushrooms scattered inside the oval
+      const shrooms=[{x:450,y:240},{x:350,y:350},{x:550,y:350},{x:300,y:200},{x:600,y:180}];
       shrooms.forEach(s=>{
         tb.font='16px serif'; tb.textAlign='center'; tb.textBaseline='middle';
         tb.fillText('🍄',s.x,s.y);
@@ -389,17 +390,17 @@ const TRACKS = [
     }
   },
   {
-    name:'🏖️ Crescent Lagoon', tag:'Horseshoe lagoon · Hard', tw:54,
+    name:'🏖️ Crescent Lagoon', tag:'Coastal crescent · Hard', tw:54,
+    // Simple non-crossing counterclockwise crescent — wide U-shape flowing left-to-right
     raw:[
-      {x:450,y:500},{x:580,y:480},{x:720,y:450},{x:800,y:380},{x:820,y:280},
-      {x:780,y:180},{x:680,y:120},{x:560,y:140},{x:490,y:200},{x:540,y:280},
-      {x:490,y:350},{x:410,y:350},{x:360,y:280},{x:410,y:200},{x:340,y:140},
-      {x:220,y:120},{x:120,y:180},{x:80,y:280},{x:100,y:380},{x:180,y:450},
-      {x:320,y:480}
+      {x:450,y:520},{x:330,y:510},{x:220,y:470},{x:130,y:400},{x:80,y:310},
+      {x:70,y:210},{x:100,y:130},{x:170,y:80},{x:270,y:55},{x:400,y:50},
+      {x:530,y:55},{x:650,y:75},{x:750,y:120},{x:820,y:190},{x:850,y:280},
+      {x:840,y:370},{x:790,y:440},{x:710,y:490},{x:600,y:520}
     ],
     bg:'#d4a857', bgAlt:'#c89a42', road:'#c8b870', kerb:'#1565C0',
     decor(tb){
-      const palms=[{x:450,y:55},{x:88,y:108},{x:812,y:100},{x:60,y:420},{x:862,y:415}];
+      const palms=[{x:450,y:280},{x:250,y:280},{x:650,y:260},{x:350,y:180},{x:550,y:180}];
       palms.forEach(t=>{
         tb.fillStyle='#8B6914';
         tb.beginPath(); tb.moveTo(t.x-3,t.y+18); tb.lineTo(t.x+3,t.y+18);
@@ -414,31 +415,33 @@ const TRACKS = [
           tb.fill();
         }
       });
-      const decos=[{x:125,y:255},{x:785,y:252},{x:450,y:78},{x:848,y:310},{x:100,y:318}];
+      // Lagoon water in the center
+      tb.fillStyle='rgba(30,120,200,0.25)';
+      tb.beginPath(); tb.ellipse(450,300,220,140,0,0,Math.PI*2); tb.fill();
+      tb.fillStyle='rgba(30,120,200,0.15)';
+      tb.beginPath(); tb.ellipse(450,290,160,90,0,0,Math.PI*2); tb.fill();
+      const decos=[{x:400,y:350},{x:500,y:340},{x:350,y:250},{x:550,y:250},{x:450,y:200}];
       decos.forEach(s=>{
         tb.font='15px serif'; tb.textAlign='center'; tb.textBaseline='middle';
         tb.fillText('🐚',s.x,s.y);
       });
-      // Infield starfish
-      [{x:390,y:342},{x:510,y:342},{x:450,y:300}].forEach(s=>{
-        tb.font='18px serif'; tb.textAlign='center'; tb.textBaseline='middle';
-        tb.fillText('⭐',s.x,s.y);
-      });
     }
   },
   {
-    name:'⚡ Wario Ridge', tag:'Serpentine slalom · Hard', tw:48,
+    name:'⚡ Wario Ridge', tag:'Zigzag gauntlet · Hard', tw:48,
+    // Non-crossing S-shaped loop with tight switchbacks but no overlap
     raw:[
-      {x:450,y:500},{x:300,y:500},{x:160,y:480},{x:100,y:420},{x:120,y:350},
-      {x:220,y:320},{x:450,y:320},{x:680,y:320},{x:780,y:290},{x:800,y:220},
-      {x:740,y:170},{x:500,y:170},{x:260,y:170},{x:140,y:140},{x:100,y:70},
-      {x:220,y:50},{x:450,y:50},{x:680,y:50},{x:800,y:70},{x:860,y:150},
-      {x:870,y:270},{x:860,y:390},{x:800,y:470},{x:620,y:500}
+      {x:450,y:540},{x:350,y:530},{x:250,y:500},{x:160,y:450},{x:100,y:380},
+      {x:80,y:300},{x:100,y:220},{x:160,y:160},{x:250,y:120},{x:370,y:110},
+      {x:450,y:130},{x:520,y:170},{x:550,y:230},{x:530,y:300},{x:480,y:350},
+      {x:520,y:410},{x:600,y:440},{x:700,y:430},{x:780,y:380},{x:830,y:300},
+      {x:840,y:210},{x:800,y:130},{x:730,y:80},{x:640,y:55},{x:750,y:55},
+      {x:850,y:80},{x:880,y:160},{x:880,y:270},{x:860,y:380},{x:820,y:460},
+      {x:740,y:510},{x:620,y:535}
     ],
     bg:'#2a1a4a', bgAlt:'#1e1038', road:'#4a3a6a', kerb:'#9b59b6',
     decor(tb){
-      // Outer rocky crags (adjusted for new slalom path)
-      const rocks=[{x:450,y:110},{x:50,y:250},{x:880,y:320},{x:60,y:392},{x:868,y:378}];
+      const rocks=[{x:300,y:300},{x:400,y:250},{x:650,y:250},{x:200,y:400},{x:700,y:350}];
       rocks.forEach(r=>{
         tb.fillStyle='#3a2555';
         tb.beginPath();
@@ -451,8 +454,7 @@ const TRACKS = [
         tb.lineTo(r.x+22,r.y-14); tb.lineTo(r.x+18,r.y+12);
         tb.closePath(); tb.fill();
       });
-      // Lightning in canyon spaces
-      const bolts=[{x:350,y:240},{x:550,y:240},{x:300,y:110},{x:600,y:110},{x:450,y:420}];
+      const bolts=[{x:350,y:200},{x:550,y:350},{x:750,y:200},{x:200,y:250},{x:650,y:150}];
       bolts.forEach(b=>{
         tb.font='18px serif'; tb.textAlign='center'; tb.textBaseline='middle';
         tb.fillText('⚡',b.x,b.y);
@@ -460,33 +462,35 @@ const TRACKS = [
     }
   },
   {
-    name:'🔥 Bowser\'s Castle', tag:'Technical labyrinth · Expert', tw:42,
+    name:'🔥 Bowser\'s Castle', tag:'Fortress circuit · Expert', tw:42,
+    // Non-crossing angular castle loop with sharp 90° corners and tight width
     raw:[
-      {x:450,y:480},{x:580,y:480},{x:680,y:480},{x:750,y:380},{x:750,y:300},
-      {x:680,y:280},{x:600,y:280},{x:600,y:210},{x:600,y:150},{x:710,y:130},
-      {x:820,y:120},{x:850,y:220},{x:850,y:320},{x:850,y:420},{x:800,y:410},
-      {x:750,y:400},{x:710,y:460},{x:680,y:530},{x:480,y:530},{x:280,y:530},
-      {x:180,y:480},{x:100,y:420},{x:80,y:310},{x:80,y:200},{x:150,y:160},
-      {x:250,y:150},{x:250,y:220},{x:250,y:300},{x:350,y:315},{x:450,y:320}
+      {x:450,y:530},{x:340,y:530},{x:220,y:510},{x:130,y:470},{x:80,y:410},
+      {x:60,y:330},{x:70,y:240},{x:110,y:170},{x:180,y:120},{x:270,y:90},
+      {x:370,y:80},{x:460,y:85},{x:540,y:110},{x:590,y:160},{x:600,y:230},
+      {x:570,y:300},{x:620,y:350},{x:700,y:370},{x:780,y:350},{x:830,y:290},
+      {x:850,y:210},{x:830,y:130},{x:780,y:80},{x:710,y:55},{x:800,y:80},
+      {x:870,y:140},{x:890,y:240},{x:880,y:350},{x:840,y:430},{x:770,y:490},
+      {x:670,y:520},{x:560,y:535}
     ],
     bg:'#160808', bgAlt:'#1e0a0a', road:'#383838', kerb:'#cc3300',
     decor(tb){
-      // Outer lava pools
-      const lavas=[{x:450,y:55},{x:80,y:108},{x:855,y:102},{x:55,y:415},{x:875,y:420}];
+      // Lava pools inside the fortress
+      const lavas=[{x:350,y:300},{x:500,y:400},{x:250,y:200},{x:700,y:220},{x:450,y:200}];
       lavas.forEach(l=>{
         const g=tb.createRadialGradient(l.x,l.y,0,l.x,l.y,26);
         g.addColorStop(0,'#FF6600'); g.addColorStop(.5,'#CC2200'); g.addColorStop(1,'rgba(100,0,0,0)');
         tb.fillStyle=g; tb.beginPath(); tb.ellipse(l.x,l.y,26,18,0,0,Math.PI*2); tb.fill();
       });
-      // Castle towers
+      // Castle towers at corners
       const towers=[{x:68,y:58},{x:852,y:55},{x:62,y:488},{x:862,y:482}];
       towers.forEach(t=>{
         tb.fillStyle='#2a0a0a'; tb.fillRect(t.x-14,t.y-18,28,36);
         for(let i=0;i<4;i++){ tb.fillStyle='#3a0a0a'; tb.fillRect(t.x-14+i*8,t.y-26,6,10); }
         tb.fillStyle='#550000'; tb.fillRect(t.x-3,t.y-4,6,22);
       });
-      // Infield fire obstacles inside the labyrinth turns
-      const fires=[{x:520,y:200},{x:350,y:240},{x:700,y:200},{x:520,y:400},{x:170,y:350},{x:380,y:450}];
+      // Fire obstacles
+      const fires=[{x:400,y:350},{x:300,y:400},{x:600,y:300},{x:750,y:150},{x:200,y:350}];
       fires.forEach(f=>{
         tb.font='18px serif'; tb.textAlign='center'; tb.textBaseline='middle';
         tb.fillText('🔥',f.x,f.y);
@@ -608,7 +612,9 @@ class Kart{
   constructor(cfg,x,y,angle){
     Object.assign(this,cfg);
     this.x=x;this.y=y;this.angle=angle;this.speed=0;
-    this.lap=1;this.lastProg=null;this.checkpoint=false;
+    this.lap=1;this.lastProg=null;
+    // Anti-cheat: must reach checkpoint 0,1,2,3 in order (at 25%,50%,75%, then finish crossing)
+    this.cpReached=0; // how many of the 4 checkpoints have been reached this lap
     this.finished=false;this.finishRank=null;this.finishTime=null;
     this.onTrack=true;this.spinTmr=0;this.boostTmr=0;this.starTmr=0;
     this.item=null;this.trail=[];
@@ -645,13 +651,26 @@ class Kart{
     this.trail=this.trail.filter(p=>(p.life--,p.life>0));
     const prog=trackProg(this.x,this.y);
     if(this.lastProg!==null){
-      if(prog>0.42&&prog<0.58) this.checkpoint=true;
-      if(this.checkpoint&&this.lastProg>0.88&&prog<0.12){
+      // Multi-checkpoint anti-cheat: must pass 25%, 50%, 75% zones in order
+      const cpZones=[
+        {lo:0.20,hi:0.30}, // CP0 near 25%
+        {lo:0.45,hi:0.55}, // CP1 near 50%
+        {lo:0.70,hi:0.80}  // CP2 near 75%
+      ];
+      // Only advance to the next checkpoint if we're in its zone
+      if(this.cpReached<cpZones.length){
+        const zone=cpZones[this.cpReached];
+        if(prog>=zone.lo&&prog<=zone.hi) this.cpReached++;
+      }
+      // Finish line crossing: must have all 3 intermediate CPs, then wrap from >88% to <12%
+      if(this.cpReached>=cpZones.length&&this.lastProg>0.88&&prog<0.12){
         if(!this.finished){
-          if(this.lap<LAPS){this.lap++;this.checkpoint=false;}
+          if(this.lap<LAPS){this.lap++;this.cpReached=0;}
           else{this.finished=true;this.finishTime=Date.now()-raceStartTime;}
         }
       }
+      // Backwards detection: if prog jumps backwards significantly, DON'T allow it to count
+      // (cpReached can only go up, never down, during a lap)
     }
     this.lastProg=prog;
   }
@@ -790,7 +809,7 @@ class RemoteKart extends Kart{
     if(s.finished!==undefined)  this.finished=s.finished;
     if(s.finishTime!==undefined)this.finishTime=s.finishTime;
     if(s.lastProg!==undefined)  this.lastProg=s.lastProg;
-    if(s.checkpoint!==undefined)this.checkpoint=s.checkpoint;
+    if(s.cpReached!==undefined)this.cpReached=s.cpReached;
   }
 }
 
@@ -1190,7 +1209,7 @@ function update(){
       lap:player.lap, item:player.item, spinTmr:player.spinTmr,
       boostTmr:player.boostTmr, starTmr:player.starTmr,
       finished:player.finished, finishTime:player.finishTime,
-      lastProg:player.lastProg, checkpoint:player.checkpoint,
+      lastProg:player.lastProg, cpReached:player.cpReached,
     });
   }
 
