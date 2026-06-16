@@ -390,23 +390,26 @@ const TRACKS = [
     }
   },
   {
-    name:'🏖️ Crescent Lagoon', tag:'Hairpin switchbacks · Hard', tw:46,
-    // Narrow zig-zag corridor with brutal hairpin turns — goes left-right-left across the canvas
+    name:'🏖️ Crescent Lagoon', tag:'Teardrop speedway · Hard', tw:48,
+    // Asymmetric teardrop — tight hairpin at the bottom-left, wide sweeping curve on the right
     raw:[
-      {x:450,y:540},{x:350,y:535},{x:250,y:520},{x:160,y:490},{x:100,y:445},
-      {x:80,y:390},{x:100,y:340},{x:170,y:310},{x:300,y:300},{x:450,y:295},
-      {x:600,y:300},{x:730,y:310},{x:810,y:340},{x:840,y:390},{x:820,y:440},
-      {x:750,y:470},{x:640,y:475},{x:500,y:460},{x:380,y:440},{x:290,y:410},
-      {x:240,y:370},{x:230,y:310},{x:270,y:250},{x:360,y:220},{x:480,y:210},
-      {x:600,y:205},{x:710,y:215},{x:780,y:240},{x:810,y:190},{x:790,y:130},
-      {x:720,y:90},{x:600,y:70},{x:470,y:60},{x:340,y:65},{x:230,y:85},
-      {x:150,y:120},{x:110,y:170},{x:105,y:230},{x:140,y:290},{x:100,y:350},
-      {x:80,y:420},{x:100,y:480},{x:170,y:520},{x:290,y:540}
+      {x:200,y:510},
+      {x:300,y:530},{x:420,y:540},{x:550,y:535},{x:670,y:510},
+      {x:770,y:465},{x:835,y:400},{x:865,y:320},{x:860,y:240},
+      {x:825,y:170},{x:765,y:115},{x:685,y:75},{x:590,y:52},
+      {x:480,y:42},{x:370,y:48},{x:270,y:70},{x:185,y:108},
+      {x:120,y:165},{x:75,y:240},{x:65,y:320},
+      {x:80,y:395},{x:120,y:450},{x:160,y:485}
     ],
     bg:'#d4a857', bgAlt:'#c89a42', road:'#c8b870', kerb:'#1565C0',
     decor(tb){
-      // Palm trees between the hairpin corridors
-      const palms=[{x:450,y:150},{x:200,y:180},{x:700,y:160},{x:450,y:370},{x:680,y:380}];
+      // Lagoon water in center
+      tb.fillStyle='rgba(30,120,200,0.3)';
+      tb.beginPath(); tb.ellipse(440,290,200,130,0,0,Math.PI*2); tb.fill();
+      tb.fillStyle='rgba(30,150,220,0.15)';
+      tb.beginPath(); tb.ellipse(430,280,140,80,0,0,Math.PI*2); tb.fill();
+      // Palm trees inside the lagoon
+      const palms=[{x:440,y:200},{x:320,y:280},{x:550,y:260},{x:400,y:370},{x:560,y:380}];
       palms.forEach(t=>{
         tb.fillStyle='#8B6914';
         tb.beginPath(); tb.moveTo(t.x-3,t.y+18); tb.lineTo(t.x+3,t.y+18);
@@ -414,40 +417,35 @@ const TRACKS = [
         tb.fillStyle='#2d8c18';
         for(let i=0;i<5;i++){
           const a=(i/5)*Math.PI*2;
-          tb.beginPath();
-          tb.moveTo(t.x,t.y-5);
+          tb.beginPath(); tb.moveTo(t.x,t.y-5);
           tb.quadraticCurveTo(t.x+Math.cos(a)*28,t.y-5+Math.sin(a)*6, t.x+Math.cos(a)*38,t.y-5+Math.sin(a)*16);
           tb.quadraticCurveTo(t.x+Math.cos(a+0.4)*18,t.y-5+Math.sin(a+0.4)*4, t.x,t.y-5);
           tb.fill();
         }
       });
-      // Tide pools between the corridors
-      [{x:450,y:350},{x:300,y:260},{x:600,y:350},{x:150,y:440}].forEach(w=>{
-        tb.fillStyle='rgba(30,120,200,0.3)';
-        tb.beginPath(); tb.ellipse(w.x,w.y,30,18,0,0,Math.PI*2); tb.fill();
-      });
-      const decos=[{x:550,y:140},{x:350,y:330},{x:700,y:270},{x:200,y:500},{x:800,y:100}];
-      decos.forEach(s=>{
+      [{x:350,y:200},{x:520,y:330},{x:280,y:380},{x:600,y:200},{x:440,y:430}].forEach(s=>{
         tb.font='15px serif'; tb.textAlign='center'; tb.textBaseline='middle';
         tb.fillText('🐚',s.x,s.y);
       });
     }
   },
   {
-    name:'⚡ Wario Ridge', tag:'Zigzag gauntlet · Hard', tw:48,
-    // Non-crossing S-shaped loop with tight switchbacks but no overlap
+    name:'⚡ Wario Ridge', tag:'Triangle gauntlet · Hard', tw:42,
+    // Downward-pointing triangle — flat top, two diagonal sides, sharp bottom vertex
     raw:[
-      {x:450,y:540},{x:350,y:530},{x:250,y:500},{x:160,y:450},{x:100,y:380},
-      {x:80,y:300},{x:100,y:220},{x:160,y:160},{x:250,y:120},{x:370,y:110},
-      {x:450,y:130},{x:520,y:170},{x:550,y:230},{x:530,y:300},{x:480,y:350},
-      {x:520,y:410},{x:600,y:440},{x:700,y:430},{x:780,y:380},{x:830,y:300},
-      {x:840,y:210},{x:800,y:130},{x:730,y:80},{x:640,y:55},{x:750,y:55},
-      {x:850,y:80},{x:880,y:160},{x:880,y:270},{x:860,y:380},{x:820,y:460},
-      {x:740,y:510},{x:620,y:535}
+      {x:450,y:538},
+      {x:510,y:518},{x:580,y:485},{x:650,y:440},{x:720,y:385},
+      {x:775,y:325},{x:815,y:260},{x:840,y:190},{x:845,y:130},
+      {x:830,y:82},{x:790,y:55},{x:740,y:42},
+      {x:660,y:38},{x:570,y:36},{x:480,y:36},{x:390,y:36},{x:300,y:38},
+      {x:210,y:42},{x:160,y:55},{x:120,y:82},{x:105,y:130},
+      {x:110,y:190},{x:135,y:260},{x:175,y:325},{x:230,y:385},
+      {x:300,y:440},{x:370,y:485},{x:400,y:518}
     ],
     bg:'#2a1a4a', bgAlt:'#1e1038', road:'#4a3a6a', kerb:'#9b59b6',
     decor(tb){
-      const rocks=[{x:300,y:300},{x:400,y:250},{x:650,y:250},{x:200,y:400},{x:700,y:350}];
+      // Rocky crags in the triangle interior
+      const rocks=[{x:450,y:180},{x:350,y:250},{x:550,y:250},{x:450,y:330},{x:300,y:350},{x:600,y:350}];
       rocks.forEach(r=>{
         tb.fillStyle='#3a2555';
         tb.beginPath();
@@ -460,58 +458,51 @@ const TRACKS = [
         tb.lineTo(r.x+22,r.y-14); tb.lineTo(r.x+18,r.y+12);
         tb.closePath(); tb.fill();
       });
-      const bolts=[{x:350,y:200},{x:550,y:350},{x:750,y:200},{x:200,y:250},{x:650,y:150}];
-      bolts.forEach(b=>{
+      [{x:450,y:120},{x:300,y:180},{x:600,y:180},{x:200,y:300},{x:700,y:300},{x:450,y:400}].forEach(b=>{
         tb.font='18px serif'; tb.textAlign='center'; tb.textBaseline='middle';
         tb.fillText('⚡',b.x,b.y);
       });
     }
   },
   {
-    name:'🔥 Bowser\'s Castle', tag:'Fortress perimeter · Expert', tw:38,
-    // Sharp rectangular perimeter circuit hugging the map edges — tight width, brutal corners
+    name:'🔥 Bowser\'s Castle', tag:'Fortress rectangle · Expert', tw:36,
+    // Rectangle hugging the canvas edges — sharp 90° corners, tightest road, zero margin
     raw:[
-      {x:450,y:540},{x:330,y:540},{x:200,y:535},{x:100,y:520},{x:55,y:480},
-      {x:40,y:420},{x:40,y:340},{x:40,y:260},{x:40,y:180},{x:55,y:110},
-      {x:100,y:65},{x:180,y:45},{x:300,y:40},{x:450,y:38},{x:600,y:40},
-      {x:720,y:45},{x:810,y:65},{x:860,y:110},{x:870,y:180},{x:860,y:260},
-      {x:830,y:320},{x:770,y:350},{x:700,y:330},{x:660,y:280},{x:660,y:210},
-      {x:690,y:150},{x:740,y:120},{x:770,y:160},{x:770,y:240},{x:780,y:330},
-      {x:810,y:400},{x:860,y:430},{x:870,y:480},{x:830,y:520},{x:740,y:540},
-      {x:600,y:542}
+      {x:450,y:542},
+      {x:570,y:542},{x:690,y:540},{x:790,y:530},{x:845,y:505},{x:865,y:460},
+      {x:872,y:385},{x:872,y:300},{x:872,y:215},{x:872,y:140},
+      {x:865,y:95},{x:845,y:60},{x:790,y:44},{x:690,y:40},{x:570,y:40},{x:450,y:40},
+      {x:330,y:40},{x:210,y:40},{x:110,y:44},{x:55,y:60},{x:35,y:95},
+      {x:28,y:140},{x:28,y:215},{x:28,y:300},{x:28,y:385},
+      {x:35,y:460},{x:55,y:505},{x:110,y:530},{x:210,y:540},{x:330,y:542}
     ],
     bg:'#160808', bgAlt:'#1e0a0a', road:'#383838', kerb:'#cc3300',
     decor(tb){
-      // Large central lava lake
-      const g1=tb.createRadialGradient(450,290,0,450,290,160);
-      g1.addColorStop(0,'rgba(255,100,0,0.4)'); g1.addColorStop(.5,'rgba(200,30,0,0.25)'); g1.addColorStop(1,'rgba(100,0,0,0)');
-      tb.fillStyle=g1; tb.beginPath(); tb.ellipse(450,290,180,130,0,0,Math.PI*2); tb.fill();
+      // Massive central lava lake
+      const g1=tb.createRadialGradient(450,290,0,450,290,180);
+      g1.addColorStop(0,'rgba(255,100,0,0.45)'); g1.addColorStop(.5,'rgba(200,30,0,0.28)'); g1.addColorStop(1,'rgba(100,0,0,0)');
+      tb.fillStyle=g1; tb.beginPath(); tb.ellipse(450,290,200,150,0,0,Math.PI*2); tb.fill();
       // Smaller lava pools
-      const lavas=[{x:250,y:250},{x:650,y:200},{x:350,y:400},{x:550,y:350},{x:450,y:180}];
-      lavas.forEach(l=>{
-        const g=tb.createRadialGradient(l.x,l.y,0,l.x,l.y,22);
+      [{x:250,y:200},{x:650,y:180},{x:300,y:400},{x:600,y:380},{x:450,y:290}].forEach(l=>{
+        const g=tb.createRadialGradient(l.x,l.y,0,l.x,l.y,24);
         g.addColorStop(0,'#FF6600'); g.addColorStop(.5,'#CC2200'); g.addColorStop(1,'rgba(100,0,0,0)');
-        tb.fillStyle=g; tb.beginPath(); tb.ellipse(l.x,l.y,22,14,0,0,Math.PI*2); tb.fill();
+        tb.fillStyle=g; tb.beginPath(); tb.ellipse(l.x,l.y,24,16,0,0,Math.PI*2); tb.fill();
       });
       // Castle towers at all 4 corners
-      const towers=[{x:35,y:38},{x:875,y:38},{x:35,y:542},{x:875,y:542}];
-      towers.forEach(t=>{
+      [{x:30,y:38},{x:870,y:38},{x:30,y:542},{x:870,y:542}].forEach(t=>{
         tb.fillStyle='#2a0a0a'; tb.fillRect(t.x-16,t.y-20,32,40);
         for(let i=0;i<5;i++){ tb.fillStyle='#3a0a0a'; tb.fillRect(t.x-16+i*7,t.y-28,5,10); }
         tb.fillStyle='#550000'; tb.fillRect(t.x-3,t.y-4,6,26);
-        // Glowing windows
         tb.fillStyle='rgba(255,100,0,0.7)'; tb.fillRect(t.x-6,t.y-10,4,4); tb.fillRect(t.x+2,t.y-10,4,4);
       });
-      // Fire obstacles near the tight inner loop
-      const fires=[{x:700,y:250},{x:730,y:180},{x:800,y:280},{x:750,y:400},{x:300,y:300}];
-      fires.forEach(f=>{
-        tb.font='18px serif'; tb.textAlign='center'; tb.textBaseline='middle';
-        tb.fillText('🔥',f.x,f.y);
-      });
-      // Skull decorations
-      [{x:450,y:290},{x:300,y:350},{x:550,y:250}].forEach(s=>{
+      // Skull & fire decorations
+      [{x:450,y:290},{x:300,y:300},{x:600,y:280}].forEach(s=>{
         tb.font='22px serif'; tb.textAlign='center'; tb.textBaseline='middle';
         tb.fillText('💀',s.x,s.y);
+      });
+      [{x:350,y:180},{x:550,y:180},{x:250,y:400},{x:650,y:400},{x:450,y:400}].forEach(f=>{
+        tb.font='18px serif'; tb.textAlign='center'; tb.textBaseline='middle';
+        tb.fillText('🔥',f.x,f.y);
       });
     }
   }
