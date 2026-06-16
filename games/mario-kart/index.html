@@ -612,6 +612,7 @@ class Kart{
     this.finished=false;this.finishRank=null;this.finishTime=null;
     this.onTrack=true;this.spinTmr=0;this.boostTmr=0;this.starTmr=0;
     this.item=null;this.trail=[];
+    this.trackSegmentIdx=0;
   }
   get effMax(){
     if(this.starTmr>0)  return this.maxSpd*1.9;
@@ -633,6 +634,7 @@ class Kart{
     this.y+=Math.sin(this.angle)*this.speed;
     const info=trackInfo(this.x,this.y);
     this.onTrack=(info.dist<TW*0.88);
+    this.trackSegmentIdx=info.idx;
     if(info.dist>TW){
       const seg=TRACK[info.idx];
       const nx=seg.x-this.x,ny=seg.y-this.y,nd=Math.hypot(nx,ny);
@@ -721,21 +723,38 @@ class Kart{
 // ═══════════════════════════════════════════
 class AIKart extends Kart{
   constructor(cfg,x,y,angle,skill){
-    super(cfg,x,y,angle);this.skill=skill;this.wpIdx=0;
+    super(cfg,x,y,angle);this.skill=skill;
     this.look=Math.round(4+skill*9);this.rubberband=0;
+    this.stuckTmr=0;this.reverseTmr=0;
   }
   ai(){
     if(this.finished) return {thr:0,str:0};
-    const target=TRACK[(this.wpIdx+this.look)%TN];
+    const target=TRACK[(this.trackSegmentIdx+this.look)%TN];
     const dx=target.x-this.x,dy=target.y-this.y;
     const da=aDiff(this.angle,Math.atan2(dy,dx));
-    if(Math.hypot(TRACK[this.wpIdx].x-this.x,TRACK[this.wpIdx].y-this.y)<28)
-      this.wpIdx=(this.wpIdx+1)%TN;
-    const str=clamp(da,-1,1);
+    let str=clamp(da,-1,1);
     const slowCorner=1-Math.abs(da)*0.5;
     let thr=lerp(0.55,1,this.skill)*slowCorner;
     if(!this.onTrack) thr*=0.45;
     thr=Math.min(1,thr+this.rubberband*0.15);
+    
+    // Stuck recovery logic
+    if(Math.abs(this.speed)<0.2 && thr>0 && this.spinTmr===0){
+      this.stuckTmr++;
+      if(this.stuckTmr>80){
+        this.reverseTmr=50;
+        this.stuckTmr=0;
+      }
+    } else {
+      if(this.stuckTmr>0) this.stuckTmr--;
+    }
+    
+    if(this.reverseTmr>0){
+      this.reverseTmr--;
+      thr=-0.6;
+      str=da>0?-1:1;
+    }
+    
     return {thr,str};
   }
   update(){const c=this.ai();super.update(c.thr,c.str);}
