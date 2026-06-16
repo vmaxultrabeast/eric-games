@@ -156,6 +156,138 @@ body {
   padding:6px 0; border-bottom:1px solid rgba(255,255,255,.1);
   font-size:14px; width:260px;
 }
+
+/* Ensure inputs allow interaction and copy-paste */
+input, select, textarea {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+
+/* ── Touch Controls ── */
+#touch-controls-container {
+  display: none;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99;
+}
+
+/* D-Pad */
+#touch-dpad {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  width: 140px;
+  height: 140px;
+  background: rgba(10, 10, 20, 0.4);
+  border: 2px solid rgba(255, 107, 0, 0.25);
+  border-radius: 50%;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: auto;
+  touch-action: none;
+  box-shadow: 0 0 20px rgba(0,0,0,0.4);
+}
+
+.dpad-btn {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 107, 0, 0.15);
+  color: rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: background 0.1s, color 0.1s, border-color 0.1s, box-shadow 0.1s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#dpad-up {
+  top: 4px; left: 47px; width: 46px; height: 40px;
+  border-radius: 8px 8px 0 0;
+}
+#dpad-down {
+  bottom: 4px; left: 47px; width: 46px; height: 40px;
+  border-radius: 0 0 8px 8px;
+}
+#dpad-left {
+  top: 47px; left: 4px; width: 40px; height: 46px;
+  border-radius: 8px 0 0 8px;
+}
+#dpad-right {
+  top: 47px; right: 4px; width: 40px; height: 46px;
+  border-radius: 0 8px 8px 0;
+}
+#dpad-center {
+  top: 47px; left: 47px; width: 46px; height: 46px;
+  background: rgba(255, 107, 0, 0.1);
+  border: 1px solid rgba(255, 107, 0, 0.3);
+  border-radius: 50%;
+  position: absolute;
+  pointer-events: none;
+}
+
+.dpad-btn.pressed {
+  background: linear-gradient(135deg, #FF6B00, #FF3300);
+  border-color: #FFD700;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(255, 107, 0, 0.6);
+}
+
+/* Bomb Button */
+#touch-bomb {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  width: 84px;
+  height: 84px;
+  background: linear-gradient(135deg, #FF6B00, #FF3300);
+  border: 3px solid #FFD700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(255, 107, 0, 0.45), 0 0 40px rgba(255, 107, 0, 0.15);
+  pointer-events: auto;
+  touch-action: none;
+  transition: transform 0.08s, box-shadow 0.08s;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+}
+
+#touch-bomb.pressed {
+  transform: scale(0.9);
+  box-shadow: 0 0 10px rgba(255, 107, 0, 0.3);
+  background: linear-gradient(135deg, #cc5500, #cc2900);
+}
+
+@media (max-height: 480px) {
+  #touch-dpad {
+    width: 110px;
+    height: 110px;
+    left: 12px;
+    bottom: 12px;
+  }
+  #dpad-up { top: 3px; left: 37px; width: 36px; height: 32px; }
+  #dpad-down { bottom: 3px; left: 37px; width: 36px; height: 32px; }
+  #dpad-left { top: 37px; left: 3px; width: 32px; height: 36px; }
+  #dpad-right { top: 37px; right: 3px; width: 32px; height: 36px; }
+  #dpad-center { top: 37px; left: 37px; width: 36px; height: 36px; }
+  .dpad-btn { font-size: 14px; }
+  
+  #touch-bomb {
+    width: 68px;
+    height: 68px;
+    right: 16px;
+    bottom: 16px;
+    font-size: 28px;
+    border-width: 2px;
+  }
+}
 </style>
 </head>
 <body>
@@ -251,6 +383,18 @@ body {
 </div>
 
 <div id="toast"></div>
+
+<!-- Touch Controls -->
+<div id="touch-controls-container">
+  <div id="touch-dpad">
+    <div id="dpad-up" class="dpad-btn">▲</div>
+    <div id="dpad-down" class="dpad-btn">▼</div>
+    <div id="dpad-left" class="dpad-btn">◀</div>
+    <div id="dpad-right" class="dpad-btn">▶</div>
+    <div id="dpad-center"></div>
+  </div>
+  <button id="touch-bomb" type="button">💣</button>
+</div>
 
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
@@ -690,13 +834,160 @@ const keys={};
 addEventListener('keydown',e=>{keys[e.key]=true;if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();});
 addEventListener('keyup',e=>{keys[e.key]=false;});
 
+const touchKeys={ArrowLeft:false,ArrowRight:false,ArrowUp:false,ArrowDown:false,Space:false};
+
 function handleInput(){
   const p=players[localIdx]; if(!p||!p.isLocal||!p.alive) return;
-  p.dx=(keys['ArrowLeft']||keys['a']||keys['A'])?-1:(keys['ArrowRight']||keys['d']||keys['D'])?1:0;
-  p.dy=(keys['ArrowUp']  ||keys['w']||keys['W'])?-1:(keys['ArrowDown'] ||keys['s']||keys['S'])?1:0;
-  const bkey=keys[' ']||keys['z']||keys['Z'];
+  p.dx=(keys['ArrowLeft']||keys['a']||keys['A']||touchKeys.ArrowLeft)?-1:(keys['ArrowRight']||keys['d']||keys['D']||touchKeys.ArrowRight)?1:0;
+  p.dy=(keys['ArrowUp']  ||keys['w']||keys['W']||touchKeys.ArrowUp)?-1:(keys['ArrowDown'] ||keys['s']||keys['S']||touchKeys.ArrowDown)?1:0;
+  const bkey=keys[' ']||keys['z']||keys['Z']||touchKeys.Space;
   if(bkey&&!p._bkey){dropBomb(p);}
   p._bkey=bkey;
+}
+
+function showTouchControls(visible) {
+  const el=document.getElementById('touch-controls-container');
+  if(!el) return;
+  const urlParams = new URLSearchParams(window.location.search);
+  const forceTouch = urlParams.has('touch') || urlParams.has('mobile');
+  const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0||forceTouch;
+  if(isTouch && visible) {
+    el.style.display='block';
+  } else {
+    el.style.display='none';
+  }
+}
+
+function setupTouchControls() {
+  const dpad=document.getElementById('touch-dpad');
+  const bombBtn=document.getElementById('touch-bomb');
+  if(!dpad||!bombBtn) return;
+  
+  let activePointerId=null;
+  let isPointerDown=false;
+  
+  function handlePointer(clientX, clientY, pointerId) {
+    activePointerId=pointerId;
+    
+    const rect=dpad.getBoundingClientRect();
+    const cx=rect.left+rect.width/2;
+    const cy=rect.top+rect.height/2;
+    const dx=clientX-cx;
+    const dy=clientY-cy;
+    const dist=Math.hypot(dx,dy);
+    
+    const deadzone=15;
+    touchKeys.ArrowLeft=false;
+    touchKeys.ArrowRight=false;
+    touchKeys.ArrowUp=false;
+    touchKeys.ArrowDown=false;
+    
+    document.querySelectorAll('.dpad-btn').forEach(b=>b.classList.remove('pressed'));
+    
+    if(dist>deadzone) {
+      if(Math.abs(dx)>Math.abs(dy)) {
+        if(dx<0) {
+          touchKeys.ArrowLeft=true;
+          document.getElementById('dpad-left').classList.add('pressed');
+        } else {
+          touchKeys.ArrowRight=true;
+          document.getElementById('dpad-right').classList.add('pressed');
+        }
+      } else {
+        if(dy<0) {
+          touchKeys.ArrowUp=true;
+          document.getElementById('dpad-up').classList.add('pressed');
+        } else {
+          touchKeys.ArrowDown=true;
+          document.getElementById('dpad-down').classList.add('pressed');
+        }
+      }
+    }
+  }
+  
+  function resetDpad() {
+    activePointerId=null;
+    isPointerDown=false;
+    touchKeys.ArrowLeft=false;
+    touchKeys.ArrowRight=false;
+    touchKeys.ArrowUp=false;
+    touchKeys.ArrowDown=false;
+    document.querySelectorAll('.dpad-btn').forEach(b=>b.classList.remove('pressed'));
+  }
+  
+  // Touch Events
+  dpad.addEventListener('touchstart',e=>{
+    if(activePointerId===null) {
+      const touch=e.changedTouches[0];
+      handlePointer(touch.clientX, touch.clientY, touch.identifier);
+    }
+  },{passive:false});
+  
+  dpad.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    if(activePointerId!==null) {
+      const touch=Array.from(e.touches).find(t=>t.identifier===activePointerId);
+      if(touch) handlePointer(touch.clientX, touch.clientY, activePointerId);
+    }
+  },{passive:false});
+  
+  dpad.addEventListener('touchend',e=>{
+    if(activePointerId!==null) {
+      const active=Array.from(e.touches).some(t=>t.identifier===activePointerId);
+      if(!active) resetDpad();
+    }
+  },{passive:false});
+  dpad.addEventListener('touchcancel',resetDpad,{passive:false});
+  
+  // Mouse Events
+  dpad.addEventListener('mousedown',e=>{
+    if(activePointerId===null) {
+      isPointerDown=true;
+      handlePointer(e.clientX, e.clientY, "mouse");
+    }
+  });
+  
+  addEventListener('mousemove',e=>{
+    if(isPointerDown && activePointerId==="mouse") {
+      handlePointer(e.clientX, e.clientY, "mouse");
+    }
+  });
+  
+  addEventListener('mouseup',e=>{
+    if(activePointerId==="mouse") {
+      resetDpad();
+    }
+  });
+  
+  // Bomb Touch Events
+  bombBtn.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    touchKeys.Space=true;
+    bombBtn.classList.add('pressed');
+  },{passive:false});
+  
+  const endBomb=e=>{
+    e.preventDefault();
+    touchKeys.Space=false;
+    bombBtn.classList.remove('pressed');
+  };
+  bombBtn.addEventListener('touchend',endBomb,{passive:false});
+  bombBtn.addEventListener('touchcancel',endBomb,{passive:false});
+  
+  // Bomb Mouse Events
+  bombBtn.addEventListener('mousedown',e=>{
+    touchKeys.Space=true;
+    bombBtn.classList.add('pressed');
+  });
+  
+  bombBtn.addEventListener('mouseup',e=>{
+    touchKeys.Space=false;
+    bombBtn.classList.remove('pressed');
+  });
+  bombBtn.addEventListener('mouseleave',e=>{
+    touchKeys.Space=false;
+    bombBtn.classList.remove('pressed');
+  });
 }
 
 // ═══════════════════════════════
@@ -784,10 +1075,11 @@ function killFeed(msg){
 function checkOver(){
   if(gameOverFlag) return;
   const alive=players.filter(p=>p.alive);
-  if(alive.length<=1){ gameOverFlag=true; gstate='over'; setTimeout(()=>showOver(alive[0]||null),1400); }
+  if(alive.length<=1){ gameOverFlag=true; gstate='over'; showTouchControls(false); setTimeout(()=>showOver(alive[0]||null),1400); }
 }
 
 function showOver(winner){
+  showTouchControls(false);
   const local=players[localIdx];
   const iwin=winner&&winner===local;
   document.getElementById('overTitle').textContent=
@@ -929,6 +1221,7 @@ function startGame(mapData){
   hide('scLobby'); hide('scDiff'); hide('scOver');
   initGame(mapData);
   gstate='cd';
+  showTouchControls(true);
   let n=3;
   const cd=document.getElementById('cdNum');
   cd.style.display='flex'; cd.textContent=n;
@@ -1111,6 +1404,7 @@ function toast(msg,dur=3000){
 function toMenu(){
   if(network){network.leaveRoom();network=null;}
   gameMode='solo'; gstate='menu';
+  showTouchControls(false);
   hide('scOver'); hide('scLobby'); hide('scMP'); hide('scDiff');
   show('scStart');
 }
@@ -1226,6 +1520,7 @@ document.getElementById('btnAgain').addEventListener('click',()=>{
 //  KICK OFF
 // ═══════════════════════════════
 buildHUD();
+setupTouchControls();
 loop();
 </script>
 </body>
