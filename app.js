@@ -223,8 +223,8 @@ function launchGame(gameId) {
     modalGameTag.textContent = game.category;
     modalGameControls.textContent = game.controls;
 
-    // Point iframe to game entry point
-    gameIframe.src = `${game.folder}/index.html`;
+    // Point iframe to game entry point with cache-busting parameter
+    gameIframe.src = `${game.folder}/index.html?v=${Date.now()}`;
 
     // Open Modal
     gameModal.classList.add('active');
@@ -253,13 +253,15 @@ gameModal.addEventListener('click', (e) => {
     }
 });
 
-// Restart Game
+// Restart Game with fresh cache-busting timestamp
 modalReloadBtn.addEventListener('click', () => {
     const currentSrc = gameIframe.src;
+    if (!currentSrc) return;
+    const baseUrl = currentSrc.split('?')[0];
     gameIframe.src = '';
     // Quick delay to trigger reload
     setTimeout(() => {
-        gameIframe.src = currentSrc;
+        gameIframe.src = `${baseUrl}?v=${Date.now()}`;
     }, 50);
 });
 
