@@ -52,9 +52,13 @@
                 <!-- An interactive visual CSS element representing a futuristic gaming console/screen -->
                 <div class="console-box">
                     <div class="console-screen">
-                        <div class="console-lines"></div>
-                        <div class="console-logo">
-                            <span class="glitch" data-text="READY PLAYER ONE">READY PLAYER ONE</span>
+                        <canvas id="consoleCanvas"></canvas>
+                        <div class="console-scanner"></div>
+                        <div class="console-overlay-content">
+                            <div class="console-logo">
+                                <span class="glitch" id="consoleGlitchText" data-text="READY PLAYER ONE">READY PLAYER ONE</span>
+                            </div>
+                            <div class="console-logs" id="consoleLogs"></div>
                         </div>
                         <div class="console-status">
                             <span class="status-dot green"></span> ONLINE | SYSTEM: OK

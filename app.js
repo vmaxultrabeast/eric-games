@@ -306,11 +306,182 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ==========================================================================
+// Hero Console Visuals & Graphic Logic
+// ==========================================================================
+function initConsoleGraphic() {
+    const canvas = document.getElementById('consoleCanvas');
+    const logsContainer = document.getElementById('consoleLogs');
+    const glitchText = document.getElementById('consoleGlitchText');
+
+    if (!canvas || !logsContainer || !glitchText) return;
+
+    const ctx = canvas.getContext('2d');
+    
+    // Resize Canvas to fit screen bounds
+    function fitCanvas() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+    }
+    fitCanvas();
+    window.addEventListener('resize', fitCanvas);
+
+    // Floating particles
+    const particles = [];
+    for (let i = 0; i < 8; i++) {
+        particles.push({
+            x: Math.random() * 400,
+            y: Math.random() * 300,
+            size: Math.random() * 2 + 1,
+            speed: Math.random() * 0.4 + 0.15,
+            opacity: Math.random() * 0.5 + 0.2
+        });
+    }
+
+    // Animation loop
+    function animate() {
+        if (!canvas.width || !canvas.height) {
+            requestAnimationFrame(animate);
+            return;
+        }
+
+        ctx.fillStyle = '#05060b';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Coordinate Grid Lines
+        ctx.strokeStyle = 'rgba(0, 245, 255, 0.04)';
+        ctx.lineWidth = 1;
+        const gridSize = 25;
+        for (let x = 0; x < canvas.width; x += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+        for (let y = 0; y < canvas.height; y += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
+
+        // Draw Floating Particles
+        ctx.fillStyle = '#00f5ff';
+        particles.forEach(p => {
+            p.y -= p.speed;
+            if (p.y < 0) {
+                p.y = canvas.height;
+                p.x = Math.random() * canvas.width;
+            }
+            ctx.globalAlpha = p.opacity;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        ctx.globalAlpha = 1.0;
+
+        // Draw Oscilloscope Glowing Sine Wave
+        const time = Date.now() * 0.0012;
+        ctx.strokeStyle = '#00f5ff';
+        ctx.lineWidth = 2.2;
+        ctx.shadowColor = '#00f5ff';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+
+        for (let x = 0; x < canvas.width; x++) {
+            const freq = 0.008 + Math.sin(time * 0.4) * 0.003;
+            const ampMod = 20 + Math.sin(time * 1.1) * 10;
+            // Taper amplitude at screen boundaries so the wave fades out at the edges
+            const taper = Math.sin((x / canvas.width) * Math.PI);
+            const y = (canvas.height * 0.6) + Math.sin(x * freq - time * 4.2) * ampMod * taper;
+
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0; // reset shadow glow
+
+        requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+
+    // Logging Simulation
+    const LOG_TEMPLATES = [
+        'SYSTEM: BOOT OK. VER. 2.0.26',
+        'NETWORK: LOCALHOST DETECTED',
+        'PEERJS: STABLE CONNECTION ACTIVE',
+        'SYNCING LOCAL HIGH SCORES...',
+        'NEON SNAKE: GRAPHICS SHADER READY',
+        'MARIO KART: BOTS INITIALIZED',
+        'BOMBERMAN: BATTLE RADAR LIVE',
+        'GHOST FIGHTER: CO-OP SYNCHRONIZED',
+        'HOST: RUNNING APP.JS DEV DAEMON',
+        'CPU LOAD: 4.88% STABLE',
+        'AUDIO: SYNTH ENGINE ONLINE',
+        'IFRAME SHIELD: ACTIVE & SECURE',
+        'SYSTEM: CACHE FLUSH SUCCESSFUL',
+        'READY PLAYER ONE: PRESS START'
+    ];
+
+    function addLogLine(text) {
+        const line = document.createElement('div');
+        line.className = 'console-log-line';
+        
+        // Generate pseudo timestamp
+        const now = new Date();
+        const stamp = `[${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}]`;
+        line.textContent = `${stamp} ${text}`;
+
+        logsContainer.appendChild(line);
+
+        // Keep maximum 4 lines to avoid overflow
+        while (logsContainer.children.length > 4) {
+            logsContainer.removeChild(logsContainer.firstChild);
+        }
+
+        // Auto-scroll
+        logsContainer.scrollTop = logsContainer.scrollHeight;
+    }
+
+    // Initial Logs
+    addLogLine('SYSTEM: INIT BOOT ROUTINE');
+    setTimeout(() => addLogLine('IFRAME CONTROLLER: READY'), 400);
+    setTimeout(() => addLogLine('LOCAL STORAGE BINDER: OK'), 800);
+    setTimeout(() => addLogLine('PORTAL LOADED: WAITING PLAYER'), 1200);
+
+    // Set interval to post periodic logs
+    setInterval(() => {
+        const text = LOG_TEMPLATES[Math.floor(Math.random() * LOG_TEMPLATES.length)];
+        addLogLine(text);
+    }, 2200);
+
+    // Cycling Glitch Titles
+    const TITLES = [
+        'READY PLAYER ONE',
+        'PLAY NEON SNAKE',
+        'MARIO KART ONLINE',
+        'BOMBERMAN MULTIPLAYER',
+        'PIXEL STUDIO ANIMATOR',
+        'GHOSTFIGHTER 3000',
+        'CHALLENGE THE BOTS'
+    ];
+    let titleIdx = 0;
+    
+    setInterval(() => {
+        titleIdx = (titleIdx + 1) % TITLES.length;
+        const nextTitle = TITLES[titleIdx];
+        glitchText.textContent = nextTitle;
+        glitchText.setAttribute('data-text', nextTitle);
+    }, 4500);
+}
+
+// ==========================================================================
 // Initialization
 // ==========================================================================
 // Render game grid on start
 document.addEventListener('DOMContentLoaded', () => {
     renderGames();
+    initConsoleGraphic();
 
     // Smooth scrolling updates for nav links
     const sections = document.querySelectorAll('section');
@@ -334,3 +505,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
