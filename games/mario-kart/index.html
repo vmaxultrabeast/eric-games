@@ -363,13 +363,13 @@ resize(); window.addEventListener('resize', resize);
 // ═══════════════════════════════════════════
 const TRACKS = [
   {
-    name:'🍄 Mushroom Meadows', tag:'Classic oval · Easy', tw:68,
+    name:'🍄 Mushroom Valley', tag:'Winding dumbbell · Medium', tw:60,
     raw:[
-      {x:450,y:535},{x:580,y:530},{x:690,y:515},{x:775,y:475},{x:835,y:415},
-      {x:858,y:340},{x:842,y:260},{x:795,y:196},{x:724,y:155},{x:642,y:145},
-      {x:560,y:158},{x:490,y:172},{x:415,y:158},{x:338,y:145},{x:256,y:155},
-      {x:186,y:196},{x:143,y:262},{x:130,y:342},{x:152,y:416},{x:210,y:474},
-      {x:296,y:514},{x:380,y:530}
+      {x:450,y:520},{x:540,y:510},{x:540,y:420},{x:530,y:360},
+      {x:640,y:360},{x:740,y:350},{x:810,y:310},{x:830,y:230},
+      {x:760,y:150},{x:620,y:110},{x:450,y:100},{x:280,y:110},
+      {x:140,y:150},{x:70,y:230},{x:90,y:310},{x:160,y:350},
+      {x:260,y:360},{x:370,y:360},{x:360,y:420},{x:360,y:510}
     ],
     bg:'#3e8c2f', bgAlt:'#367a28', road:'#5c5c5c', kerb:'#cc1111',
     decor(tb){
@@ -389,16 +389,13 @@ const TRACKS = [
     }
   },
   {
-    name:'🏖️ Koopa Beach', tag:'Stadium oval · Medium', tw:62,
+    name:'🏖️ Crescent Lagoon', tag:'Horseshoe lagoon · Hard', tw:54,
     raw:[
-      {x:450,y:488},{x:520,y:486},{x:590,y:481},{x:660,y:472},
-      {x:716,y:451},{x:757,y:416},{x:779,y:368},{x:779,y:318},
-      {x:757,y:270},{x:716,y:235},{x:662,y:214},
-      {x:590,y:202},{x:520,y:198},{x:450,y:196},{x:380,y:198},
-      {x:308,y:202},{x:254,y:214},{x:209,y:235},
-      {x:168,y:270},{x:147,y:318},{x:147,y:368},
-      {x:168,y:416},{x:209,y:451},{x:266,y:472},
-      {x:335,y:481},{x:394,y:486}
+      {x:450,y:500},{x:580,y:480},{x:720,y:450},{x:800,y:380},{x:820,y:280},
+      {x:780,y:180},{x:680,y:120},{x:560,y:140},{x:490,y:200},{x:540,y:280},
+      {x:490,y:350},{x:410,y:350},{x:360,y:280},{x:410,y:200},{x:340,y:140},
+      {x:220,y:120},{x:120,y:180},{x:80,y:280},{x:100,y:380},{x:180,y:450},
+      {x:320,y:480}
     ],
     bg:'#d4a857', bgAlt:'#c89a42', road:'#c8b870', kerb:'#1565C0',
     decor(tb){
@@ -430,21 +427,18 @@ const TRACKS = [
     }
   },
   {
-    name:'🌩️ Wario Hills', tag:'Winding layout · Hard', tw:56,
+    name:'⚡ Wario Ridge', tag:'Serpentine slalom · Hard', tw:48,
     raw:[
-      {x:450,y:520},{x:540,y:516},{x:622,y:504},
-      {x:692,y:480},{x:748,y:444},{x:790,y:396},
-      {x:808,y:336},{x:800,y:272},{x:768,y:214},
-      {x:715,y:168},{x:645,y:138},{x:565,y:122},
-      {x:478,y:120},{x:390,y:130},{x:320,y:150},
-      {x:265,y:188},{x:230,y:242},{x:215,y:305},
-      {x:222,y:368},{x:248,y:424},{x:295,y:468},
-      {x:358,y:498},{x:408,y:512}
+      {x:450,y:500},{x:300,y:500},{x:160,y:480},{x:100,y:420},{x:120,y:350},
+      {x:220,y:320},{x:450,y:320},{x:680,y:320},{x:780,y:290},{x:800,y:220},
+      {x:740,y:170},{x:500,y:170},{x:260,y:170},{x:140,y:140},{x:100,y:70},
+      {x:220,y:50},{x:450,y:50},{x:680,y:50},{x:800,y:70},{x:860,y:150},
+      {x:870,y:270},{x:860,y:390},{x:800,y:470},{x:620,y:500}
     ],
     bg:'#2a1a4a', bgAlt:'#1e1038', road:'#4a3a6a', kerb:'#9b59b6',
     decor(tb){
-      // Outer rocky crags
-      const rocks=[{x:450,y:52},{x:88,y:88},{x:845,y:82},{x:60,y:392},{x:868,y:378}];
+      // Outer rocky crags (adjusted for new slalom path)
+      const rocks=[{x:450,y:110},{x:50,y:250},{x:880,y:320},{x:60,y:392},{x:868,y:378}];
       rocks.forEach(r=>{
         tb.fillStyle='#3a2555';
         tb.beginPath();
@@ -457,8 +451,8 @@ const TRACKS = [
         tb.lineTo(r.x+22,r.y-14); tb.lineTo(r.x+18,r.y+12);
         tb.closePath(); tb.fill();
       });
-      // Lightning in infield
-      const bolts=[{x:390,y:270},{x:510,y:270},{x:450,y:350},{x:125,y:200},{x:798,y:195}];
+      // Lightning in canyon spaces
+      const bolts=[{x:350,y:240},{x:550,y:240},{x:300,y:110},{x:600,y:110},{x:450,y:420}];
       bolts.forEach(b=>{
         tb.font='18px serif'; tb.textAlign='center'; tb.textBaseline='middle';
         tb.fillText('⚡',b.x,b.y);
@@ -466,16 +460,14 @@ const TRACKS = [
     }
   },
   {
-    name:'🔥 Bowser\'s Castle', tag:'Tight corners · Expert', tw:50,
+    name:'🔥 Bowser\'s Castle', tag:'Technical labyrinth · Expert', tw:42,
     raw:[
-      {x:450,y:518},{x:530,y:516},{x:610,y:514},{x:688,y:510},
-      {x:742,y:496},{x:784,y:468},{x:802,y:430},{x:800,y:388},
-      {x:798,y:338},{x:795,y:282},{x:798,y:238},{x:778,y:196},
-      {x:745,y:165},{x:700,y:148},{x:645,y:142},{x:580,y:140},
-      {x:515,y:140},{x:450,y:140},{x:385,y:140},{x:320,y:142},
-      {x:258,y:148},{x:212,y:165},{x:178,y:196},{x:158,y:238},
-      {x:160,y:280},{x:162,y:332},{x:158,y:382},{x:158,y:428},
-      {x:176,y:468},{x:214,y:496},{x:268,y:510},{x:350,y:516}
+      {x:450,y:480},{x:580,y:480},{x:680,y:480},{x:750,y:380},{x:750,y:300},
+      {x:680,y:280},{x:600,y:280},{x:600,y:210},{x:600,y:150},{x:710,y:130},
+      {x:820,y:120},{x:850,y:220},{x:850,y:320},{x:850,y:420},{x:800,y:410},
+      {x:750,y:400},{x:710,y:460},{x:680,y:530},{x:480,y:530},{x:280,y:530},
+      {x:180,y:480},{x:100,y:420},{x:80,y:310},{x:80,y:200},{x:150,y:160},
+      {x:250,y:150},{x:250,y:220},{x:250,y:300},{x:350,y:315},{x:450,y:320}
     ],
     bg:'#160808', bgAlt:'#1e0a0a', road:'#383838', kerb:'#cc3300',
     decor(tb){
@@ -493,8 +485,8 @@ const TRACKS = [
         for(let i=0;i<4;i++){ tb.fillStyle='#3a0a0a'; tb.fillRect(t.x-14+i*8,t.y-26,6,10); }
         tb.fillStyle='#550000'; tb.fillRect(t.x-3,t.y-4,6,22);
       });
-      // Infield fire + lava
-      const fires=[{x:350,y:255},{x:570,y:255},{x:570,y:415},{x:350,y:415},{x:142,y:205},{x:800,y:198},{x:138,y:378},{x:808,y:375}];
+      // Infield fire obstacles inside the labyrinth turns
+      const fires=[{x:520,y:200},{x:350,y:240},{x:700,y:200},{x:520,y:400},{x:170,y:350},{x:380,y:450}];
       fires.forEach(f=>{
         tb.font='18px serif'; tb.textAlign='center'; tb.textBaseline='middle';
         tb.fillText('🔥',f.x,f.y);
