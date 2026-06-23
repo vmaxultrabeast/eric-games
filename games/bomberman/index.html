@@ -681,14 +681,7 @@ class Bot extends Player{
     if(this._bombCooldown>0) this._bombCooldown--;
 
     this.tt++;
-    const thinkRate=this.diff.rate;
-    // Hard bots also do emergency checks every frame
-    const isInDanger=this._isInDanger(this.col,this.row);
-    if(this.diff.useBFS && isInDanger){
-      this._think(); // react immediately on hard
-    } else if(this.tt%thinkRate===0){
-      this._think();
-    }
+    if(this.tt%this.diff.rate===0) this._think();
 
     // Move toward target pixel
     const dx=this.tx-this.x, dy=this.ty-this.y;
@@ -891,13 +884,15 @@ class Bot extends Player{
     if(this._bombCooldown<=0&&this.bactive<this.bcount){
       const shouldBomb=!d.smartBomb || this._bombIsUseful(mc,mr);
       if(shouldBomb&&Math.random()<d.bombChance){
-        // _findEscapeAfterBomb simulates placing bomb here and finds a safe cell to run to
-        const escape=d.bombSelfCheck ? this._findEscapeAfterBomb(mc,mr) : {col:mc,row:mr};
+        // Find a real escape cell before bombing
+        const escape = d.bombSelfCheck
+          ? this._findEscapeAfterBomb(mc,mr)
+          : this._findAnyOpenNeighbor(mc,mr); // easy bots pick any open cell
         if(escape){
           dropBomb(this);
           this._bombCooldown=FUSE+15;
           this._path=[];
-          if(d.useBFS&&d.bombSelfCheck){
+          if(d.useBFS){
             const path=this._bfsPath(mc,mr,escape.col,escape.row,false);
             if(path&&path.length>0){
               this._path=path.slice(1);
@@ -944,7 +939,9 @@ class Bot extends Player{
       const nc=mc+dc,nr=mr+dr;
       if(nc<0||nc>=COLS||nr<0||nr>=ROWS||grid[nr][nc]!==SOFT) continue;
       if(this._bombCooldown<=0&&this.bactive<this.bcount&&Math.random()<d.bombChance*0.8){
-        const escape=d.bombSelfCheck ? this._findEscapeAfterBomb(mc,mr) : {col:mc,row:mr};
+        const escape = d.bombSelfCheck
+          ? this._findEscapeAfterBomb(mc,mr)
+          : this._findAnyOpenNeighbor(mc,mr);
         if(escape){
           dropBomb(this); this._bombCooldown=FUSE+15; this._path=[];
           this._setTarget(escape.col,escape.row); return;
@@ -954,6 +951,18 @@ class Bot extends Player{
 
     // ── FALLBACK: Wander ──
     this._wander(mc,mr);
+  }
+
+  // Find any adjacent EMPTY non-bomb cell (used by easy bots as a basic escape)
+  _findAnyOpenNeighbor(mc,mr){
+    const dirs=[[0,-1],[0,1],[-1,0],[1,0]].sort(()=>Math.random()-.5);
+    for(const[dc,dr] of dirs){
+      const nc=mc+dc,nr=mr+dr;
+      if(nc>=0&&nc<COLS&&nr>=0&&nr<ROWS&&grid[nr][nc]===EMPTY
+         &&!bombs.some(b=>b.col===nc&&b.row===nr))
+        return {col:nc,row:nr};
+    }
+    return null;
   }
 
   // Greedy single-step toward (tc,tr), avoids walls/bombs/blasts
