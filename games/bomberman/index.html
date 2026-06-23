@@ -740,7 +740,7 @@ class Bot extends Player{
       if(vis.has(k)) continue;
       vis.add(k);
       if(col===ec&&row===er) return path;
-      if(path.length>=14) continue; // limit search depth
+      if(path.length>=25) continue; // limit search depth
       for(const[dc,dr] of [[0,-1],[0,1],[-1,0],[1,0]]){
         const nc=col+dc,nr=row+dr;
         if(nc<0||nc>=COLS||nr<0||nr>=ROWS) continue;
@@ -787,31 +787,30 @@ class Bot extends Player{
     return false;
   }
 
-  // Check if we can escape after placing bomb here
-  _canEscapeAfterBomb(col,row){
-    // Simulate placing bomb
-    const fakeBlast=hypotheticalBlast(col,row,this.range);
-    fakeBlast.add(col+','+row);
-    // BFS to find a safe cell from current position avoiding both existing and future blast
+  // Find a safe escape cell AFTER placing a bomb at current position.
+  // Returns {col,row} of a reachable cell not in the combined danger zone, or null if trapped.
+  _findEscapeAfterBomb(mc,mr){
+    const fakeBlast=hypotheticalBlast(mc,mr,this.range);
     const existingBlast=blastSet();
     const allDanger=new Set([...existingBlast,...fakeBlast]);
     const vis=new Set();
-    const q=[{col,row,d:0}];
+    // BFS — allows traversal through danger zones (bot runs through them before bomb explodes)
+    const q=[{col:mc,row:mr,d:0}];
     while(q.length){
-      const {col:c,row:r,d}=q.shift();
-      const k=c+','+r;
+      const {col,row,d}=q.shift();
+      const k=col+','+row;
       if(vis.has(k)) continue;
       vis.add(k);
-      if(!allDanger.has(k)&&d>0) return true;
-      if(d>=7) continue;
+      if(!allDanger.has(k)&&d>0) return {col,row}; // found safe landing cell
+      if(d>=8) continue;
       for(const[dc,dr] of [[0,-1],[0,1],[-1,0],[1,0]]){
-        const nc=c+dc,nr=r+dr;
+        const nc=col+dc,nr=row+dr;
         if(nc<0||nc>=COLS||nr<0||nr>=ROWS||grid[nr][nc]!==EMPTY) continue;
         if(bombs.some(b=>b.col===nc&&b.row===nr)) continue;
         q.push({col:nc,row:nr,d:d+1});
       }
     }
-    return false;
+    return null; // no escape — don't bomb
   }
 
   _think(){
@@ -891,22 +890,22 @@ class Bot extends Player{
     // ── PRIORITY 3a: Drop bomb to hit target or break wall ──
     if(this._bombCooldown<=0&&this.bactive<this.bcount){
       const shouldBomb=!d.smartBomb || this._bombIsUseful(mc,mr);
-      const canEscape=!d.bombSelfCheck || this._canEscapeAfterBomb(mc,mr);
-      if(shouldBomb&&canEscape&&Math.random()<d.bombChance){
-        const safe=this._findSafeCell(mc,mr);
-        if(safe){
+      if(shouldBomb&&Math.random()<d.bombChance){
+        // _findEscapeAfterBomb simulates placing bomb here and finds a safe cell to run to
+        const escape=d.bombSelfCheck ? this._findEscapeAfterBomb(mc,mr) : {col:mc,row:mr};
+        if(escape){
           dropBomb(this);
-          this._bombCooldown=FUSE+15; // don't spam bombs
+          this._bombCooldown=FUSE+15;
           this._path=[];
-          if(d.useBFS){
-            const path=this._bfsPath(mc,mr,safe.col,safe.row,false);
+          if(d.useBFS&&d.bombSelfCheck){
+            const path=this._bfsPath(mc,mr,escape.col,escape.row,false);
             if(path&&path.length>0){
               this._path=path.slice(1);
               this._setTarget(path[0].col,path[0].row);
               return;
             }
           }
-          this._setTarget(safe.col,safe.row);
+          this._setTarget(escape.col,escape.row);
           return;
         }
       }
@@ -921,7 +920,7 @@ class Bot extends Player{
         this._setTarget(path[0].col,path[0].row);
         return;
       }
-      // If no direct path (blocked), try without blast avoidance
+      // If no direct path (blocked by soft walls), try without blast avoidance
       const path2=this._bfsPath(mc,mr,tc,tr,false);
       if(path2&&path2.length>0){
         this._path=path2.slice(1);
@@ -934,16 +933,21 @@ class Bot extends Player{
       if(step){this._setTarget(step.col,step.row);return;}
     }
 
-    // ── PRIORITY 4: Break soft walls blocking the path ──
-    const dirs=[[0,-1],[0,1],[-1,0],[1,0]];
-    for(const[dc,dr] of dirs){
+    // ── PRIORITY 4: Break soft walls to open a path toward target ──
+    // Sort directions by which one is closest to target (bomb walls blocking us)
+    const dirs4=[[0,-1],[0,1],[-1,0],[1,0]].sort(([dc1,dr1],[dc2,dr2])=>{
+      const d1=Math.abs(tc-(mc+dc1))+Math.abs(tr-(mr+dr1));
+      const d2=Math.abs(tc-(mc+dc2))+Math.abs(tr-(mr+dr2));
+      return d1-d2;
+    });
+    for(const[dc,dr] of dirs4){
       const nc=mc+dc,nr=mr+dr;
       if(nc<0||nc>=COLS||nr<0||nr>=ROWS||grid[nr][nc]!==SOFT) continue;
-      if(this._bombCooldown<=0&&this.bactive<this.bcount&&Math.random()<d.bombChance*0.5){
-        const canEscape=!d.bombSelfCheck||this._canEscapeAfterBomb(mc,mr);
-        if(canEscape){
-          const safe=this._findSafeCell(mc,mr);
-          if(safe){dropBomb(this);this._bombCooldown=FUSE+15;this._setTarget(safe.col,safe.row);return;}
+      if(this._bombCooldown<=0&&this.bactive<this.bcount&&Math.random()<d.bombChance*0.8){
+        const escape=d.bombSelfCheck ? this._findEscapeAfterBomb(mc,mr) : {col:mc,row:mr};
+        if(escape){
+          dropBomb(this); this._bombCooldown=FUSE+15; this._path=[];
+          this._setTarget(escape.col,escape.row); return;
         }
       }
     }
