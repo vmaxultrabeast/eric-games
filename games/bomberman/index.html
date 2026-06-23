@@ -317,15 +317,15 @@ input, select, textarea {
     <div class="diff-list">
       <div class="diff-item" data-diff="easy">
         <span class="diff-icon">😊</span>
-        <div><div class="diff-label">Easy</div><div class="diff-desc">Slow, rarely drop bombs</div></div>
+        <div><div class="diff-label">Easy</div><div class="diff-desc">Random wandering · bombs itself often · great for beginners</div></div>
       </div>
       <div class="diff-item" data-diff="medium">
         <span class="diff-icon">⚔️</span>
-        <div><div class="diff-label">Medium</div><div class="diff-desc">Balanced speed and aggression</div></div>
+        <div><div class="diff-label">Medium</div><div class="diff-desc">Smart targeting · seeks powerups · safe bomb placement</div></div>
       </div>
       <div class="diff-item" data-diff="hard">
         <span class="diff-icon">💀</span>
-        <div><div class="diff-label">Hard</div><div class="diff-desc">Fast, aggressive, strategic</div></div>
+        <div><div class="diff-label">Hard</div><div class="diff-desc">BFS pathfinding · instant danger reaction · relentless hunter</div></div>
       </div>
     </div>
     <button class="btn btn-back" id="btnDiffBack">← Back</button>
@@ -595,108 +595,41 @@ class Player{
 }
 
 // ═══════════════════════════════
-//  BOT
+//  BOT — Improved AI with 3 difficulty levels
 // ═══════════════════════════════
+
+// Difficulty configuration
 const DIFFS={
-  easy:  {spd:1.8, bchance:.05, rate:32},
-  medium:{spd:2.4, bchance:.14, rate:18},
-  hard:  {spd:3.1, bchance:.28, rate:10},
+  easy:{
+    spd:1.6, rate:38, thinkNoise:0.55,   // high noise = random decisions
+    fleeDist:2,       // only flee if bomb is very close
+    bombChance:0.06,  // low chance to place bomb
+    smartBomb:false,  // doesn't check if bomb placement is smart
+    useBFS:false,     // uses greedy (dumb) pathfinding
+    pickupAware:false,// ignores powerups
+    bombSelfCheck:false, // may bomb itself
+  },
+  medium:{
+    spd:2.4, rate:20, thinkNoise:0.2,
+    fleeDist:3,
+    bombChance:0.22,
+    smartBomb:true,
+    useBFS:false,
+    pickupAware:true,
+    bombSelfCheck:true,
+  },
+  hard:{
+    spd:3.2, rate:10, thinkNoise:0.0,
+    fleeDist:5,
+    bombChance:0.55,
+    smartBomb:true,
+    useBFS:true,       // uses proper BFS pathfinding
+    pickupAware:true,
+    bombSelfCheck:true,
+  },
 };
 
-class Bot extends Player{
-  constructor(idx,col,row,name){
-    super(idx,col,row,name,PC[idx%4],false);
-    this.isBot=true; this.id='bot'+idx;
-    const d=DIFFS[difficulty]||DIFFS.medium;
-    this.speed=d.spd; this.bc=d.bchance; this.rate=d.rate;
-    this.tt=Math.floor(Math.random()*25); // think timer
-    this.tx=this.x; this.ty=this.y; // target pixel
-  }
-  update(){
-    if(!this.alive){ if(this.da>0)this.da--; return; }
-    this.tt++;
-    if(this.tt%this.rate===0) this._think();
-    const dx=this.tx-this.x, dy=this.ty-this.y;
-    const dist=Math.hypot(dx,dy);
-    if(dist>3){
-      if(Math.abs(dx)>=Math.abs(dy)){this.dx=Math.sign(dx);this.dy=0;}
-      else{this.dx=0;this.dy=Math.sign(dy);}
-      this._move();
-    } else { this.dx=0;this.dy=0; }
-    if(this.ghostId){
-      const b=bombs.find(b=>b.id===this.ghostId);
-      if(!b){ this.ghostId=null; }
-      else{
-        const bx=GX+b.col*TS, by=GY+b.row*TS;
-        if(this.x+P_HB<=bx||this.x-P_HB>=bx+TS||this.y+P_HB<=by||this.y-P_HB>=by+TS)
-          this.ghostId=null;
-      }
-    }
-  }
-  _setTarget(col,row){ this.tx=GX+col*TS+TS/2; this.ty=GY+row*TS+TS/2; }
-  _think(){
-    const mc=this.col, mr=this.row;
-    // Flee bombs
-    const danger=bombs.find(b=>Math.abs(b.col-mc)+Math.abs(b.row-mr)<=b.range+1);
-    if(danger){ const s=this._safe(mc,mr); if(s){this._setTarget(s.col,s.row);return;} }
-    // Target nearest living non-bot
-    const targets=players.filter(p=>p!==this&&p.alive);
-    if(!targets.length) return;
-    const tgt=targets.reduce((a,b)=>
-      Math.hypot(a.x-this.x,a.y-this.y)<=Math.hypot(b.x-this.x,b.y-this.y)?a:b);
-    const tc=tgt.col, tr=tgt.row;
-    const dist=Math.abs(tc-mc)+Math.abs(tr-mr);
-    // Drop bomb if close
-    if(dist<=this.range+1&&this.bactive<this.bcount&&Math.random()<this.bc){
-      const s=this._safe(mc,mr);
-      if(s){dropBomb(this);this._setTarget(s.col,s.row);return;}
-    }
-    // Move toward target (greedy Manhattan)
-    const dirs=[[0,-1],[0,1],[-1,0],[1,0]].sort(()=>Math.random()-.5);
-    let best=null,bd=Infinity;
-    for(const [dc,dr] of dirs){
-      const nc=mc+dc,nr=mr+dr;
-      if(nc<0||nc>=COLS||nr<0||nr>=ROWS||grid[nr][nc]!==EMPTY) continue;
-      if(bombs.some(b=>b.col===nc&&b.row===nr)) continue;
-      const d=Math.abs(tc-nc)+Math.abs(tr-nr);
-      if(d<bd){bd=d;best={col:nc,row:nr};}
-    }
-    if(best){this._setTarget(best.col,best.row);return;}
-    // Break soft block
-    for(const [dc,dr] of dirs){
-      const nc=mc+dc,nr=mr+dr;
-      if(nc<0||nc>=COLS||nr<0||nr>=ROWS||grid[nr][nc]!==SOFT) continue;
-      if(this.bactive<this.bcount&&Math.random()<this.bc*.4){
-        const s=this._safe(mc,mr);
-        if(s){dropBomb(this);this._setTarget(s.col,s.row);return;}
-      }
-    }
-    // Wander
-    const ok=dirs.filter(([dc,dr])=>{
-      const nc=mc+dc,nr=mr+dr;
-      return nc>=0&&nc<COLS&&nr>=0&&nr<ROWS&&grid[nr][nc]===EMPTY&&!bombs.some(b=>b.col===nc&&b.row===nr);
-    });
-    if(ok.length){const[dc,dr]=ok[0];this._setTarget(mc+dc,mr+dr);}
-  }
-  _safe(fc,fr){
-    const blast=blastSet();
-    const vis=new Set(); const q=[{col:fc,row:fr,d:0}];
-    while(q.length){
-      const {col,row,d}=q.shift(); const k=col+','+row;
-      if(vis.has(k)) continue; vis.add(k);
-      if(!blast.has(k)&&d>0) return {col,row};
-      if(d>=6) continue;
-      for(const [dc,dr] of [[0,-1],[0,1],[-1,0],[1,0]]){
-        const nc=col+dc,nr=row+dr;
-        if(nc<0||nc>=COLS||nr<0||nr>=ROWS||grid[nr][nc]!==EMPTY) continue;
-        if(bombs.some(b=>b.col===nc&&b.row===nr)) continue;
-        q.push({col:nc,row:nr,d:d+1});
-      }
-    }
-    return null;
-  }
-}
-
+// Returns all cells currently in blast range of all bombs (including chain reaction estimate)
 function blastSet(){
   const s=new Set();
   bombs.forEach(b=>{
@@ -710,6 +643,344 @@ function blastSet(){
     }
   });
   return s;
+}
+
+// Returns cells that would be in blast range if a bomb was placed at (col,row) with given range
+function hypotheticalBlast(col,row,range){
+  const s=new Set();
+  s.add(col+','+row);
+  for(const[dc,dr] of [[0,-1],[0,1],[-1,0],[1,0]]){
+    for(let i=1;i<=range;i++){
+      const nc=col+dc*i,nr=row+dr*i;
+      if(nc<0||nc>=COLS||nr<0||nr>=ROWS||grid[nr][nc]===WALL) break;
+      s.add(nc+','+nr); if(grid[nr][nc]===SOFT) break;
+    }
+  }
+  return s;
+}
+
+class Bot extends Player{
+  constructor(idx,col,row,name){
+    super(idx,col,row,name,PC[idx%4],false);
+    this.isBot=true; this.id='bot'+idx;
+    const d=DIFFS[difficulty]||DIFFS.medium;
+    this.diff=d;
+    this.speed=d.spd;
+    this.tt=Math.floor(Math.random()*25); // stagger think timers
+    this.tx=this.x; this.ty=this.y;       // pixel target
+    this._path=[];       // BFS path queue
+    this._pathTarget=null;
+    this._fleeing=false;
+    this._bombCooldown=0;
+  }
+
+  update(){
+    if(!this.alive){ if(this.da>0)this.da--; return; }
+
+    // Bomb cooldown
+    if(this._bombCooldown>0) this._bombCooldown--;
+
+    this.tt++;
+    const thinkRate=this.diff.rate;
+    // Hard bots also do emergency checks every frame
+    const isInDanger=this._isInDanger(this.col,this.row);
+    if(this.diff.useBFS && isInDanger){
+      this._think(); // react immediately on hard
+    } else if(this.tt%thinkRate===0){
+      this._think();
+    }
+
+    // Move toward target pixel
+    const dx=this.tx-this.x, dy=this.ty-this.y;
+    const dist=Math.hypot(dx,dy);
+    if(dist>3){
+      if(Math.abs(dx)>=Math.abs(dy)){this.dx=Math.sign(dx);this.dy=0;}
+      else{this.dx=0;this.dy=Math.sign(dy);}
+      this._move();
+    } else {
+      this.dx=0; this.dy=0;
+      // Arrived at BFS waypoint, pop next
+      if(this._path.length>0){
+        const next=this._path.shift();
+        this._setTarget(next.col,next.row);
+      }
+    }
+
+    // Ghost bomb clearance (same as Player)
+    if(this.ghostId){
+      const b=bombs.find(b=>b.id===this.ghostId);
+      if(!b){ this.ghostId=null; }
+      else{
+        const bx=GX+b.col*TS, by=GY+b.row*TS;
+        if(this.x+P_HB<=bx||this.x-P_HB>=bx+TS||this.y+P_HB<=by||this.y-P_HB>=by+TS)
+          this.ghostId=null;
+      }
+    }
+  }
+
+  _setTarget(col,row){
+    this.tx=GX+col*TS+TS/2;
+    this.ty=GY+row*TS+TS/2;
+  }
+
+  // Check if a grid cell is currently dangerous (in blast zone)
+  _isInDanger(col,row){
+    const blast=blastSet();
+    return blast.has(col+','+row);
+  }
+
+  // BFS to find shortest path from (sc,sr) to (ec,er), avoiding walls, bombs, and optionally blasts
+  _bfsPath(sc,sr,ec,er,avoidBlast=false){
+    const blast=avoidBlast?blastSet():new Set();
+    const vis=new Set();
+    const q=[{col:sc,row:sr,path:[]}];
+    while(q.length){
+      const {col,row,path}=q.shift();
+      const k=col+','+row;
+      if(vis.has(k)) continue;
+      vis.add(k);
+      if(col===ec&&row===er) return path;
+      if(path.length>=14) continue; // limit search depth
+      for(const[dc,dr] of [[0,-1],[0,1],[-1,0],[1,0]]){
+        const nc=col+dc,nr=row+dr;
+        if(nc<0||nc>=COLS||nr<0||nr>=ROWS) continue;
+        if(grid[nr][nc]!==EMPTY) continue;
+        if(bombs.some(b=>b.col===nc&&b.row===nr)) continue;
+        if(avoidBlast&&blast.has(nc+','+nr)) continue;
+        q.push({col:nc,row:nr,path:[...path,{col:nc,row:nr}]});
+      }
+    }
+    return null; // no path found
+  }
+
+  // Find the nearest safe cell (not in blast zone), using BFS
+  _findSafeCell(fc,fr){
+    const blast=blastSet();
+    if(!blast.has(fc+','+fr)) return null; // already safe
+    const vis=new Set();
+    const q=[{col:fc,row:fr,d:0}];
+    while(q.length){
+      const {col,row,d}=q.shift();
+      const k=col+','+row;
+      if(vis.has(k)) continue;
+      vis.add(k);
+      if(!blast.has(k)&&d>0) return {col,row};
+      if(d>=8) continue;
+      for(const[dc,dr] of [[0,-1],[0,1],[-1,0],[1,0]]){
+        const nc=col+dc,nr=row+dr;
+        if(nc<0||nc>=COLS||nr<0||nr>=ROWS||grid[nr][nc]!==EMPTY) continue;
+        if(bombs.some(b=>b.col===nc&&b.row===nr)) continue;
+        q.push({col:nc,row:nr,d:d+1});
+      }
+    }
+    return null;
+  }
+
+  // Check if placing a bomb at (col,row) would hit something valuable (player or soft block)
+  _bombIsUseful(col,row){
+    const blast=hypotheticalBlast(col,row,this.range);
+    for(const cell of blast){
+      const [c,r]=cell.split(',').map(Number);
+      if(players.some(p=>p!==this&&p.alive&&p.col===c&&p.row===r)) return true;
+      if(grid[r][c]===SOFT) return true;
+    }
+    return false;
+  }
+
+  // Check if we can escape after placing bomb here
+  _canEscapeAfterBomb(col,row){
+    // Simulate placing bomb
+    const fakeBlast=hypotheticalBlast(col,row,this.range);
+    fakeBlast.add(col+','+row);
+    // BFS to find a safe cell from current position avoiding both existing and future blast
+    const existingBlast=blastSet();
+    const allDanger=new Set([...existingBlast,...fakeBlast]);
+    const vis=new Set();
+    const q=[{col,row,d:0}];
+    while(q.length){
+      const {col:c,row:r,d}=q.shift();
+      const k=c+','+r;
+      if(vis.has(k)) continue;
+      vis.add(k);
+      if(!allDanger.has(k)&&d>0) return true;
+      if(d>=7) continue;
+      for(const[dc,dr] of [[0,-1],[0,1],[-1,0],[1,0]]){
+        const nc=c+dc,nr=r+dr;
+        if(nc<0||nc>=COLS||nr<0||nr>=ROWS||grid[nr][nc]!==EMPTY) continue;
+        if(bombs.some(b=>b.col===nc&&b.row===nr)) continue;
+        q.push({col:nc,row:nr,d:d+1});
+      }
+    }
+    return false;
+  }
+
+  _think(){
+    const d=this.diff;
+    const mc=this.col, mr=this.row;
+
+    // Apply noise for lower difficulties (random chance to skip smart behavior)
+    if(d.thinkNoise>0 && Math.random()<d.thinkNoise){
+      this._wander(mc,mr);
+      return;
+    }
+
+    // ── PRIORITY 1: FLEE from danger ──
+    const inDanger=this._isInDanger(mc,mr);
+    const nearBomb=bombs.find(b=>{
+      const dist=Math.abs(b.col-mc)+Math.abs(b.row-mr);
+      return dist<=d.fleeDist;
+    });
+
+    if(inDanger||(nearBomb&&d.fleeDist>0)){
+      const safe=this._findSafeCell(mc,mr);
+      if(safe){
+        this._path=[];
+        if(d.useBFS){
+          // Hard bots pathfind to safety
+          const path=this._bfsPath(mc,mr,safe.col,safe.row,false);
+          if(path&&path.length>0){
+            this._path=path.slice(1);
+            this._setTarget(path[0].col,path[0].row);
+            return;
+          }
+        }
+        this._setTarget(safe.col,safe.row);
+        this._fleeing=true;
+        return;
+      }
+    }
+    this._fleeing=false;
+
+    // ── PRIORITY 2: Pick up powerups if aware ──
+    if(d.pickupAware&&pups.length>0){
+      // Find nearest accessible powerup
+      let nearestPup=null, nearestDist=Infinity;
+      for(const pup of pups){
+        if(this._isInDanger(pup.col,pup.row)) continue; // skip dangerous ones
+        const dist=Math.abs(pup.col-mc)+Math.abs(pup.row-mr);
+        if(dist<nearestDist&&dist<=6){
+          nearestDist=dist;
+          nearestPup=pup;
+        }
+      }
+      if(nearestPup&&nearestDist<=4){
+        if(d.useBFS){
+          const path=this._bfsPath(mc,mr,nearestPup.col,nearestPup.row,true);
+          if(path&&path.length>0){
+            this._path=path.slice(1);
+            this._setTarget(path[0].col,path[0].row);
+            return;
+          }
+        } else {
+          // Greedy move toward powerup
+          const step=this._greedyStep(mc,mr,nearestPup.col,nearestPup.row);
+          if(step){this._setTarget(step.col,step.row);return;}
+        }
+      }
+    }
+
+    // ── PRIORITY 3: Attack nearest living target ──
+    const targets=players.filter(p=>p!==this&&p.alive);
+    if(!targets.length){ this._wander(mc,mr); return; }
+
+    const tgt=targets.reduce((a,b)=>
+      Math.hypot(a.x-this.x,a.y-this.y)<=Math.hypot(b.x-this.x,b.y-this.y)?a:b);
+    const tc=tgt.col, tr=tgt.row;
+    const distToTgt=Math.abs(tc-mc)+Math.abs(tr-mr);
+
+    // ── PRIORITY 3a: Drop bomb to hit target or break wall ──
+    if(this._bombCooldown<=0&&this.bactive<this.bcount){
+      const shouldBomb=!d.smartBomb || this._bombIsUseful(mc,mr);
+      const canEscape=!d.bombSelfCheck || this._canEscapeAfterBomb(mc,mr);
+      if(shouldBomb&&canEscape&&Math.random()<d.bombChance){
+        const safe=this._findSafeCell(mc,mr);
+        if(safe){
+          dropBomb(this);
+          this._bombCooldown=FUSE+15; // don't spam bombs
+          this._path=[];
+          if(d.useBFS){
+            const path=this._bfsPath(mc,mr,safe.col,safe.row,false);
+            if(path&&path.length>0){
+              this._path=path.slice(1);
+              this._setTarget(path[0].col,path[0].row);
+              return;
+            }
+          }
+          this._setTarget(safe.col,safe.row);
+          return;
+        }
+      }
+    }
+
+    // ── PRIORITY 3b: Move toward target ──
+    if(d.useBFS){
+      // Hard: full BFS pathfinding, avoiding blast zones
+      const path=this._bfsPath(mc,mr,tc,tr,true);
+      if(path&&path.length>0){
+        this._path=path.slice(1);
+        this._setTarget(path[0].col,path[0].row);
+        return;
+      }
+      // If no direct path (blocked), try without blast avoidance
+      const path2=this._bfsPath(mc,mr,tc,tr,false);
+      if(path2&&path2.length>0){
+        this._path=path2.slice(1);
+        this._setTarget(path2[0].col,path2[0].row);
+        return;
+      }
+    } else {
+      // Easy/Medium: greedy one-step toward target
+      const step=this._greedyStep(mc,mr,tc,tr);
+      if(step){this._setTarget(step.col,step.row);return;}
+    }
+
+    // ── PRIORITY 4: Break soft walls blocking the path ──
+    const dirs=[[0,-1],[0,1],[-1,0],[1,0]];
+    for(const[dc,dr] of dirs){
+      const nc=mc+dc,nr=mr+dr;
+      if(nc<0||nc>=COLS||nr<0||nr>=ROWS||grid[nr][nc]!==SOFT) continue;
+      if(this._bombCooldown<=0&&this.bactive<this.bcount&&Math.random()<d.bombChance*0.5){
+        const canEscape=!d.bombSelfCheck||this._canEscapeAfterBomb(mc,mr);
+        if(canEscape){
+          const safe=this._findSafeCell(mc,mr);
+          if(safe){dropBomb(this);this._bombCooldown=FUSE+15;this._setTarget(safe.col,safe.row);return;}
+        }
+      }
+    }
+
+    // ── FALLBACK: Wander ──
+    this._wander(mc,mr);
+  }
+
+  // Greedy single-step toward (tc,tr), avoids walls/bombs/blasts
+  _greedyStep(mc,mr,tc,tr){
+    const blast=this._fleeing?new Set():blastSet();
+    const dirs=[[0,-1],[0,1],[-1,0],[1,0]].sort(()=>Math.random()-.5);
+    let best=null, bd=Infinity;
+    for(const[dc,dr] of dirs){
+      const nc=mc+dc,nr=mr+dr;
+      if(nc<0||nc>=COLS||nr<0||nr>=ROWS||grid[nr][nc]!==EMPTY) continue;
+      if(bombs.some(b=>b.col===nc&&b.row===nr)) continue;
+      if(blast.has(nc+','+nr)) continue;
+      const d=Math.abs(tc-nc)+Math.abs(tr-nr);
+      if(d<bd){bd=d;best={col:nc,row:nr};}
+    }
+    return best;
+  }
+
+  // Random wander to an open adjacent cell not in blast zone
+  _wander(mc,mr){
+    const blast=blastSet();
+    const dirs=[[0,-1],[0,1],[-1,0],[1,0]].sort(()=>Math.random()-.5);
+    const ok=dirs.filter(([dc,dr])=>{
+      const nc=mc+dc,nr=mr+dr;
+      return nc>=0&&nc<COLS&&nr>=0&&nr<ROWS&&
+             grid[nr][nc]===EMPTY&&
+             !bombs.some(b=>b.col===nc&&b.row===nr)&&
+             !blast.has(nc+','+nr);
+    });
+    if(ok.length){const[dc,dr]=ok[0];this._setTarget(mc+dc,mr+dr);}
+  }
 }
 
 // ═══════════════════════════════
