@@ -1986,9 +1986,9 @@ function setupCanvasEvents() {
 function getPixelPos(e) {
   const rect = canvas.getBoundingClientRect();
   const movie = getCurrentMovie();
-  const pixelSize = canvas.width / movie.width;
-  const x = Math.floor((e.clientX - rect.left) / pixelSize);
-  const y = Math.floor((e.clientY - rect.top) / pixelSize);
+  // Use visual pixel size from rect (already accounts for CSS zoom transform)
+  const x = Math.floor((e.clientX - rect.left) / (rect.width / movie.width));
+  const y = Math.floor((e.clientY - rect.top) / (rect.height / movie.height));
   return { x, y };
 }
 
