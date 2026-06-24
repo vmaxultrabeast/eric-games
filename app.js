@@ -33,7 +33,7 @@ const GAMES_REGISTRY = [
         cover: 'games/pixel-studio/cover.png',
         controls: 'Left Click to draw and use tools. Hotkeys: B (Pencil), E (Eraser), G (Fill), I (Eyedropper), L (Line).',
         addedDate: '2026-06-09',
-        updatedDate: '2026-06-14'
+        updatedDate: '2026-06-23'
     },
     {
         id: 'ghostfighter3000',
