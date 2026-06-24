@@ -829,8 +829,7 @@ class Bot extends Player{
       return dist<=d.fleeDist;
     });
 
-    if(inDanger){
-      // We're inside a blast zone or flame — flee immediately
+    if(inDanger||(nearBomb&&d.fleeDist>0)){
       const safe=this._findSafeCell(mc,mr);
       if(safe){
         this._path=[];
@@ -846,12 +845,13 @@ class Bot extends Player{
         this._fleeing=true;
         return;
       }
-      // Can't find escape — fall through to try other priorities
     }
+    this._fleeing=false;
 
-    // Near a live bomb but not yet in the blast zone — hold position.
-    // This prevents the bot from charging back toward the bomb after fleeing.
-    if(nearBomb){ this._fleeing=false; return; }
+    // If own bomb is still live (fuse hasn't blown yet), hold position.
+    // _bombCooldown starts at FUSE+15=195; bomb explodes when it reaches 15.
+    // This is distance-independent — prevents running back regardless of map layout.
+    if(this._bombCooldown>15) return;
 
     // ── PRIORITY 2: Pick up powerups if aware ──
     if(d.pickupAware&&pups.length>0){
@@ -963,13 +963,17 @@ class Bot extends Player{
     this._wander(mc,mr);
   }
 
-  // Find any adjacent EMPTY non-bomb cell (used by easy bots as a basic escape)
+  // Find any adjacent EMPTY non-bomb cell that's also outside the blast zone (easy bot escape)
   _findAnyOpenNeighbor(mc,mr){
+    const fakeBlast=hypotheticalBlast(mc,mr,this.range);
+    const existing=blastSet();
+    const allDanger=new Set([...fakeBlast,...existing,...flames.map(f=>f.col+','+f.row)]);
     const dirs=[[0,-1],[0,1],[-1,0],[1,0]].sort(()=>Math.random()-.5);
     for(const[dc,dr] of dirs){
       const nc=mc+dc,nr=mr+dr;
       if(nc>=0&&nc<COLS&&nr>=0&&nr<ROWS&&grid[nr][nc]===EMPTY
-         &&!bombs.some(b=>b.col===nc&&b.row===nr))
+         &&!bombs.some(b=>b.col===nc&&b.row===nr)
+         &&!allDanger.has(nc+','+nr))
         return {col:nc,row:nr};
     }
     return null;
