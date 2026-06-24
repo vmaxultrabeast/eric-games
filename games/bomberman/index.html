@@ -716,15 +716,19 @@ class Bot extends Player{
     this.ty=GY+row*TS+TS/2;
   }
 
-  // Check if a grid cell is currently dangerous (in blast zone)
+  // Check if a grid cell is currently dangerous (blast zone or active flame)
   _isInDanger(col,row){
-    const blast=blastSet();
-    return blast.has(col+','+row);
+    if(blastSet().has(col+','+row)) return true;
+    return flames.some(f=>f.col===col&&f.row===row);
   }
 
   // BFS to find shortest path from (sc,sr) to (ec,er), avoiding walls, bombs, and optionally blasts
   _bfsPath(sc,sr,ec,er,avoidBlast=false){
-    const blast=avoidBlast?blastSet():new Set();
+    const danger=new Set();
+    if(avoidBlast){
+      blastSet().forEach(k=>danger.add(k));
+      flames.forEach(f=>danger.add(f.col+','+f.row));
+    }
     const vis=new Set();
     const q=[{col:sc,row:sr,path:[]}];
     while(q.length){
@@ -739,17 +743,19 @@ class Bot extends Player{
         if(nc<0||nc>=COLS||nr<0||nr>=ROWS) continue;
         if(grid[nr][nc]!==EMPTY) continue;
         if(bombs.some(b=>b.col===nc&&b.row===nr)) continue;
-        if(avoidBlast&&blast.has(nc+','+nr)) continue;
+        if(avoidBlast&&danger.has(nc+','+nr)) continue;
         q.push({col:nc,row:nr,path:[...path,{col:nc,row:nr}]});
       }
     }
     return null; // no path found
   }
 
-  // Find the nearest safe cell (not in blast zone), using BFS
+  // Find the nearest safe cell (not in blast zone or active flames), using BFS
   _findSafeCell(fc,fr){
     const blast=blastSet();
-    if(!blast.has(fc+','+fr)) return null; // already safe
+    const flameSet=new Set(flames.map(f=>f.col+','+f.row));
+    const danger=new Set([...blast,...flameSet]);
+    if(!danger.has(fc+','+fr)) return null; // already safe
     const vis=new Set();
     const q=[{col:fc,row:fr,d:0}];
     while(q.length){
@@ -757,7 +763,7 @@ class Bot extends Player{
       const k=col+','+row;
       if(vis.has(k)) continue;
       vis.add(k);
-      if(!blast.has(k)&&d>0) return {col,row};
+      if(!danger.has(k)&&d>0) return {col,row};
       if(d>=8) continue;
       for(const[dc,dr] of [[0,-1],[0,1],[-1,0],[1,0]]){
         const nc=col+dc,nr=row+dr;
@@ -816,19 +822,19 @@ class Bot extends Player{
       return;
     }
 
-    // ── PRIORITY 1: FLEE from danger ──
+    // ── PRIORITY 1: FLEE from danger or hold position near live bomb ──
     const inDanger=this._isInDanger(mc,mr);
     const nearBomb=bombs.find(b=>{
       const dist=Math.abs(b.col-mc)+Math.abs(b.row-mr);
       return dist<=d.fleeDist;
     });
 
-    if(inDanger||(nearBomb&&d.fleeDist>0)){
+    if(inDanger){
+      // We're inside a blast zone or flame — flee immediately
       const safe=this._findSafeCell(mc,mr);
       if(safe){
         this._path=[];
         if(d.useBFS){
-          // Hard bots pathfind to safety
           const path=this._bfsPath(mc,mr,safe.col,safe.row,false);
           if(path&&path.length>0){
             this._path=path.slice(1);
@@ -840,8 +846,12 @@ class Bot extends Player{
         this._fleeing=true;
         return;
       }
+      // Can't find escape — fall through to try other priorities
     }
-    this._fleeing=false;
+
+    // Near a live bomb but not yet in the blast zone — hold position.
+    // This prevents the bot from charging back toward the bomb after fleeing.
+    if(nearBomb){ this._fleeing=false; return; }
 
     // ── PRIORITY 2: Pick up powerups if aware ──
     if(d.pickupAware&&pups.length>0){
@@ -965,9 +975,10 @@ class Bot extends Player{
     return null;
   }
 
-  // Greedy single-step toward (tc,tr), avoids walls/bombs/blasts
+  // Greedy single-step toward (tc,tr), avoids walls/bombs/blasts/flames
   _greedyStep(mc,mr,tc,tr){
     const blast=this._fleeing?new Set():blastSet();
+    const flameSet=new Set(flames.map(f=>f.col+','+f.row));
     const dirs=[[0,-1],[0,1],[-1,0],[1,0]].sort(()=>Math.random()-.5);
     let best=null, bd=Infinity;
     for(const[dc,dr] of dirs){
@@ -975,22 +986,25 @@ class Bot extends Player{
       if(nc<0||nc>=COLS||nr<0||nr>=ROWS||grid[nr][nc]!==EMPTY) continue;
       if(bombs.some(b=>b.col===nc&&b.row===nr)) continue;
       if(blast.has(nc+','+nr)) continue;
+      if(flameSet.has(nc+','+nr)) continue;
       const d=Math.abs(tc-nc)+Math.abs(tr-nr);
       if(d<bd){bd=d;best={col:nc,row:nr};}
     }
     return best;
   }
 
-  // Random wander to an open adjacent cell not in blast zone
+  // Random wander to an open adjacent cell not in blast zone or flames
   _wander(mc,mr){
     const blast=blastSet();
+    const flameSet=new Set(flames.map(f=>f.col+','+f.row));
     const dirs=[[0,-1],[0,1],[-1,0],[1,0]].sort(()=>Math.random()-.5);
     const ok=dirs.filter(([dc,dr])=>{
       const nc=mc+dc,nr=mr+dr;
       return nc>=0&&nc<COLS&&nr>=0&&nr<ROWS&&
              grid[nr][nc]===EMPTY&&
              !bombs.some(b=>b.col===nc&&b.row===nr)&&
-             !blast.has(nc+','+nr);
+             !blast.has(nc+','+nr)&&
+             !flameSet.has(nc+','+nr);
     });
     if(ok.length){const[dc,dr]=ok[0];this._setTarget(mc+dc,mr+dr);}
   }
