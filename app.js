@@ -66,7 +66,7 @@ const GAMES_REGISTRY = [
         cover: 'games/bomberman/cover.png',
         controls: 'Arrow Keys / WASD to move. Space to drop bomb. Multiplayer: click 🌐 Multiplayer, enter a name & room code.',
         addedDate: '2026-06-15',
-        updatedDate: '2026-06-15'
+        updatedDate: '2026-06-23'
     }
     // New games can be easily appended here in the future
 ];
