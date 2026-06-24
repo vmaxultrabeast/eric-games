@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Splat Wars – Ink Battle Arena</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: #0d0d1a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #fff;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ---- CANVAS ---- */
+#gameCanvas {
+  display: block;
+  image-rendering: pixelated;
+  cursor: crosshair;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+/* ---- SCREENS ---- */
+.screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: radial-gradient(ellipse at center, #1a0d2e 0%, #05050f 100%);
+  z-index: 200;
+}
+.screen.hidden { display: none; }
+
+.screen h1 {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 900;
+  letter-spacing: -2px;
+  background: linear-gradient(135deg, #FF5F1F, #FFB830, #1A8FFF, #00FFCC);
+  background-size: 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: hueShift 4s linear infinite;
+}
+
+@keyframes hueShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.screen .subtitle {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.mode-cards {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.mode-card {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 28px 36px;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+  min-width: 180px;
+}
+.mode-card:hover {
+  border-color: rgba(255,95,31,0.7);
+  background: rgba(255,95,31,0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(255,95,31,0.25);
+}
+.mode-card .mode-icon { font-size: 2.5rem; margin-bottom: 8px; }
+.mode-card .mode-name { font-size: 1.1rem; font-weight: 700; }
+.mode-card .mode-desc { font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-top:4px; }
+
+.instructions {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 16px 28px;
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.55);
+  max-width: 520px;
+  line-height: 1.8;
+  text-align: center;
+}
+.instructions kbd {
+  background: rgba(255,255,255,0.12);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: monospace;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.82rem;
+}
+
+/* ---- GAME OVER ---- */
+#gameOverScreen .winner-banner {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 900;
+}
+#gameOverScreen .score-display {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  margin: 12px 0;
+}
+.score-team {
+  text-align: center;
+}
+.score-team .pct {
+  font-size: 3rem;
+  font-weight: 900;
+}
+.score-team .label {
+  font-size: 0.85rem;
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+.score-vs {
+  font-size: 1.4rem;
+  opacity: 0.4;
+  font-weight: 300;
+}
+
+.btn-play-again {
+  margin-top: 8px;
+  padding: 14px 40px;
+  background: linear-gradient(135deg, #FF5F1F, #FF9A00);
+  border: none;
+  border-radius: 50px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+.btn-play-again:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 30px rgba(255,95,31,0.5);
+}
+
+/* ---- OVERLAY ---- */
+#overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#countdownDisplay {
+  font-size: 8rem;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 0 40px rgba(255,95,31,0.8), 0 0 80px rgba(255,95,31,0.4);
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.3s;
+  transform: scale(0.8);
+}
+#countdownDisplay.show {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ---- PAUSE HINT ---- */
+#pauseHint {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  z-index: 100;
+}
+</style>
+</head>
+<body>
+
+<!-- Start Screen -->
+<div id="startScreen" class="screen">
+  <h1>🦑 SPLAT WARS</h1>
+  <div class="subtitle">Ink Battle Arena</div>
+
+  <div class="mode-cards">
+    <div class="mode-card" onclick="startGame(1)">
+      <div class="mode-icon">🎮</div>
+      <div class="mode-name">Solo Ink</div>
+      <div class="mode-desc">You + 1 Bot<br>vs 2 Enemy Bots</div>
+    </div>
+    <div class="mode-card" onclick="startGame(2)">
+      <div class="mode-icon">👥</div>
+      <div class="mode-name">2 Players</div>
+      <div class="mode-desc">2 Humans + 0 Bots<br>vs 2 Enemy Bots</div>
+    </div>
+    <div class="mode-card" onclick="startGame(0)">
+      <div class="mode-icon">🤖</div>
+      <div class="mode-name">Bot Battle</div>
+      <div class="mode-desc">Watch bots fight<br>(spectator mode)</div>
+    </div>
+  </div>
+
+  <div class="instructions">
+    <strong>P1:</strong> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · Mouse aim · <kbd>Click</kbd> or <kbd>J</kbd> shoot · <kbd>Shift</kbd>/<kbd>Space</kbd> swim<br>
+    <strong>P2:</strong> <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> move · <kbd>L</kbd> or <kbd>/</kbd> shoot · <kbd>Enter</kbd> swim<br>
+    <em>🦑 Swimming in your ink recharges ammo faster and hides you!</em>
+  </div>
+</div>
+
+<!-- Game Over Screen -->
+<div id="gameOverScreen" class="screen hidden">
+  <div class="winner-banner" id="winnerBanner">Orange Wins!</div>
+  <div class="score-display">
+    <div class="score-team">
+      <div class="pct" id="scorePct0" style="color:#FF5F1F;">0%</div>
+      <div class="label" style="color:#FF5F1F;">🟠 Orange</div>
+    </div>
+    <div class="score-vs">vs</div>
+    <div class="score-team">
+      <div class="pct" id="scorePct1" style="color:#1A8FFF;">0%</div>
+      <div class="label" style="color:#1A8FFF;">🔵 Blue</div>
+    </div>
+  </div>
+  <button class="btn-play-again" onclick="returnToMenu()">🦑 Play Again</button>
+</div>
+
+<!-- Countdown overlay -->
+<div id="overlay">
+  <div id="countdownDisplay">3</div>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+<div id="pauseHint">P — Pause</div>
+
+<script>
+// ============================================================
+//  CONSTANTS
+// ============================================================
+const CELL   = 20;     // px per grid cell
+const COLS   = 40;     // grid columns
+const ROWS   = 24;     // grid rows
+const GW     = COLS * CELL;   // 800 — game width
+const GH     = ROWS * CELL;   // 480 — game height
+const UI_H   = 65;            // UI bar height
+
+// Cell types
+const WALL  = 0;
+const FLOOR = 1;
+// team ink stored as 2 + teamIndex
+
+// Team palette
+const TEAM_COLOR  = ['#FF5F1F', '#1A8FFF'];
+const TEAM_DARK   = ['#CC2200', '#005FCC'];
+const TEAM_LIGHT  = ['#FF9A50', '#5ABFFF'];
+const TEAM_NAME   = ['🟠 Orange', '🔵 Blue'];
+
+// Player
+const PLAYER_R       = 10;   // radius px
+const PLAYER_SPEED   = 155;  // px/s
+const SWIM_MULT      = 1.55;
+const ENEMY_INK_SLOW = 0.58;
+const AMMO_MAX       = 100;
+const AMMO_REGEN     = 18;   // /s
+const AMMO_SWIM      = 55;   // /s (while swimming in own ink)
+const AMMO_COST      = 28;   // per shot
+const SHOOT_COOLDOWN = 0.16; // s
+const RESPAWN_SEC    = 4.5;
+
+// Projectile
+const INK_SPEED    = 420;   // px/s
+const INK_SPLAT_R  = 2.6;   // grid cells
+const INK_PROJ_R   = 5;     // visual radius
+
+// Match
+const MATCH_SEC  = 120;
+
+// Bot
+const BOT_THINK  = 0.55;
+const BOT_FIRE   = 0.9;
+const BOT_AIM_NOISE = 0.22; // radians error
+
+// ============================================================
+//  MAP GENERATION
+// ============================================================
+let gameMap = [];  // permanent walls
+let inkMap  = [];  // mutable, stores FLOOR or 2/3 (ink)
+
+function buildMap() {
+  const m = Array.from({length: ROWS}, () => new Array(COLS).fill(FLOOR));
+
+  function rect(r, c, h, w) {
+    for (let dr = 0; dr < h; dr++)
+      for (let dc = 0; dc < w; dc++)
+        if (r+dr >= 0 && r+dr < ROWS && c+dc >= 0 && c+dc < COLS)
+          m[r+dr][c+dc] = WALL;
+  }
+  // Mirror horizontally: mirrors col c → COLS-1-c
+  function symRect(r, c, h, w) {
+    rect(r, c, h, w);
+    rect(r, COLS - c - w, h, w);
+  }
+  // Mirror both axes
+  function quad(r, c, h, w) {
+    symRect(r, c, h, w);
+    symRect(ROWS - r - h, c, h, w);
+  }
+
+  // Border
+  rect(0, 0, 1, COLS);
+  rect(ROWS-1, 0, 1, COLS);
+  rect(0, 0, ROWS, 1);
+  rect(0, COLS-1, ROWS, 1);
+
+  // Near-spawn cover
+  quad(2, 3, 3, 2);
+  quad(2, 7, 1, 4);
+
+  // Mid-field horizontal bars
+  quad(6, 8, 1, 7);
+
+  // Vertical flanking pillars
+  quad(5, 11, 5, 1);
+  quad(5, 14, 5, 1);
+
+  // Center obstacles
+  quad(3, 17, 4, 2);
+  quad(9, 16, 2, 4);
+
+  // Inner side rooms
+  quad(10, 4, 4, 1);
+  quad(10, 6, 1, 5);
+
+  // Center pinch (small walls each side of center gap)
+  rect(10, 18, 4, 4);   // center horizontal block
+
+  return m;
+}
+
+function resetInkMap() {
+  inkMap = gameMap.map(row => [...row]);
+  // Replace FLOOR=1 with FLOOR (no ink), walls stay WALL=0
+}
+
+// ============================================================
+//  CANVAS + SCALING
+// ============================================================
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
+let   cscale = 1; // CSS scale (not ctx scale)
+
+canvas.width  = GW;
+canvas.height = GH + UI_H;
+
+function resizeCanvas() {
+  const sw = window.innerWidth  / GW;
+  const sh = window.innerHeight / (GH + UI_H);
+  cscale = Math.min(sw, sh);
+  canvas.style.width  = Math.floor(GW * cscale) + 'px';
+  canvas.style.height = Math.floor((GH + UI_H) * cscale) + 'px';
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// ============================================================
+//  INPUT
+// ============================================================
+const keys = {};
+const mouse = { x: GW / 2, y: GH / 2, down: false, clicked: false };
+
+document.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (e.code === 'KeyP') togglePause();
+  if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
+});
+document.addEventListener('keyup', e => { keys[e.code] = false; });
+
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect();
+  mouse.x = (e.clientX - r.left) / cscale;
+  mouse.y = (e.clientY - r.top)  / cscale - UI_H;
+});
+canvas.addEventListener('mousedown', e => { if (e.button === 0) { mouse.down = true; mouse.clicked = true; } });
+canvas.addEventListener('mouseup',   e => { if (e.button === 0) mouse.down = false; });
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+// ============================================================
+//  PARTICLES
+// ============================================================
+class Particle {
+  constructor(x, y, vx, vy, color, life, size = 3) {
+    this.x = x; this.y = y;
+    this.vx = vx; this.vy = vy;
+    this.color = color;
+    this.life = life; this.maxLife = life;
+    this.size = size;
+  }
+  update(dt) {
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.vx *= 0.88;
+    this.vy *= 0.88;
+    this.life -= dt;
+  }
+  draw(ctx) {
+    ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+let particles = [];
+
+function spawnSplat(x, y, team, count = 14, speedRange = [30, 140]) {
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const spd = speedRange[0] + Math.random() * (speedRange[1] - speedRange[0]);
+    particles.push(new Particle(x, y,
+      Math.cos(a) * spd, Math.sin(a) * spd,
+      Math.random() < 0.5 ? TEAM_COLOR[team] : TEAM_LIGHT[team],
+      0.45 + Math.random() * 0.4,
+      2 + Math.random() * 4
+    ));
+  }
+}
+
+// ============================================================
+//  INK SYSTEM
+// ============================================================
+function splatInk(wx, wy, radiusCells, team) {
+  const cx = wx / CELL;
+  const cy = wy / CELL;
+  const r2 = radiusCells * radiusCells;
+  for (let r = Math.floor(cy - radiusCells); r <= Math.ceil(cy + radiusCells); r++) {
+    for (let c = Math.floor(cx - radiusCells); c <= Math.ceil(cx + radiusCells); c++) {
+      if (r < 0 || r >= ROWS || c < 0 || c >= COLS) continue;
+      if (gameMap[r][c] === WALL) continue;
+      if ((c - cx) ** 2 + (r - cy) ** 2 <= r2)
+        inkMap[r][c] = team + 2;
+    }
+  }
+}
+
+function calcScore() {
+  let t0 = 0, t1 = 0, total = 0;
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (gameMap[r][c] === WALL) continue;
+      total++;
+      if (inkMap[r][c] === 2) t0++;
+      else if (inkMap[r][c] === 3) t1++;
+    }
+  }
+  return { t0, t1, total };
+}
+
+function getCell(wx, wy) {
+  const c = Math.floor(wx / CELL);
+  const r = Math.floor(wy / CELL);
+  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return null;
+  return inkMap[r][c];
+}
+
+// ============================================================
+//  PROJECTILE
+// ============================================================
+class Projectile {
+  constructor(x, y, angle, team) {
+    this.x = x; this.y = y;
+    this.vx = Math.cos(angle) * INK_SPEED;
+    this.vy = Math.sin(angle) * INK_SPEED;
+    this.team = team;
+    this.active = true;
+    // trail positions
+    this.trail = [];
+  }
+  update(dt) {
+    if (!this.active) return;
+
+    this.trail.push({ x: this.x, y: this.y });
+    if (this.trail.length > 5) this.trail.shift();
+
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+
+    // Bounds
+    if (this.x < 0 || this.x > GW || this.y < 0 || this.y > GH) {
+      this.active = false;
+      return;
+    }
+
+    // Wall check
+    const c = Math.floor(this.x / CELL);
+    const r = Math.floor(this.y / CELL);
+    if (gameMap[r]?.[c] === WALL) {
+      this.splat();
+      return;
+    }
+
+    // Player hit
+    for (const p of players) {
+      if (p.team === this.team || !p.alive) continue;
+      // Swimming players are harder to hit
+      if (p.isSwimming && getCell(p.x, p.y) === p.team + 2) continue;
+      const d = Math.hypot(p.x - this.x, p.y - this.y);
+      if (d < PLAYER_R + INK_PROJ_R) {
+        p.splat(this.team);
+        this.splat();
+        return;
+      }
+    }
+  }
+
+  splat() {
+    if (!this.active) return;
+    this.active = false;
+    splatInk(this.x, this.y, INK_SPLAT_R, this.team);
+    spawnSplat(this.x, this.y, this.team);
+  }
+
+  draw(ctx) {
+    // Trail
+    this.trail.forEach((pt, i) => {
+      ctx.globalAlpha = (i / this.trail.length) * 0.35;
+      ctx.fillStyle = TEAM_COLOR[this.team];
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, INK_PROJ_R * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    // Body
+    ctx.fillStyle = TEAM_COLOR[this.team];
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, INK_PROJ_R, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.beginPath();
+    ctx.arc(this.x - INK_PROJ_R * 0.28, this.y - INK_PROJ_R * 0.28, INK_PROJ_R * 0.38, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// ============================================================
+//  PLAYER
+// ============================================================
+class Player {
+  constructor(team, spawnC, spawnR, isBot = true, isP2 = false) {
+    this.team   = team;
+    this.spawnC = spawnC;
+    this.spawnR = spawnR;
+    this.isBot  = isBot;
+    this.isP2   = isP2;
+    this.alive  = true;
+    this.respawnT = 0;
+    this.ammo   = AMMO_MAX;
+    this.angle  = team === 0 ? 0 : Math.PI;
+    this.isSwimming = false;
+    this.shootCD = 0;
+    this._vx = 0; this._vy = 0;
+    this.x = spawnC * CELL + CELL / 2;
+    this.y = spawnR * CELL + CELL / 2;
+    this.swimWiggle = 0;
+    this.deathFlash = 0;
+
+    // Bot state
+    this.botThinkT = Math.random() * BOT_THINK;
+    this.botFireT  = Math.random() * BOT_FIRE;
+    this.botTarget = null;
+    this.botAim    = 0;
+  }
+
+  cellUnder() {
+    return getCell(this.x, this.y);
+  }
+
+  update(dt) {
+    this.deathFlash = Math.max(0, this.deathFlash - dt);
+
+    if (!this.alive) {
+      this.respawnT -= dt;
+      if (this.respawnT <= 0) this.respawn();
+      return;
+    }
+
+    this.shootCD = Math.max(0, this.shootCD - dt);
+
+    const cell = this.cellUnder();
+    const onOwn   = cell === this.team + 2;
+    const onEnemy = (cell === 2 || cell === 3) && !onOwn;
+
+    // Ammo regen
+    if (this.isSwimming && onOwn) this.ammo = Math.min(AMMO_MAX, this.ammo + AMMO_SWIM * dt);
+    else                           this.ammo = Math.min(AMMO_MAX, this.ammo + AMMO_REGEN * dt);
+
+    // Speed
+    let speed = PLAYER_SPEED;
+    if      (this.isSwimming && onOwn) speed *= SWIM_MULT;
+    else if (onEnemy)                  speed *= ENEMY_INK_SLOW;
+
+    this.swimWiggle += dt * 8;
+
+    if (this.isBot) this._updateBot(dt, speed);
+    else            this._updateHuman(dt, speed);
+
+    // Integrate
+    this.x += this._vx * dt;
+    this._resolveX();
+    this.y += this._vy * dt;
+    this._resolveY();
+  }
+
+  _updateHuman(dt, speed) {
+    let dx = 0, dy = 0;
+    if (this.isP2) {
+      if (keys['ArrowUp'])    dy -= 1;
+      if (keys['ArrowDown'])  dy += 1;
+      if (keys['ArrowLeft'])  dx -= 1;
+      if (keys['ArrowRight']) dx += 1;
+      // P2 aims in movement direction
+      if (dx !== 0 || dy !== 0) this.angle = Math.atan2(dy, dx);
+      this.isSwimming = keys['Enter'] || keys['Numpad0'];
+      if ((keys['KeyL'] || keys['Slash']) && this.ammo >= AMMO_COST && !this.isSwimming && this.shootCD <= 0)
+        this._shoot();
+    } else {
+      if (keys['KeyW'] || keys['ArrowUp'])    dy -= 1;
+      if (keys['KeyS'] || keys['ArrowDown'])  dy += 1;
+      if (keys['KeyA'] || keys['ArrowLeft'])  dx -= 1;
+      if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+      // Aim at mouse
+      this.angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
+      this.isSwimming = keys['ShiftLeft'] || keys['ShiftRight'] || keys['Space'];
+      if ((mouse.down || mouse.clicked || keys['KeyJ']) && this.ammo >= AMMO_COST && !this.isSwimming && this.shootCD <= 0)
+        this._shoot();
+    }
+    mouse.clicked = false;
+
+    const len = Math.hypot(dx, dy);
+    if (len > 0) { this._vx = dx / len * speed; this._vy = dy / len * speed; }
+    else         { this._vx *= 0.7; this._vy *= 0.7; }
+  }
+
+  _updateBot(dt, speed) {
+    // Think timer
+    this.botThinkT -= dt;
+    if (this.botThinkT <= 0) {
+      this.botThinkT = BOT_THINK + Math.random() * 0.3;
+      this._pickTarget();
+    }
+
+    // Swim when low ammo and on own ink
+    const cell = this.cellUnder();
+    const onOwn = cell === this.team + 2;
+    this.isSwimming = (onOwn && this.ammo < AMMO_MAX * 0.25);
+
+    // Move toward target
+    if (this.botTarget) {
+      const dx = this.botTarget.x - this.x;
+      const dy = this.botTarget.y - this.y;
+      const d = Math.hypot(dx, dy);
+      if (d < 12) {
+        this.botTarget = null;
+        this._vx *= 0.4; this._vy *= 0.4;
+      } else {
+        const nx = dx / d, ny = dy / d;
+        this._vx = nx * speed;
+        this._vy = ny * speed;
+      }
+    } else {
+      this._vx *= 0.6; this._vy *= 0.6;
+    }
+
+    // Fire logic
+    this.botFireT -= dt;
+    if (this.botFireT <= 0 && this.ammo >= AMMO_COST && !this.isSwimming) {
+      this.botFireT = BOT_FIRE + Math.random() * 0.6;
+      const enemy = this._nearestEnemy();
+      if (enemy) {
+        const dx = enemy.x - this.x, dy = enemy.y - this.y;
+        const noise = (Math.random() - 0.5) * BOT_AIM_NOISE * 2;
+        this.angle = Math.atan2(dy, dx) + noise;
+        this._shoot();
+      } else {
+        // Spray uncovered tile
+        const tgt = this._nearestUnpainted();
+        if (tgt) {
+          this.angle = Math.atan2(tgt.y - this.y, tgt.x - this.x);
+          this._shoot();
+        }
+      }
+    }
+
+    // Keep angle updated when moving
+    if (Math.abs(this._vx) + Math.abs(this._vy) > 10)
+      this.angle = Math.atan2(this._vy, this._vx);
+  }
+
+  _pickTarget() {
+    const enemy = this._nearestEnemy();
+    if (enemy && Math.hypot(enemy.x - this.x, enemy.y - this.y) < 220) {
+      const spread = 60;
+      this.botTarget = {
+        x: enemy.x + (Math.random() - 0.5) * spread,
+        y: enemy.y + (Math.random() - 0.5) * spread
+      };
+      return;
+    }
+    // Score-weighted random tile sampling
+    let best = null, bestScore = -Infinity;
+    for (let i = 0; i < 25; i++) {
+      const r = 1 + Math.floor(Math.random() * (ROWS - 2));
+      const c = 1 + Math.floor(Math.random() * (COLS - 2));
+      if (gameMap[r][c] === WALL) continue;
+      const ink = inkMap[r][c];
+      const score = ink === (1 - this.team) + 2 ? 4 :
+                    ink === FLOOR             ? 2 : 0.3;
+      const dist = Math.hypot(c * CELL - this.x, r * CELL - this.y);
+      const s = score - dist * 0.004;
+      if (s > bestScore) { bestScore = s; best = { x: c * CELL + CELL / 2, y: r * CELL + CELL / 2 }; }
+    }
+    this.botTarget = best;
+  }
+
+  _nearestEnemy() {
+    let best = null, bd = Infinity;
+    for (const p of players) {
+      if (p.team === this.team || !p.alive) continue;
+      const d = Math.hypot(p.x - this.x, p.y - this.y);
+      if (d < bd) { bd = d; best = p; }
+    }
+    return best;
+  }
+
+  _nearestUnpainted() {
+    const r0 = Math.floor(this.y / CELL), c0 = Math.floor(this.x / CELL);
+    const R = 8;
+    for (let dr = -R; dr <= R; dr++) {
+      for (let dc = -R; dc <= R; dc++) {
+        const r = r0 + dr, c = c0 + dc;
+        if (r < 1 || r >= ROWS - 1 || c < 1 || c >= COLS - 1) continue;
+        if (gameMap[r][c] === WALL) continue;
+        const ink = inkMap[r][c];
+        if (ink === FLOOR || ink === (1 - this.team) + 2)
+          return { x: c * CELL + CELL / 2, y: r * CELL + CELL / 2 };
+      }
+    }
+    return null;
+  }
+
+  _shoot() {
+    if (this.ammo < AMMO_COST || this.shootCD > 0) return;
+    this.ammo -= AMMO_COST;
+    this.shootCD = SHOOT_COOLDOWN;
+    const px = this.x + Math.cos(this.angle) * (PLAYER_R + INK_PROJ_R + 1);
+    const py = this.y + Math.sin(this.angle) * (PLAYER_R + INK_PROJ_R + 1);
+    projectiles.push(new Projectile(px, py, this.angle, this.team));
+    // Small recoil particles
+    spawnSplat(px, py, this.team, 4, [20, 60]);
+  }
+
+  splat(byTeam) {
+    this.alive = false;
+    this.respawnT = RESPAWN_SEC;
+    this.deathFlash = 0.6;
+    splatInk(this.x, this.y, 1.8, byTeam);
+    spawnSplat(this.x, this.y, byTeam, 22, [40, 200]);
+  }
+
+  respawn() {
+    this.alive = true;
+    this.ammo  = AMMO_MAX;
+    this.x = this.spawnC * CELL + CELL / 2;
+    this.y = this.spawnR * CELL + CELL / 2;
+    this._vx = 0; this._vy = 0;
+    this.isSwimming = false;
+    // Paint a small base circle
+    splatInk(this.x, this.y, 1.8, this.team);
+  }
+
+  _resolveX() {
+    const R = PLAYER_R;
+    const corners = [
+      { x: this.x - R, y: this.y - R },
+      { x: this.x + R, y: this.y - R },
+      { x: this.x - R, y: this.y + R },
+      { x: this.x + R, y: this.y + R },
+    ];
+    for (const corner of corners) {
+      const c = Math.floor(corner.x / CELL);
+      const r = Math.floor(corner.y / CELL);
+      if (c < 0) { this.x = R; this._vx = 0; break; }
+      if (c >= COLS) { this.x = GW - R; this._vx = 0; break; }
+      if (r < 0 || r >= ROWS) continue;
+      if (gameMap[r][c] === WALL) {
+        this.x = this._vx > 0 ? c * CELL - R : (c + 1) * CELL + R;
+        this._vx = 0;
+        break;
+      }
+    }
+  }
+  _resolveY() {
+    const R = PLAYER_R;
+    const corners = [
+      { x: this.x - R, y: this.y - R },
+      { x: this.x + R, y: this.y - R },
+      { x: this.x - R, y: this.y + R },
+      { x: this.x + R, y: this.y + R },
+    ];
+    for (const corner of corners) {
+      const c = Math.floor(corner.x / CELL);
+      const r = Math.floor(corner.y / CELL);
+      if (r < 0) { this.y = R; this._vy = 0; break; }
+      if (r >= ROWS) { this.y = GH - R; this._vy = 0; break; }
+      if (c < 0 || c >= COLS) continue;
+      if (gameMap[r][c] === WALL) {
+        this.y = this._vy > 0 ? r * CELL - R : (r + 1) * CELL + R;
+        this._vy = 0;
+        break;
+      }
+    }
+  }
+
+  draw(ctx) {
+    if (!this.alive) {
+      // Ghost marker on spawn
+      ctx.save();
+      ctx.globalAlpha = 0.3 + 0.2 * Math.sin(Date.now() / 300);
+      ctx.fillStyle = TEAM_COLOR[this.team];
+      ctx.beginPath();
+      ctx.arc(this.spawnC * CELL + CELL / 2, this.spawnR * CELL + CELL / 2, PLAYER_R, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
+
+    const cell = this.cellUnder();
+    const onOwn = cell === this.team + 2;
+
+    ctx.save();
+
+    if (this.isSwimming && onOwn) {
+      // Squid in ink: elliptical ripple
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle);
+      ctx.fillStyle = TEAM_COLOR[this.team];
+      ctx.globalAlpha = 0.7 + 0.15 * Math.sin(this.swimWiggle);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, PLAYER_R * 1.6, PLAYER_R * 0.55, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 0.4;
+      ctx.strokeStyle = TEAM_LIGHT[this.team];
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, PLAYER_R * 2.2, PLAYER_R * 0.8 * (1 + 0.2 * Math.sin(this.swimWiggle)), 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
+
+    // Death flash
+    if (this.deathFlash > 0) ctx.globalAlpha = 0.6;
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(this.x + 2, this.y + 3, PLAYER_R, PLAYER_R * 0.55, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Body ring (team glow)
+    ctx.shadowColor  = TEAM_COLOR[this.team];
+    ctx.shadowBlur   = 12;
+    ctx.fillStyle    = TEAM_DARK[this.team];
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, PLAYER_R + 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Body
+    ctx.fillStyle = TEAM_COLOR[this.team];
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, PLAYER_R, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.beginPath();
+    ctx.arc(this.x - PLAYER_R * 0.3, this.y - PLAYER_R * 0.3, PLAYER_R * 0.42, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eyes
+    const eyeDist = PLAYER_R * 0.38;
+    const fwdX = Math.cos(this.angle), fwdY = Math.sin(this.angle);
+    const perpX = -fwdY, perpY = fwdX;
+    const eCX = this.x + fwdX * eyeDist;
+    const eCY = this.y + fwdY * eyeDist;
+    const spread = PLAYER_R * 0.3;
+
+    // Eye whites
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.ellipse(eCX + perpX * spread, eCY + perpY * spread, 3.5, 4.5, this.angle, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(eCX - perpX * spread, eCY - perpY * spread, 3.5, 4.5, this.angle, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Pupils
+    const pupilOff = 1.2;
+    ctx.fillStyle = TEAM_DARK[this.team];
+    ctx.beginPath();
+    ctx.arc(eCX + perpX * spread + fwdX * pupilOff, eCY + perpY * spread + fwdY * pupilOff, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(eCX - perpX * spread + fwdX * pupilOff, eCY - perpY * spread + fwdY * pupilOff, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Ammo ring
+    const ammoFrac = this.ammo / AMMO_MAX;
+    const ringR = PLAYER_R + 4;
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, ringR, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = ammoFrac < 0.25 ? '#FF4444' : TEAM_LIGHT[this.team];
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, ringR, -Math.PI / 2, -Math.PI / 2 + ammoFrac * Math.PI * 2);
+    ctx.stroke();
+
+    // "YOU" / "P2" label
+    if (!this.isBot) {
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 9px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 4;
+      ctx.fillText(this.isP2 ? 'P2' : 'YOU', this.x, this.y - PLAYER_R - 5);
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.restore();
+  }
+}
+
+// ============================================================
+//  GAME STATE
+// ============================================================
+let players = [];
+let projectiles = [];
+let matchTimer = MATCH_SEC;
+let gameActive = false;
+let paused = false;
+let numHumans = 1;
+
+function togglePause() {
+  if (!gameActive) return;
+  paused = !paused;
+}
+
+// ============================================================
+//  RENDERING
+// ============================================================
+
+// Pre-render wall pattern
+const wallCanvas = document.createElement('canvas');
+wallCanvas.width  = GW;
+wallCanvas.height = GH;
+const wctx = wallCanvas.getContext('2d');
+
+// Cache: offscreen canvas for ink layer (redrawn when ink changes)
+const inkCanvas = document.createElement('canvas');
+inkCanvas.width  = GW;
+inkCanvas.height = GH;
+const ictx = inkCanvas.getContext('2d');
+let inkDirty = true;
+
+function buildWallCache() {
+  wctx.clearRect(0, 0, GW, GH);
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (gameMap[r][c] !== WALL) continue;
+      const x = c * CELL, y = r * CELL;
+      wctx.fillStyle = '#0e0e1c';
+      wctx.fillRect(x, y, CELL, CELL);
+      // Subtle 3D edge
+      wctx.fillStyle = 'rgba(255,255,255,0.06)';
+      wctx.fillRect(x, y, CELL, 2);
+      wctx.fillRect(x, y, 2, CELL);
+      wctx.fillStyle = 'rgba(0,0,0,0.35)';
+      wctx.fillRect(x, y + CELL - 2, CELL, 2);
+      wctx.fillRect(x + CELL - 2, y, 2, CELL);
+    }
+  }
+}
+
+function rebuildInkCache() {
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const x = c * CELL, y = r * CELL;
+      const cell = inkMap[r][c];
+      if (cell === WALL) continue;
+      if (cell === FLOOR) {
+        ictx.fillStyle = '#1e1e30';
+        ictx.fillRect(x, y, CELL, CELL);
+        // Subtle checkerboard
+        ictx.fillStyle = (r + c) % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'rgba(0,0,0,0.02)';
+        ictx.fillRect(x, y, CELL, CELL);
+      } else {
+        const team = cell - 2;
+        ictx.fillStyle = TEAM_COLOR[team];
+        ictx.fillRect(x, y, CELL, CELL);
+        // Slight inner highlight
+        ictx.fillStyle = 'rgba(255,255,255,0.12)';
+        ictx.fillRect(x + 1, y + 1, CELL - 2, 3);
+        ictx.fillRect(x + 1, y + 1, 3, CELL - 2);
+        ictx.fillStyle = 'rgba(0,0,0,0.12)';
+        ictx.fillRect(x, y + CELL - 3, CELL, 3);
+        ictx.fillRect(x + CELL - 3, y, 3, CELL);
+      }
+    }
+  }
+}
+
+function drawUI() {
+  // Background
+  ctx.fillStyle = '#0a0a18';
+  ctx.fillRect(0, 0, GW, UI_H);
+
+  // Separator line
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, UI_H - 2, GW, 2);
+
+  const { t0, t1, total } = calcScore();
+  const pct0 = total > 0 ? t0 / total : 0;
+  const pct1 = total > 0 ? t1 / total : 0;
+
+  // Score bar
+  const bx = 120, by = 22, bw = GW - 240, bh = 18, br = 9;
+  ctx.fillStyle = '#22223a';
+  roundRect(ctx, bx - 4, by - 4, bw + 8, bh + 8, br + 2);
+  ctx.fill();
+
+  // Orange fill (from left)
+  ctx.save();
+  ctx.beginPath();
+  roundRect(ctx, bx, by, bw, bh, br);
+  ctx.clip();
+  ctx.fillStyle = TEAM_COLOR[0];
+  ctx.fillRect(bx, by, bw * pct0, bh);
+  ctx.fillStyle = TEAM_COLOR[1];
+  ctx.fillRect(bx + bw - bw * pct1, by, bw * pct1, bh);
+  ctx.restore();
+
+  // Score bar border
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  roundRect(ctx, bx, by, bw, bh, br);
+  ctx.stroke();
+
+  // Center line divider
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(bx + bw / 2, by - 3);
+  ctx.lineTo(bx + bw / 2, by + bh + 3);
+  ctx.stroke();
+
+  // Team icons + pct labels
+  ctx.font = 'bold 13px sans-serif';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = TEAM_COLOR[0];
+  ctx.textAlign = 'right';
+  ctx.fillText(`🟠 ${Math.round(pct0 * 100)}%`, bx - 10, by + bh / 2);
+  ctx.fillStyle = TEAM_COLOR[1];
+  ctx.textAlign = 'left';
+  ctx.fillText(`${Math.round(pct1 * 100)}% 🔵`, bx + bw + 10, by + bh / 2);
+
+  // Timer
+  const mins = Math.floor(matchTimer / 60);
+  const secs = Math.ceil(matchTimer % 60);
+  const tStr = `${mins}:${String(secs).padStart(2, '0')}`;
+  ctx.font = 'bold 26px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const timerColor = matchTimer < 20 ? '#FF4444' : matchTimer < 40 ? '#FFB830' : 'white';
+  if (matchTimer < 10) {
+    ctx.shadowColor = '#FF4444';
+    ctx.shadowBlur = 12;
+  }
+  ctx.fillStyle = timerColor;
+  ctx.fillText(tStr, GW / 2, UI_H - 16);
+  ctx.shadowBlur = 0;
+
+  // Human player ammo bar (P1)
+  const human = players.find(p => !p.isBot && !p.isP2);
+  if (human) {
+    const ax = 8, ay = 8, aw = 90, ah = 12;
+    ctx.fillStyle = '#22223a';
+    ctx.fillRect(ax - 1, ay - 1, aw + 2, ah + 2);
+    ctx.fillStyle = human.ammo < AMMO_COST ? '#FF4444' : TEAM_COLOR[human.team];
+    ctx.fillRect(ax, ay, aw * (human.ammo / AMMO_MAX), ah);
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(ax, ay, aw, ah);
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = '8px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('INK  P1', ax + 1, ay - 9);
+    if (!human.alive) {
+      ctx.fillStyle = '#FF4444';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`💀 ${Math.ceil(human.respawnT)}s`, ax, ay + ah + 3);
+    }
+    if (human.isSwimming) {
+      ctx.fillStyle = TEAM_LIGHT[human.team];
+      ctx.font = 'bold 9px sans-serif';
+      ctx.fillText('🦑 SWIM', ax, ay + ah + 3);
+    }
+  }
+
+  // P2 ammo bar
+  const human2 = players.find(p => !p.isBot && p.isP2);
+  if (human2) {
+    const ax = GW - 100, ay = 8, aw = 90, ah = 12;
+    ctx.fillStyle = '#22223a';
+    ctx.fillRect(ax - 1, ay - 1, aw + 2, ah + 2);
+    ctx.fillStyle = human2.ammo < AMMO_COST ? '#FF4444' : TEAM_COLOR[human2.team];
+    ctx.fillRect(ax, ay, aw * (human2.ammo / AMMO_MAX), ah);
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(ax, ay, aw, ah);
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = '8px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'top';
+    ctx.fillText('INK  P2', ax + aw, ay - 9);
+    if (!human2.alive) {
+      ctx.fillStyle = '#FF4444';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(`💀 ${Math.ceil(human2.respawnT)}s`, ax + aw, ay + ah + 3);
+    }
+  }
+
+  // Pause indicator
+  if (paused) {
+    ctx.fillStyle = 'rgba(255,184,48,0.9)';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('⏸ PAUSED', GW / 2, 14);
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawGame() {
+  ctx.save();
+  ctx.translate(0, UI_H);
+
+  // Ink layer (rebuild if dirty)
+  if (inkDirty) { rebuildInkCache(); inkDirty = false; }
+  ctx.drawImage(inkCanvas, 0, 0);
+
+  // Walls on top
+  ctx.drawImage(wallCanvas, 0, 0);
+
+  // Particles
+  ctx.save();
+  particles.forEach(p => p.draw(ctx));
+  ctx.globalAlpha = 1;
+  ctx.restore();
+
+  // Projectiles
+  projectiles.forEach(p => p.draw(ctx));
+  ctx.globalAlpha = 1;
+
+  // Players
+  players.forEach(p => p.draw(ctx));
+  ctx.globalAlpha = 1;
+
+  // Respawn timers above dead players
+  players.forEach(p => {
+    if (!p.alive && !p.isBot) {
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${Math.ceil(p.respawnT)}s`, p.spawnC * CELL + CELL / 2, p.spawnR * CELL + CELL / 2);
+    }
+  });
+
+  ctx.restore();
+}
+
+// ============================================================
+//  GAME LOOP
+// ============================================================
+let lastTime = 0;
+let inkRebuildTimer = 0;
+
+function gameLoop(ts) {
+  const dt = Math.min((ts - lastTime) / 1000, 0.05);
+  lastTime = ts;
+
+  // Clear
+  ctx.clearRect(0, 0, GW, GH + UI_H);
+
+  if (gameActive && !paused) {
+    matchTimer -= dt;
+    if (matchTimer <= 0) { matchTimer = 0; endGame(); }
+
+    players.forEach(p => p.update(dt));
+
+    projectiles.forEach(p => p.update(dt));
+    projectiles = projectiles.filter(p => p.active);
+
+    particles.forEach(p => p.update(dt));
+    particles = particles.filter(p => p.life > 0);
+
+    // Throttle full ink redraw (every 3 frames-ish)
+    inkRebuildTimer += dt;
+    if (inkRebuildTimer > 0.04) { inkDirty = true; inkRebuildTimer = 0; }
+  }
+
+  if (gameActive) {
+    drawUI();
+    drawGame();
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+// ============================================================
+//  GAME MANAGEMENT
+// ============================================================
+function startGame(humans) {
+  numHumans = humans;
+
+  // Build map first time
+  gameMap = buildMap();
+  buildWallCache();
+  resetInkMap();
+
+  projectiles = [];
+  particles   = [];
+  matchTimer  = MATCH_SEC;
+  inkDirty    = true;
+
+  // Player layout: 2v2
+  // Team 0 (orange): spawns left side
+  // Team 1 (blue):   spawns right side
+  const t0r1 = 6, t0r2 = 17;
+  const t1r1 = 6, t1r2 = 17;
+
+  players = [
+    new Player(0, 3, t0r1, humans < 1, false),  // P1 or bot
+    new Player(0, 3, t0r2, true,       false),   // always bot teammate
+    new Player(1, 36, t1r1, true,      false),   // enemy bot
+    new Player(1, 36, t1r2, true,      false),   // enemy bot
+  ];
+
+  if (humans >= 2) {
+    players[1] = new Player(0, 4, t0r2, false, true); // P2
+  }
+
+  // Paint initial spawn circles
+  players.forEach(p => splatInk(p.x, p.y, 2, p.team));
+  inkDirty = true;
+
+  gameActive = true;
+  paused = false;
+
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('gameOverScreen').classList.add('hidden');
+
+  // Countdown
+  showCountdown();
+}
+
+function showCountdown() {
+  paused = true;
+  const el = document.getElementById('countdownDisplay');
+  let count = 3;
+  function tick() {
+    el.textContent = count > 0 ? count : 'GO!';
+    el.classList.add('show');
+    setTimeout(() => {
+      el.classList.remove('show');
+      count--;
+      if (count >= 0) {
+        setTimeout(tick, 300);
+      } else {
+        paused = false;
+      }
+    }, 700);
+  }
+  tick();
+}
+
+function endGame() {
+  gameActive = false;
+
+  const { t0, t1, total } = calcScore();
+  const pct0 = total > 0 ? Math.round(t0 / total * 100) : 0;
+  const pct1 = total > 0 ? Math.round(t1 / total * 100) : 0;
+
+  const winner = t0 > t1 ? 0 : t1 > t0 ? 1 : -1;
+  const bannerEl = document.getElementById('winnerBanner');
+  if (winner === -1) {
+    bannerEl.textContent = "🤝 It's a Draw!";
+    bannerEl.style.color = '#FFB830';
+  } else {
+    bannerEl.textContent = TEAM_NAME[winner] + ' Wins! 🎉';
+    bannerEl.style.color = TEAM_COLOR[winner];
+  }
+
+  document.getElementById('scorePct0').textContent = pct0 + '%';
+  document.getElementById('scorePct1').textContent = pct1 + '%';
+  document.getElementById('gameOverScreen').classList.remove('hidden');
+}
+
+function returnToMenu() {
+  document.getElementById('gameOverScreen').classList.add('hidden');
+  document.getElementById('startScreen').classList.remove('hidden');
+  gameActive = false;
+  paused = false;
+  players = [];
+  projectiles = [];
+  particles = [];
+
+  // Clear canvas
+  ctx.clearRect(0, 0, GW, GH + UI_H);
+}
+
+// ============================================================
+//  START
+// ============================================================
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

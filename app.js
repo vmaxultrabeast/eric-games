@@ -67,6 +67,17 @@ const GAMES_REGISTRY = [
         controls: 'Arrow Keys / WASD to move. Space to drop bomb. Multiplayer: click 🌐 Multiplayer, enter a name & room code.',
         addedDate: '2026-06-15',
         updatedDate: '2026-06-23'
+    },
+    {
+        id: 'splatoon',
+        title: 'Splat Wars',
+        category: 'action',
+        description: 'A Splatoon-inspired ink battle arena! Cover the map with your team\'s color ink, swim through your own ink to recharge and hide, and splat enemies. 2v2 with bots or 2-player co-op. Most ink at the end wins!',
+        folder: 'games/splatoon',
+        cover: 'games/splatoon/cover.png',
+        controls: 'P1: WASD move, Mouse aim, Click/J shoot, Shift/Space swim. P2: Arrow keys, L/↵ shoot, Enter swim.',
+        addedDate: '2026-06-24',
+        updatedDate: '2026-06-24'
     }
     // New games can be easily appended here in the future
 ];
