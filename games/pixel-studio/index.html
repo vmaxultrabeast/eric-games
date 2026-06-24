@@ -203,12 +203,105 @@
   /* Canvas area */
   .canvas-area {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    flex-direction: row;
     background: var(--bg-primary);
     position: relative;
     overflow: hidden;
+    min-width: 0;
+  }
+
+  /* Reference image panel */
+  #refPanel {
+    display: none;
+    flex-direction: column;
+    background: #111122;
+    border-right: 2px solid var(--border);
+    position: relative;
+    width: 280px;
+    min-width: 140px;
+    max-width: 50%;
+    flex-shrink: 0;
+    user-select: none;
+  }
+
+  #refPanel.visible { display: flex; }
+
+  .ref-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    gap: 6px;
+  }
+
+  .ref-header span {
+    font-size: 0.78em;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+    flex: 1;
+  }
+
+  .ref-header button {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1em;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: color 0.2s;
+  }
+
+  .ref-header button:hover { color: var(--text-primary); }
+
+  .ref-img-wrap {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+  }
+
+  #refImg {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+    display: block;
+  }
+
+  .ref-footer {
+    padding: 6px 10px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-secondary);
+    flex-shrink: 0;
+  }
+
+  .ref-footer label {
+    font-size: 0.75em;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Resize handle between ref panel and canvas */
+  #refResizeHandle {
+    width: 5px;
+    background: var(--border);
+    cursor: col-resize;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    display: none;
+  }
+
+  #refResizeHandle:hover, #refResizeHandle.dragging {
+    background: var(--accent);
   }
 
   .canvas-wrapper {
@@ -217,7 +310,16 @@
     align-items: center;
     justify-content: center;
     flex: 1;
-    width: 100%;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  /* Zoom container inside canvas-wrapper */
+  #zoomContainer {
+    position: relative;
+    transform-origin: center center;
+    transition: transform 0.05s;
+    will-change: transform;
   }
 
   #pixelCanvas {
@@ -226,6 +328,7 @@
     border: 2px solid var(--border);
     border-radius: 4px;
     box-shadow: 0 0 40px rgba(233, 69, 96, 0.1);
+    display: block;
   }
 
   /* Toolbar */
@@ -1033,6 +1136,27 @@
         </select>
       </label>
     </div>
+
+    <div class="separator"></div>
+
+    <!-- Zoom controls -->
+    <button class="tool-btn" onclick="zoomIn()" title="Zoom In">
+      🔍<span class="tooltip">Zoom In (+)</span>
+    </button>
+    <button class="tool-btn" onclick="zoomOut()" title="Zoom Out">
+      🔎<span class="tooltip">Zoom Out (-)</span>
+    </button>
+    <button class="tool-btn" onclick="resetZoom()" title="Reset Zoom">
+      ⤢<span class="tooltip">Reset Zoom (0)</span>
+    </button>
+    <span id="zoomLabel" style="font-size:0.75em; color:var(--text-secondary); min-width:36px; text-align:center;">100%</span>
+
+    <div class="separator"></div>
+
+    <!-- Reference image -->
+    <button class="tool-btn" onclick="openRefImagePicker()" title="Load Reference Image">
+      📷<span class="tooltip">Reference Image</span>
+    </button>
   </div>
 
   <!-- Left Panel: Tools & Colors -->
@@ -1115,8 +1239,33 @@
 
   <!-- Center: Canvas -->
   <div class="canvas-area">
+    <!-- Reference image panel (shown when image is loaded) -->
+    <div id="refPanel">
+      <div class="ref-header">
+        <span>📷 Reference</span>
+        <button onclick="toggleRefVisibility()" id="refToggleBtn" title="Hide/Show">👁</button>
+        <button onclick="closeRefPanel()" title="Close">✕</button>
+      </div>
+      <div class="ref-img-wrap" id="refImgWrap">
+        <img id="refImg" src="" alt="Reference">
+      </div>
+      <div class="ref-footer">
+        <label>
+          Opacity:
+          <input type="range" id="refOpacity" min="10" max="100" value="100"
+            style="flex:1;" oninput="updateRefOpacity()">
+          <span id="refOpacityLabel">100%</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Drag handle for resizing ref panel -->
+    <div id="refResizeHandle"></div>
+
     <div class="canvas-wrapper">
-      <canvas id="pixelCanvas" width="512" height="512"></canvas>
+      <div id="zoomContainer">
+        <canvas id="pixelCanvas" width="512" height="512"></canvas>
+      </div>
     </div>
   </div>
 
@@ -1265,8 +1414,9 @@
 <!-- Toast container -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- Hidden file input -->
+<!-- Hidden file inputs -->
 <input type="file" id="fileInput" accept=".json" style="display:none;" onchange="handleFileImport(event)">
+<input type="file" id="refImageInput" accept="image/*" style="display:none;" onchange="handleRefImageLoad(event)">
 
 <script>
 // ==================== STATE ====================
@@ -1297,6 +1447,13 @@ let moveStart = null;
 let moveOriginalData = null;
 let playInterval = null;
 let pingPongDir = 1;
+
+// ==================== ZOOM & PAN STATE ====================
+let canvasZoom = 1;
+let panX = 0, panY = 0;
+let isPanning = false;
+let panStart = null;
+const ZOOM_MIN = 0.25, ZOOM_MAX = 16, ZOOM_STEP = 0.15;
 
 // Canvas references
 const canvas = document.getElementById('pixelCanvas');
@@ -1642,8 +1799,50 @@ function renderPreview() {
   }
 }
 
+// ==================== ZOOM & PAN ====================
+function applyZoom() {
+  const zc = document.getElementById('zoomContainer');
+  zc.style.transform = `translate(${panX}px, ${panY}px) scale(${canvasZoom})`;
+  document.getElementById('zoomLabel').textContent = Math.round(canvasZoom * 100) + '%';
+  updateStatus();
+}
+
+function zoomIn(factor) {
+  const f = factor || (1 + ZOOM_STEP);
+  canvasZoom = Math.min(ZOOM_MAX, canvasZoom * f);
+  applyZoom();
+}
+
+function zoomOut(factor) {
+  const f = factor || (1 + ZOOM_STEP);
+  canvasZoom = Math.max(ZOOM_MIN, canvasZoom / f);
+  applyZoom();
+}
+
+function resetZoom() {
+  canvasZoom = 1; panX = 0; panY = 0;
+  applyZoom();
+}
+
+function zoomAtPoint(deltaY, clientX, clientY) {
+  const wrapper = canvas.closest('.canvas-wrapper');
+  const rect = wrapper.getBoundingClientRect();
+  // Mouse position relative to wrapper center
+  const mx = clientX - rect.left - rect.width / 2;
+  const my = clientY - rect.top - rect.height / 2;
+  const factor = deltaY < 0 ? (1 + ZOOM_STEP) : (1 / (1 + ZOOM_STEP));
+  const newZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, canvasZoom * factor));
+  // Adjust pan to zoom toward cursor
+  const scale = newZoom / canvasZoom;
+  panX = mx + (panX - mx) * scale;
+  panY = my + (panY - my) * scale;
+  canvasZoom = newZoom;
+  applyZoom();
+}
+
 // ==================== CANVAS EVENTS ====================
 let lastTouch = null;
+let lastTouchDist = null; // for pinch tracking
 
 function setupCanvasEvents() {
   canvas.addEventListener('mousedown', onCanvasMouseDown);
@@ -1652,29 +1851,132 @@ function setupCanvasEvents() {
   canvas.addEventListener('mouseleave', onCanvasMouseUp);
   canvas.addEventListener('contextmenu', e => e.preventDefault());
 
-  // Touch support
-  canvas.addEventListener('touchstart', e => {
+  // Wheel: zoom (with Ctrl = pinch on touchpad) or pan
+  const canvasArea = document.querySelector('.canvas-area');
+  canvasArea.addEventListener('wheel', e => {
     e.preventDefault();
-    const touch = e.touches[0];
-    lastTouch = { clientX: touch.clientX, clientY: touch.clientY };
-    const fakeEvent = { clientX: touch.clientX, clientY: touch.clientY, button: 0, preventDefault: () => {} };
-    onCanvasMouseDown(fakeEvent);
+    if (e.ctrlKey) {
+      // Touchpad pinch OR ctrl+scroll = zoom toward cursor
+      zoomAtPoint(e.deltaY, e.clientX, e.clientY);
+    } else {
+      // Plain scroll = pan
+      panX -= e.deltaX;
+      panY -= e.deltaY;
+      applyZoom();
+    }
+  }, { passive: false });
+
+  // Middle mouse pan / space+drag pan
+  let spacePanning = false;
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' && !e.target.matches('input,textarea,select')) {
+      spacePanning = true;
+      canvas.style.cursor = 'grab';
+    }
+  });
+  document.addEventListener('keyup', e => {
+    if (e.code === 'Space') {
+      spacePanning = false;
+      if (!isDrawing) setTool(state.currentTool);
+    }
+  });
+
+  const wrapper = canvas.closest('.canvas-wrapper');
+  wrapper.addEventListener('mousedown', e => {
+    if (e.button === 1 || spacePanning) { // middle click or space+drag
+      e.preventDefault();
+      isPanning = true;
+      panStart = { x: e.clientX - panX, y: e.clientY - panY };
+      wrapper.style.cursor = 'grabbing';
+    }
+  });
+  window.addEventListener('mousemove', e => {
+    if (!isPanning) return;
+    panX = e.clientX - panStart.x;
+    panY = e.clientY - panStart.y;
+    applyZoom();
+  });
+  window.addEventListener('mouseup', e => {
+    if (isPanning) {
+      isPanning = false;
+      wrapper.style.cursor = '';
+    }
+  });
+
+  // Touch support (single finger = draw, two fingers = pinch/pan)
+  canvas.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      lastTouch = { clientX: touch.clientX, clientY: touch.clientY };
+      lastTouchDist = null;
+      const fakeEvent = { clientX: touch.clientX, clientY: touch.clientY, button: 0, preventDefault: () => {} };
+      onCanvasMouseDown(fakeEvent);
+    } else if (e.touches.length === 2) {
+      e.preventDefault();
+      // Two-finger start: cancel draw, start pinch
+      if (isDrawing) { isDrawing = false; lastPixel = null; }
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      lastTouchDist = Math.hypot(dx, dy);
+      lastTouch = {
+        clientX: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        clientY: (e.touches[0].clientY + e.touches[1].clientY) / 2
+      };
+    }
   }, { passive: false });
 
   canvas.addEventListener('touchmove', e => {
     e.preventDefault();
-    const touch = e.touches[0];
-    lastTouch = { clientX: touch.clientX, clientY: touch.clientY };
-    const fakeEvent = { clientX: touch.clientX, clientY: touch.clientY, buttons: 1 };
-    onCanvasMouseMove(fakeEvent);
+    if (e.touches.length === 1 && !lastTouchDist) {
+      const touch = e.touches[0];
+      lastTouch = { clientX: touch.clientX, clientY: touch.clientY };
+      const fakeEvent = { clientX: touch.clientX, clientY: touch.clientY, buttons: 1 };
+      onCanvasMouseMove(fakeEvent);
+    } else if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      if (lastTouchDist) {
+        const scaleDelta = dist / lastTouchDist;
+        // Zoom toward pinch midpoint
+        const wrapper = canvas.closest('.canvas-wrapper');
+        const rect = wrapper.getBoundingClientRect();
+        const mx = midX - rect.left - rect.width / 2;
+        const my = midY - rect.top - rect.height / 2;
+        const newZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, canvasZoom * scaleDelta));
+        const scale = newZoom / canvasZoom;
+        panX = mx + (panX - mx) * scale;
+        panY = my + (panY - my) * scale;
+        canvasZoom = newZoom;
+        // Also pan with finger movement
+        if (lastTouch) {
+          panX += midX - lastTouch.clientX;
+          panY += midY - lastTouch.clientY;
+        }
+        applyZoom();
+      }
+      lastTouchDist = dist;
+      lastTouch = { clientX: midX, clientY: midY };
+    }
   }, { passive: false });
 
   canvas.addEventListener('touchend', e => {
     e.preventDefault();
-    const touch = e.changedTouches[0] || e.touches[0] || lastTouch;
-    const fakeEvent = touch ? { clientX: touch.clientX, clientY: touch.clientY } : {};
-    onCanvasMouseUp(fakeEvent);
+    if (e.touches.length === 0) {
+      lastTouchDist = null;
+      const touch = e.changedTouches[0] || lastTouch;
+      const fakeEvent = touch ? { clientX: touch.clientX, clientY: touch.clientY } : {};
+      onCanvasMouseUp(fakeEvent);
+    } else if (e.touches.length === 1) {
+      lastTouchDist = null; // back to one finger
+    }
   }, { passive: false });
+
+  // Ref panel resize handle
+  setupRefPanelResize();
 
   // Resize observer
   const resizeObs = new ResizeObserver(() => renderCanvas());
@@ -2652,6 +2954,68 @@ function downloadBlob(blob, filename) {
   URL.revokeObjectURL(url);
 }
 
+// ==================== REFERENCE IMAGE ====================
+function openRefImagePicker() {
+  document.getElementById('refImageInput').click();
+}
+
+function handleRefImageLoad(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('refImg');
+    img.src = e.target.result;
+    document.getElementById('refPanel').classList.add('visible');
+    document.getElementById('refResizeHandle').style.display = 'block';
+    toast('Reference image loaded', 'success');
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function closeRefPanel() {
+  document.getElementById('refPanel').classList.remove('visible');
+  document.getElementById('refResizeHandle').style.display = 'none';
+  document.getElementById('refImg').src = '';
+}
+
+function toggleRefVisibility() {
+  const wrap = document.getElementById('refImgWrap');
+  const btn = document.getElementById('refToggleBtn');
+  const hidden = wrap.style.display === 'none';
+  wrap.style.display = hidden ? 'flex' : 'none';
+  btn.textContent = hidden ? '👁' : '🚫';
+}
+
+function updateRefOpacity() {
+  const val = document.getElementById('refOpacity').value;
+  document.getElementById('refImg').style.opacity = val / 100;
+  document.getElementById('refOpacityLabel').textContent = val + '%';
+}
+
+function setupRefPanelResize() {
+  const handle = document.getElementById('refResizeHandle');
+  const panel = document.getElementById('refPanel');
+  let resizing = false, startX = 0, startW = 0;
+
+  handle.addEventListener('mousedown', e => {
+    e.preventDefault();
+    resizing = true;
+    startX = e.clientX;
+    startW = panel.offsetWidth;
+    handle.classList.add('dragging');
+  });
+  window.addEventListener('mousemove', e => {
+    if (!resizing) return;
+    const newW = Math.max(140, Math.min(window.innerWidth * 0.5, startW + (e.clientX - startX)));
+    panel.style.width = newW + 'px';
+  });
+  window.addEventListener('mouseup', () => {
+    if (resizing) { resizing = false; handle.classList.remove('dragging'); }
+  });
+}
+
 // ==================== KEYBOARD SHORTCUTS ====================
 function setupKeyboardShortcuts() {
   document.addEventListener('keydown', (e) => {
@@ -2684,6 +3048,10 @@ function setupKeyboardShortcuts() {
         break;
       case 'arrowleft': prevFrame(); break;
       case 'arrowright': nextFrame(); break;
+      case '=':
+      case '+': zoomIn(); break;
+      case '-': zoomOut(); break;
+      case '0': resetZoom(); break;
       case '[':
         state.brushSize = Math.max(1, state.brushSize - 1);
         document.getElementById('brushSize').value = state.brushSize;
@@ -2727,8 +3095,10 @@ function toast(message, type = 'info') {
 function updateStatus(pos = null) {
   const movie = getCurrentMovie();
   const posStr = pos ? `(${pos.x}, ${pos.y})` : '';
+  const zoomStr = Math.round(canvasZoom * 100) + '%';
   document.getElementById('statusLeft').textContent =
     `Tool: ${state.currentTool} | Brush: ${state.brushSize} ${posStr}`;
+  document.getElementById('statusCenter').textContent = `Zoom: ${zoomStr}`;
   document.getElementById('statusRight').textContent =
     `${movie.width}×${movie.height} | Frame ${state.currentFrameIndex + 1}/${movie.frames.length} | ${movie.name}`;
 }
