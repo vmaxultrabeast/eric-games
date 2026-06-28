@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Spelling Safari – Word Adventure</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --safari-green: #2d6a4f;
+  --safari-light-green: #52b788;
+  --safari-orange: #d90429;
+  --safari-yellow: #f7b267;
+  --safari-dark-yellow: #f27a18;
+  --safari-sand: #fefae0;
+  --safari-dark: #1b4332;
+  --panel-bg: rgba(255, 255, 255, 0.9);
+  --shadow: 0 8px 30px rgba(45, 106, 79, 0.15);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Quicksand', sans-serif;
+}
+
+body {
+  background: radial-gradient(circle at center, #d8f3dc 0%, #b7e4c7 100%);
+  color: var(--safari-dark);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Background decorations */
+.cloud {
+  position: absolute;
+  background: white;
+  border-radius: 100px;
+  opacity: 0.7;
+  filter: blur(4px);
+  animation: floatCloud 25s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+.cloud::before, .cloud::after {
+  content: '';
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+}
+.cloud::before {
+  width: 50px;
+  height: 50px;
+  top: -20px;
+  left: 15px;
+}
+.cloud::after {
+  width: 70px;
+  height: 70px;
+  top: -35px;
+  right: 15px;
+}
+
+@keyframes floatCloud {
+  from { transform: translateX(-150px); }
+  to { transform: translateX(calc(100vw + 150px)); }
+}
+
+/* ---- CONTAINER & GENERAL SCREENS ---- */
+.game-container {
+  width: 90vw;
+  max-width: 750px;
+  height: 90vh;
+  max-height: 580px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 4px solid var(--safari-green);
+  border-radius: 32px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px;
+  overflow-y: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.screen.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ---- MENU SCREEN ---- */
+#menuScreen {
+  justify-content: center;
+  gap: 24px;
+}
+
+.title-container {
+  text-align: center;
+}
+
+.title-container h1 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--safari-green);
+  text-shadow: 0 4px 0px rgba(82, 183, 136, 0.4);
+  letter-spacing: -1px;
+  margin-bottom: 5px;
+}
+
+.title-container .subtitle {
+  font-size: 1.1rem;
+  color: var(--safari-dark-yellow);
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.input-group {
+  width: 100%;
+  max-width: 320px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--safari-green);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 50px;
+  border: 3px solid var(--safari-green);
+  background: var(--safari-sand);
+  color: var(--safari-dark);
+  font-size: 1.1rem;
+  font-weight: 700;
+  outline: none;
+  text-align: center;
+  box-shadow: inset 0 3px 6px rgba(0,0,0,0.05);
+}
+
+.grade-selector-container {
+  text-align: center;
+}
+
+.grade-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--safari-green);
+  margin-bottom: 12px;
+}
+
+.grade-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.grade-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  border: 3px solid var(--safari-green);
+  background: white;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--safari-green);
+  cursor: pointer;
+  transition: transform 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.grade-btn:hover {
+  transform: scale(1.05);
+}
+
+.grade-btn.selected {
+  background: var(--safari-green);
+  color: white;
+  box-shadow: 0 4px 12px rgba(45, 106, 79, 0.4);
+}
+
+.btn-start {
+  padding: 14px 44px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: white;
+  background: linear-gradient(135deg, var(--safari-dark-yellow), var(--safari-yellow));
+  border: 3px solid var(--safari-dark-yellow);
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(242, 122, 24, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn-start:hover {
+  transform: scale(1.04);
+  box-shadow: 0 8px 24px rgba(242, 122, 24, 0.5);
+}
+
+/* ---- GAME HUD ---- */
+.hud {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(45, 106, 79, 0.08);
+  border-bottom: 3px solid var(--safari-green);
+  flex-shrink: 0;
+}
+
+.hud-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.hud-badge {
+  background: var(--safari-green);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.score-stars, .coin-bag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.coin-bag span, .score-stars span {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+
+.btn-hud {
+  background: white;
+  border: 2px solid var(--safari-green);
+  border-radius: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: transform 0.15s;
+}
+.btn-hud:hover { transform: scale(1.05); }
+
+/* ---- GAME SCREEN LAYOUT ---- */
+#gameScreen {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Character Area */
+.character-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  gap: 20px;
+  width: 100%;
+}
+
+.speaker-btn-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.speaker-btn {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 4px solid var(--safari-green);
+  background: linear-gradient(135deg, var(--safari-light-green), var(--safari-green));
+  color: white;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(45, 106, 79, 0.3);
+  transition: transform 0.15s, box-shadow 0.15s;
+  animation: pulseSpeaker 2s infinite;
+}
+
+@keyframes pulseSpeaker {
+  0% { transform: scale(1); box-shadow: 0 6px 18px rgba(45, 106, 79, 0.3); }
+  50% { transform: scale(1.08); box-shadow: 0 6px 25px rgba(82, 183, 136, 0.5); }
+  100% { transform: scale(1); box-shadow: 0 6px 18px rgba(45, 106, 79, 0.3); }
+}
+
+.speaker-btn:hover {
+  transform: scale(1.08);
+}
+
+.avatar-guide {
+  font-size: 4.5rem;
+  transition: transform 0.2s;
+  display: inline-block;
+  transform-origin: bottom center;
+}
+
+.avatar-guide.cheer {
+  animation: cheerGuide 0.6s ease infinite;
+}
+
+.avatar-guide.dizzy {
+  animation: dizzyGuide 0.6s ease;
+}
+
+@keyframes cheerGuide {
+  0%, 100% { transform: scale(1) translateY(0) rotate(0deg); }
+  50% { transform: scale(1.1) translateY(-10px) rotate(8deg); }
+}
+
+@keyframes dizzyGuide {
+  0% { transform: rotate(0); }
+  20% { transform: rotate(-15deg); }
+  40% { transform: rotate(15deg); }
+  60% { transform: rotate(-15deg); }
+  80% { transform: rotate(15deg); }
+  100% { transform: rotate(0); }
+}
+
+.speech-bubble {
+  background: white;
+  border: 3px solid var(--safari-green);
+  border-radius: 18px;
+  padding: 12px 18px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  max-width: 250px;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+}
+
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 14px;
+  height: 14px;
+  background: white;
+  border-left: 3px solid var(--safari-green);
+  border-bottom: 3px solid var(--safari-green);
+}
+
+/* Word Word boxes */
+.word-boxes-container {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 8px 0;
+  min-height: 52px;
+}
+
+.letter-box {
+  width: 44px;
+  height: 48px;
+  border-radius: 12px;
+  border: 3px solid var(--safari-green);
+  background: var(--safari-sand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--safari-dark);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.letter-box.active {
+  border-color: var(--safari-dark-yellow);
+  background: white;
+}
+
+/* Interaction Area */
+.interaction-area {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 180px;
+  position: relative;
+}
+
+/* Bubble pop mode */
+.bubble-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.bubble {
+  position: absolute;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  animation: floatBubble 5s linear infinite;
+  transition: transform 0.1s;
+}
+
+.bubble:active {
+  transform: scale(0.9);
+}
+
+@keyframes floatBubble {
+  0% { transform: translateY(180px); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-40px); opacity: 0; }
+}
+
+/* Keyboard mode */
+.keyboard-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.key-btn {
+  flex: 1;
+  max-width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  border: 2px solid var(--safari-green);
+  background: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--safari-dark);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s, transform 0.1s;
+}
+
+.key-btn:active {
+  transform: scale(0.92);
+}
+
+.key-btn-wide {
+  max-width: 65px;
+  background: var(--safari-yellow);
+}
+
+/* Screen Mode Toggler */
+.mode-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 8px 20px;
+  background: rgba(0,0,0,0.03);
+  border-top: 2px dashed rgba(45, 106, 79, 0.2);
+}
+
+.toggle-mode {
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--safari-green);
+}
+
+.btn-skip {
+  background: transparent;
+  border: none;
+  color: var(--safari-orange);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* ---- STICKER BOOK MODAL ---- */
+#stickerModal {
+  background: var(--safari-sand);
+  z-index: 250;
+}
+
+.sticker-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sticker-header h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.8rem;
+  color: var(--safari-green);
+}
+
+.btn-close-sticker {
+  background: var(--safari-green);
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  font-size: 1.2rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sticker-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.gacha-panel {
+  background: white;
+  border: 3px solid var(--safari-green);
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.gacha-machine-graphic {
+  font-size: 3rem;
+  animation: waddle 1.5s ease-in-out infinite;
+}
+
+@keyframes waddle {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.gacha-info {
+  flex: 1;
+}
+
+.gacha-info h3 {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.gacha-info p {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.btn-gacha {
+  background: linear-gradient(135deg, var(--safari-yellow), var(--safari-dark-yellow));
+  border: 2px solid var(--safari-dark-yellow);
+  color: white;
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 10px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-gacha:disabled {
+  background: #ccc;
+  border-color: #aaa;
+  cursor: not-allowed;
+}
+
+.sticker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.sticker-slot {
+  background: white;
+  border: 2.5px solid #ddd;
+  border-radius: 16px;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  position: relative;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.sticker-slot.unlocked {
+  border-color: var(--safari-green);
+  box-shadow: 0 4px 10px rgba(45, 106, 79, 0.1);
+}
+
+.sticker-slot.unlocked:hover {
+  transform: translateY(-3px);
+}
+
+.sticker-emoji {
+  font-size: 2.4rem;
+  filter: grayscale(1);
+  opacity: 0.2;
+}
+
+.sticker-slot.unlocked .sticker-emoji {
+  filter: grayscale(0);
+  opacity: 1;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  from { transform: scale(0.5); }
+  to { transform: scale(1); }
+}
+
+.sticker-name {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #aaa;
+  text-align: center;
+}
+
+.sticker-slot.unlocked .sticker-name {
+  color: var(--safari-dark);
+}
+
+/* ---- UNLOCKED STICKER POPUP ---- */
+.sticker-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.sticker-popup-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.sticker-popup {
+  background: white;
+  border: 4px solid var(--safari-yellow);
+  border-radius: 24px;
+  padding: 30px;
+  width: 280px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  transform: scale(0.8);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.sticker-popup-overlay.active .sticker-popup {
+  transform: scale(1);
+}
+
+.popup-emoji {
+  font-size: 5rem;
+  margin: 15px 0;
+}
+
+.popup-name {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--safari-green);
+  margin-bottom: 8px;
+}
+
+.btn-popup-ok {
+  background: var(--safari-green);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 24px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+/* Confetti canvas */
+#confettiCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 280;
+}
+</style>
+</head>
+<body>
+
+<!-- Cloud decorations -->
+<div class="cloud" style="width: 120px; height: 40px; top: 10%; left: -100px; animation-duration: 35s;"></div>
+<div class="cloud" style="width: 150px; height: 50px; top: 25%; left: -100px; animation-duration: 22s;"></div>
+<div class="cloud" style="width: 100px; height: 35px; top: 60%; left: -100px; animation-duration: 28s;"></div>
+
+<div class="game-container">
+  <!-- Start/Menu Screen -->
+  <div id="menuScreen" class="screen active">
+    <div class="title-container">
+      <h1>🦁 SPELLING SAFARI</h1>
+      <div class="subtitle">Word Adventure</div>
+    </div>
+    
+    <div class="input-group">
+      <label for="playerName">Enter Explorer's Name:</label>
+      <input type="text" id="playerName" value="Explorer" maxlength="12">
+    </div>
+
+    <div class="grade-selector-container">
+      <div class="grade-label">Select Grade Level:</div>
+      <div class="grade-buttons">
+        <button class="grade-btn selected" data-grade="1">1</button>
+        <button class="grade-btn" data-grade="2">2</button>
+        <button class="grade-btn" data-grade="3">3</button>
+        <button class="grade-btn" data-grade="4">4</button>
+      </div>
+    </div>
+
+    <button class="btn-start" onclick="startGame()">Start Safari 🗺️</button>
+  </div>
+
+  <!-- Main Game Screen -->
+  <div id="gameScreen" class="screen">
+    <!-- HUD -->
+    <div class="hud">
+      <button class="btn-hud" onclick="exitToMenu()">🚪 Quit</button>
+      <div class="score-stars">
+        <span>⭐</span>
+        <span id="starCount">0</span>
+      </div>
+      <div class="coin-bag">
+        <span>🪙</span>
+        <span id="coinCount">0</span>
+      </div>
+      <div class="hud-item">
+        <div class="hud-badge" id="gradeBadge">Grade 1</div>
+      </div>
+      <button class="btn-hud" onclick="openStickers()">📖 Sticker Book</button>
+    </div>
+
+    <!-- Game Body -->
+    <div class="game-body">
+      <!-- Character Guidance -->
+      <div class="character-area">
+        <div class="avatar-guide" id="guideAvatar">🦁</div>
+        <div class="speech-bubble" id="sentenceHint">
+          Listen to the word and spell it!
+        </div>
+        <div class="speaker-btn-container">
+          <button class="speaker-btn" onclick="speakCurrentWord()" title="Listen Word">🔊</button>
+          <button class="btn-hud" onclick="speakCurrentSentence()" style="padding: 4px 8px; font-size: 0.75rem;">🗣️ Context</button>
+        </div>
+      </div>
+
+      <!-- Letter Display Grid -->
+      <div class="word-boxes-container" id="wordBoxes"></div>
+
+      <!-- Input Area (Dynamically changes between Bubble pop and Keyboard layout) -->
+      <div class="interaction-area" id="interactionArea">
+        <!-- Floating bubbles will be spawned here -->
+      </div>
+
+      <!-- Mode switcher and Skip bar -->
+      <div class="mode-bar">
+        <span class="toggle-mode" onclick="toggleInputMode()" id="modeToggleLink">Toggle Mode: 🎈 Bubble Pop</span>
+        <button class="btn-skip" onclick="skipWord()">Skip Word ⏭️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sticker Book Modal -->
+  <div id="stickerModal" class="screen">
+    <div class="sticker-header">
+      <h2>📖 Safari Sticker Book</h2>
+      <button class="btn-close-sticker" onclick="closeStickers()">✕</button>
+    </div>
+    
+    <div class="sticker-layout">
+      <!-- Gacha capsule roll panel -->
+      <div class="gacha-panel">
+        <div class="gacha-machine-graphic" id="gachaGraphic">🎰</div>
+        <div class="gacha-info">
+          <h3>Unlock Safari Stickers!</h3>
+          <p>Get a random cute animal for your sticker book collection.</p>
+        </div>
+        <button class="btn-gacha" id="btnGacha" onclick="rollSticker()">
+          🪙 10 <span style="font-weight:600;">Get Sticker</span>
+        </button>
+      </div>
+
+      <!-- Stickers Grid -->
+      <div class="sticker-grid" id="stickerGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Collect Sticker popup overlay -->
+<div class="sticker-popup-overlay" id="stickerPopupOverlay">
+  <div class="sticker-popup">
+    <h3 style="color:var(--safari-dark-yellow); font-size:1.3rem;">New Sticker Unlocked!</h3>
+    <div class="popup-emoji" id="popupEmoji">🐘</div>
+    <div class="popup-name" id="popupName">Elephant</div>
+    <button class="btn-popup-ok" onclick="closeStickerPopup()">Awesome! 🎉</button>
+  </div>
+</div>
+
+<canvas id="confettiCanvas"></canvas>
+
+<script>
+// ============================================================
+//  WORD BANK (Appropriate for Grades 1-4)
+// ============================================================
+const WORD_BANK = {
+  1: [
+    { word: "cat", sentence: "The black cat sat on the mat." },
+    { word: "dog", sentence: "The dog wagged its tail." },
+    { word: "sun", sentence: "The sun is warm and bright." },
+    { word: "play", sentence: "Let's play in the park." },
+    { word: "frog", sentence: "The green frog jumped into the pond." },
+    { word: "fish", sentence: "The fish swims in the blue water." },
+    { word: "tree", sentence: "Birds build nests in the tall tree." },
+    { word: "bird", sentence: "A little bird sang a sweet song." },
+    { word: "book", sentence: "She loves to read a story book." },
+    { word: "cake", sentence: "We ate chocolate cake for my birthday." },
+    { word: "help", sentence: "It is nice to help others." },
+    { word: "jump", sentence: "The grasshopper can jump high." },
+    { word: "milk", sentence: "Milk is good for your bones." },
+    { word: "rain", sentence: "The rain fell on the green leaves." },
+    { word: "song", sentence: "We sang a happy song together." },
+    { word: "wind", sentence: "The strong wind blew the kite." },
+    { word: "pink", sentence: "Her favorite color is pink." },
+    { word: "baby", sentence: "The baby fell asleep in the crib." },
+    { word: "duck", sentence: "A yellow duck swam in the lake." },
+    { word: "hand", sentence: "Raise your hand to ask a question." }
+  ],
+  2: [
+    { word: "school", sentence: "We learn new things at school." },
+    { word: "friend", sentence: "A good friend shares their toys." },
+    { word: "garden", sentence: "Beautiful flowers grow in the garden." },
+    { word: "window", sentence: "Open the window to let fresh air in." },
+    { word: "family", sentence: "I love spending time with my family." },
+    { word: "summer", sentence: "We swim in the pool during summer." },
+    { word: "winter", sentence: "It is cold and snowy in the winter." },
+    { word: "yellow", sentence: "Bananas turn yellow when they are ripe." },
+    { word: "purple", sentence: "Grapes can be green or purple." },
+    { word: "orange", sentence: "An orange is a sweet and juicy fruit." },
+    { word: "mother", sentence: "My mother baked delicious cookies." },
+    { word: "father", sentence: "My father taught me how to ride a bike." },
+    { word: "sister", sentence: "My older sister helps me with homework." },
+    { word: "brother", sentence: "My little brother loves playing with blocks." },
+    { word: "animal", sentence: "The elephant is a very large animal." },
+    { word: "jungle", sentence: "Monkeys swing on vines in the jungle." },
+    { word: "monkey", sentence: "A cheeky monkey ate a ripe banana." },
+    { word: "pencil", sentence: "Write your name with a sharp pencil." },
+    { word: "paper", sentence: "Draw a colorful picture on this paper." },
+    { word: "cookie", sentence: "I ate a chocolate chip cookie." }
+  ],
+  3: [
+    { word: "adventure", sentence: "Camping in the woods is a fun adventure." },
+    { word: "dinosaur", sentence: "The museum has a giant dinosaur skeleton." },
+    { word: "treasure", sentence: "Pirates buried their treasure on the island." },
+    { word: "weather", sentence: "The weather today is sunny and warm." },
+    { word: "planet", sentence: "Earth is the third planet from the sun." },
+    { word: "capture", sentence: "The camera can capture beautiful moments." },
+    { word: "dolphin", sentence: "A friendly dolphin leaped out of the ocean." },
+    { word: "octopus", sentence: "An octopus has eight long arms." },
+    { word: "feather", sentence: "A peacock has colorful feathers." },
+    { word: "morning", sentence: "Eat a healthy breakfast in the morning." },
+    { word: "evening", sentence: "Stars shine brightly in the evening sky." },
+    { word: "computer", sentence: "We use a computer to search the web." },
+    { word: "vacation", sentence: "We went to the beach for our summer vacation." },
+    { word: "surprise", sentence: "They threw a surprise party for him." },
+    { word: "positive", sentence: "Keeping a positive attitude helps you succeed." },
+    { word: "creative", sentence: "She came up with a creative art project." },
+    { word: "strength", sentence: "Lifting weights builds muscle strength." },
+    { word: "building", sentence: "A tall building stands in the city center." },
+    { word: "butterfly", sentence: "A colorful butterfly landed on a rose." },
+    { word: "mountain", sentence: "Snow covers the peak of the high mountain." }
+  ],
+  4: [
+    { word: "geography", sentence: "In geography class, we study maps of the world." },
+    { word: "beautiful", sentence: "The sunset over the ocean was beautiful." },
+    { word: "astronaut", sentence: "An astronaut traveled to the space station." },
+    { word: "lightning", sentence: "Lightning flashed during the thunderstorm." },
+    { word: "mysterious", sentence: "A mysterious light appeared in the forest." },
+    { word: "government", sentence: "The government passes laws to keep us safe." },
+    { word: "delicious", sentence: "The apple pie smelled delicious." },
+    { word: "laboratory", sentence: "Scientists perform experiments in the laboratory." },
+    { word: "microphone", sentence: "Sing into the microphone so we can hear you." },
+    { word: "dictionary", sentence: "Look up the meaning of a word in the dictionary." },
+    { word: "environment", sentence: "We must protect our natural environment." },
+    { word: "temperature", sentence: "The boiling temperature of water is high." },
+    { word: "electricity", sentence: "Computers run on electrical energy or electricity." },
+    { word: "vocabulary", sentence: "Reading books helps grow your spelling vocabulary." },
+    { word: "celebration", sentence: "We had a grand celebration for the victory." },
+    { word: "mathematical", sentence: "He solved a complex mathematical puzzle." },
+    { word: "imagination", sentence: "Use your imagination to write a great story." },
+    { word: "combination", sentence: "A rainbow is a combination of light and water." },
+    { word: "instruction", sentence: "Follow the instruction to build the toy model." },
+    { word: "translation", sentence: "The translation of the book was very accurate." }
+  ]
+};
+
+// Animal Stickers List
+const STICKERS_BANK = [
+  { id: 0, emoji: "🦁", name: "Lion" },
+  { id: 1, emoji: "🐼", name: "Panda" },
+  { id: 2, emoji: "🦒", name: "Giraffe" },
+  { id: 3, emoji: "🐵", name: "Monkey" },
+  { id: 4, emoji: "🐘", name: "Elephant" },
+  { id: 5, emoji: "🐨", name: "Koala" },
+  { id: 6, emoji: "🦓", name: "Zebra" },
+  { id: 7, emoji: "🦛", name: "Hippo" },
+  { id: 8, emoji: "🐧", name: "Penguin" },
+  { id: 9, emoji: "🐯", name: "Tiger" }
+];
+
+// Guide avatars array (cycling on start)
+const AVATARS = ["🦁", "🐯", "🐼", "🐨", "🐵", "🦊", "🐸"];
+
+// ============================================================
+//  GAME STATE
+// ============================================================
+let state = {
+  playerName: "Explorer",
+  currentGrade: 1,
+  stars: 0,
+  coins: 0,
+  unlockedStickers: [], // stores IDs
+  currentWordIndex: 0,
+  inputMode: "bubble", // 'bubble' or 'keyboard'
+  currentWordList: [],
+  currentWordObj: null,
+  spelledWord: "",
+  bubbles: [],
+  activeAvatar: "🦁"
+};
+
+// Web Audio Synth
+let audioCtx = null;
+
+function playSound(type) {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+
+    if (type === 'bubble') {
+      // Pop Sound
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(400, now);
+      osc.frequency.exponentialRampToValueAtTime(1000, now + 0.1);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+      osc.start(now);
+      osc.stop(now + 0.1);
+    } else if (type === 'correct') {
+      // Chime Sound
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(523.25, now); // C5
+      osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+      osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+      osc.frequency.setValueAtTime(1046.50, now + 0.3); // C6
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+      osc.start(now);
+      osc.stop(now + 0.5);
+    } else if (type === 'incorrect') {
+      // Buzz Sound
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+      osc.start(now);
+      osc.stop(now + 0.3);
+    } else if (type === 'coin') {
+      // Ding Sound
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(987.77, now); // B5
+      osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+      osc.start(now);
+      osc.stop(now + 0.35);
+    } else if (type === 'roll') {
+      // Slot rolling sweep sound
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(300, now);
+      osc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+      osc.start(now);
+      osc.stop(now + 0.16);
+    }
+  } catch(e) {
+    console.error("Audio failed", e);
+  }
+}
+
+// Speech Synthesis
+function speakText(text, rate = 0.85) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel(); // stop current talk
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = rate;
+    
+    // Choose a friendly English voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const engVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Natural')));
+    if (engVoice) utterance.voice = engVoice;
+
+    window.speechSynthesis.speak(utterance);
+  }
+}
+
+// Load / Save States
+function loadProgress() {
+  const saved = localStorage.getItem('spellingSafariProgress');
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      state.stars = data.stars || 0;
+      state.coins = data.coins || 0;
+      state.unlockedStickers = data.unlockedStickers || [];
+      state.playerName = data.playerName || "Explorer";
+      state.currentGrade = data.currentGrade || 1;
+      document.getElementById('playerName').value = state.playerName;
+      
+      // Select correct grade button
+      document.querySelectorAll('.grade-btn').forEach(btn => {
+        btn.classList.toggle('selected', parseInt(btn.dataset.grade) === state.currentGrade);
+      });
+    } catch(e) {
+      console.error(e);
+    }
+  }
+}
+
+function saveProgress() {
+  const data = {
+    stars: state.stars,
+    coins: state.coins,
+    unlockedStickers: state.unlockedStickers,
+    playerName: state.playerName,
+    currentGrade: state.currentGrade
+  };
+  localStorage.setItem('spellingSafariProgress', JSON.stringify(data));
+}
+
+// ============================================================
+//  UI ENGINE & NAVIGATION
+// ============================================================
+function showScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(scr => scr.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+}
+
+// Grade Buttons logic
+document.querySelectorAll('.grade-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.grade-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    state.currentGrade = parseInt(btn.dataset.grade);
+  });
+});
+
+function startGame() {
+  state.playerName = document.getElementById('playerName').value.trim() || "Explorer";
+  state.currentWordList = [...WORD_BANK[state.currentGrade]];
+  shuffleArray(state.currentWordList);
+  state.currentWordIndex = 0;
+  
+  // Pick guide avatar randomly
+  state.activeAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
+  document.getElementById('guideAvatar').textContent = state.activeAvatar;
+
+  // Refresh HUD
+  document.getElementById('starCount').textContent = state.stars;
+  document.getElementById('coinCount').textContent = state.coins;
+  document.getElementById('gradeBadge').textContent = `Grade ${state.currentGrade}`;
+
+  showScreen('gameScreen');
+  loadWord();
+}
+
+function exitToMenu() {
+  saveProgress();
+  showScreen('menuScreen');
+}
+
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+// ============================================================
+//  GAME PLAY LOGIC
+// ============================================================
+function loadWord() {
+  if (state.currentWordIndex >= state.currentWordList.length) {
+    // Shuffled loop
+    shuffleArray(state.currentWordList);
+    state.currentWordIndex = 0;
+  }
+
+  state.currentWordObj = state.currentWordList[state.currentWordIndex];
+  state.spelledWord = "";
+
+  // Render blanks
+  const boxes = document.getElementById('wordBoxes');
+  boxes.innerHTML = "";
+  for (let i = 0; i < state.currentWordObj.word.length; i++) {
+    const box = document.createElement('div');
+    box.className = "letter-box";
+    box.textContent = "";
+    boxes.appendChild(box);
+  }
+
+  document.getElementById('sentenceHint').innerHTML = `Hi <strong>${state.playerName}</strong>! Tap 🔊 to hear the word.`;
+
+  // Start with reading the word
+  setTimeout(() => {
+    speakCurrentWord();
+  }, 400);
+
+  // Setup inputs
+  setupInteractionArea();
+}
+
+function speakCurrentWord() {
+  if (!state.currentWordObj) return;
+  speakText(state.currentWordObj.word);
+}
+
+function speakCurrentSentence() {
+  if (!state.currentWordObj) return;
+  speakText(state.currentWordObj.sentence, 0.8);
+  document.getElementById('sentenceHint').textContent = state.currentWordObj.sentence;
+}
+
+function setupInteractionArea() {
+  const area = document.getElementById('interactionArea');
+  area.innerHTML = "";
+
+  // Clear running loops
+  if (bubbleAnimationId) {
+    cancelAnimationFrame(bubbleAnimationId);
+    bubbleAnimationId = null;
+  }
+  state.bubbles = [];
+
+  if (state.inputMode === 'bubble') {
+    document.getElementById('modeToggleLink').textContent = "Toggle Mode: ⌨️ Keyboard Typist";
+    // Setup bubble area
+    const container = document.createElement('div');
+    container.className = "bubble-container";
+    area.appendChild(container);
+
+    // Prepare letters to spawn: target letters + some random letters to make it fun/challenging
+    const targetLetters = state.currentWordObj.word.split('');
+    const abc = 'abcdefghijklmnopqrstuvwxyz';
+    let extraLetters = [];
+    const needed = Math.max(8, targetLetters.length + 3);
+    while (targetLetters.length + extraLetters.length < needed) {
+      const char = abc[Math.floor(Math.random() * abc.length)];
+      if (!targetLetters.includes(char) && !extraLetters.includes(char)) {
+        extraLetters.push(char);
+      }
+    }
+    const finalPool = [...targetLetters, ...extraLetters];
+    shuffleArray(finalPool);
+
+    // Create bubbles
+    finalPool.forEach((char, idx) => {
+      createLetterBubble(char, container, idx, finalPool.length);
+    });
+
+    // Run custom bubble float animation
+    animateBubbles(container);
+
+  } else {
+    document.getElementById('modeToggleLink').textContent = "Toggle Mode: 🎈 Bubble Pop";
+    // Setup Keyboard layout
+    const layout = document.createElement('div');
+    layout.className = "keyboard-layout";
+
+    const rows = [
+      ['q','w','e','r','t','y','u','i','o','p'],
+      ['a','s','d','f','g','h','j','k','l'],
+      ['z','x','c','v','b','n','m', '←']
+    ];
+
+    rows.forEach(r => {
+      const rowDiv = document.createElement('div');
+      rowDiv.className = "keyboard-row";
+      r.forEach(k => {
+        const key = document.createElement('button');
+        key.className = "key-btn" + (k === '←' ? " key-btn-wide" : "");
+        key.textContent = k.toUpperCase();
+        key.onclick = () => handleInputChar(k);
+        rowDiv.appendChild(key);
+      });
+      layout.appendChild(rowDiv);
+    });
+    area.appendChild(layout);
+  }
+}
+
+// Balloon spawning
+let bubbleAnimationId = null;
+function createLetterBubble(char, container, index, total) {
+  const bubble = document.createElement('div');
+  bubble.className = "bubble";
+  bubble.textContent = char.toUpperCase();
+
+  // Vibrant bubble colors
+  const colors = [
+    'linear-gradient(135deg, #ff5f1f, #ffb830)',
+    'linear-gradient(135deg, #1a8fff, #00ffcc)',
+    'linear-gradient(135deg, #9b59b6, #e74c3c)',
+    'linear-gradient(135deg, #52b788, #2d6a4f)',
+    'linear-gradient(135deg, #f27a18, #f7b267)',
+    'linear-gradient(135deg, #e94560, #ff6b81)'
+  ];
+  bubble.style.background = colors[index % colors.length];
+
+  // Distribute start positions horizontally
+  const w = container.clientWidth || 600;
+  const padding = 60;
+  const leftX = padding + (index * ((w - padding * 2) / (total - 1 || 1)));
+  bubble.style.left = Math.max(10, Math.min(w - 65, leftX + (Math.random() - 0.5) * 15)) + 'px';
+
+  // Stagger launch times
+  const speed = 1.2 + Math.random() * 1.3;
+  const delay = Math.random() * -6; // Start offset
+  
+  bubble.style.animation = "none"; // disable CSS animation, we run manually in JS for better touch interaction and physics
+
+  const bubbleObj = {
+    el: bubble,
+    x: parseFloat(bubble.style.left),
+    y: 190 + Math.random() * 100,
+    vy: speed + Math.random() * 0.8,
+    char: char,
+    pulseSpeed: 0.02 + Math.random() * 0.04,
+    pulseTimer: Math.random() * Math.PI,
+    wobbleOffset: Math.random() * 100
+  };
+
+  bubble.onclick = (e) => {
+    e.stopPropagation();
+    popBubble(bubbleObj);
+  };
+
+  container.appendChild(bubble);
+  state.bubbles.push(bubbleObj);
+}
+
+function animateBubbles(container) {
+  const h = container.clientHeight || 190;
+  state.bubbles.forEach(b => {
+    b.y -= b.vy;
+    b.pulseTimer += b.pulseSpeed;
+
+    // Side-to-side wobble
+    const wobble = Math.sin(b.pulseTimer) * 12;
+    
+    // Scale pulse
+    const scale = 1 + Math.sin(b.pulseTimer * 2) * 0.06;
+
+    b.el.style.transform = `translate3d(${wobble}px, ${b.y}px, 0) scale(${scale})`;
+
+    // Recycle bubble when it floats off screen
+    if (b.y < -70) {
+      b.y = h + 10;
+      b.vy = 1.0 + Math.random() * 1.5;
+    }
+  });
+
+  bubbleAnimationId = requestAnimationFrame(() => animateBubbles(container));
+}
+
+function popBubble(bubbleObj) {
+  playSound('bubble');
+
+  // Spawn visual pop splash
+  const rect = bubbleObj.el.getBoundingClientRect();
+  const containerRect = bubbleObj.el.parentElement.getBoundingClientRect();
+  const popX = rect.left - containerRect.left + rect.width / 2;
+  const popY = rect.top - containerRect.top + rect.height / 2;
+  
+  createSplashParticles(popX, popY, bubbleObj.el.style.backgroundImage || bubbleObj.el.style.background);
+
+  // Remove element and filter out of state
+  bubbleObj.el.remove();
+  state.bubbles = state.bubbles.filter(b => b !== bubbleObj);
+
+  // Input char
+  handleInputChar(bubbleObj.char);
+}
+
+function createSplashParticles(x, y, colorStr) {
+  const area = document.getElementById('interactionArea');
+  for (let i = 0; i < 8; i++) {
+    const spark = document.createElement('div');
+    spark.style.cssText = `
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: ${colorStr};
+      left: ${x}px;
+      top: ${y}px;
+      pointer-events: none;
+      transition: all 0.4s ease-out;
+      transform: translate(0, 0);
+      z-index: 100;
+    `;
+    area.appendChild(spark);
+
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 30 + Math.random() * 40;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist;
+
+    // Trigger animation
+    setTimeout(() => {
+      spark.style.transform = `translate(${tx}px, ${ty}px) scale(0)`;
+      spark.style.opacity = '0';
+    }, 10);
+
+    setTimeout(() => spark.remove(), 450);
+  }
+}
+
+// Typing listener for desktop users
+window.addEventListener('keydown', e => {
+  if (document.getElementById('gameScreen').classList.contains('active')) {
+    const key = e.key.toLowerCase();
+    if (key === 'backspace') {
+      handleInputChar('←');
+    } else if (key === 'enter') {
+      // ignore
+    } else if (key.length === 1 && key >= 'a' && key <= 'z') {
+      // Find matching bubble in bubble pop mode and pop it, or just input
+      if (state.inputMode === 'bubble') {
+        const match = state.bubbles.find(b => b.char === key);
+        if (match) {
+          popBubble(match);
+        } else {
+          // just append
+          handleInputChar(key);
+        }
+      } else {
+        handleInputChar(key);
+      }
+    }
+  }
+});
+
+function handleInputChar(char) {
+  const word = state.currentWordObj.word;
+
+  if (char === '←') {
+    if (state.spelledWord.length > 0) {
+      state.spelledWord = state.spelledWord.slice(0, -1);
+      updateDisplayBlanks();
+    }
+    return;
+  }
+
+  // Add letter
+  if (state.spelledWord.length < word.length) {
+    state.spelledWord += char;
+    updateDisplayBlanks();
+
+    // Check if fully spelled
+    if (state.spelledWord.length === word.length) {
+      if (state.spelledWord === word) {
+        handleCorrectSpelling();
+      } else {
+        handleIncorrectSpelling();
+      }
+    }
+  }
+}
+
+function updateDisplayBlanks() {
+  const boxes = document.querySelectorAll('.letter-box');
+  boxes.forEach((box, idx) => {
+    if (idx < state.spelledWord.length) {
+      box.textContent = state.spelledWord[idx].toUpperCase();
+      box.classList.add('active');
+    } else {
+      box.textContent = "";
+      box.classList.remove('active');
+    }
+  });
+}
+
+function handleCorrectSpelling() {
+  playSound('correct');
+  
+  // Confetti!
+  triggerConfetti();
+
+  // Visual cues
+  const avatar = document.getElementById('guideAvatar');
+  avatar.classList.add('cheer');
+  document.getElementById('sentenceHint').innerHTML = `🎉 <strong>Excellent!</strong> "${state.spelledWord.toUpperCase()}" is correct!`;
+
+  // Reward calculation
+  const earnedCoins = state.currentGrade * 2 + 1;
+  state.stars += 1;
+  state.coins += earnedCoins;
+  document.getElementById('starCount').textContent = state.stars;
+  document.getElementById('coinCount').textContent = state.coins;
+
+  // Animate coin counters
+  setTimeout(() => playSound('coin'), 300);
+
+  // Advance
+  state.currentWordIndex++;
+  saveProgress();
+
+  setTimeout(() => {
+    avatar.classList.remove('cheer');
+    loadWord();
+  }, 2200);
+}
+
+function handleIncorrectSpelling() {
+  playSound('incorrect');
+
+  const avatar = document.getElementById('guideAvatar');
+  avatar.classList.add('dizzy');
+  document.getElementById('sentenceHint').innerHTML = `❌ Oops! Let's try that one again.`;
+
+  // Shake the boxes
+  const container = document.getElementById('wordBoxes');
+  container.style.transform = "translateX(-15px)";
+  container.style.transition = "transform 0.08s ease-in-out";
+  let toggle = true;
+  let shakes = 0;
+  const shakeTimer = setInterval(() => {
+    container.style.transform = toggle ? "translateX(15px)" : "translateX(-15px)";
+    toggle = !toggle;
+    shakes++;
+    if (shakes >= 6) {
+      clearInterval(shakeTimer);
+      container.style.transform = "none";
+      avatar.classList.remove('dizzy');
+      // Reset spelled letters so they can try again
+      state.spelledWord = "";
+      updateDisplayBlanks();
+      setupInteractionArea(); // Respawns bubbles
+    }
+  }, 80);
+}
+
+function skipWord() {
+  state.currentWordIndex++;
+  loadWord();
+}
+
+function toggleInputMode() {
+  state.inputMode = state.inputMode === 'bubble' ? 'keyboard' : 'bubble';
+  setupInteractionArea();
+}
+
+// ============================================================
+//  CONFETTI ENGINE
+// ============================================================
+const confettiCanvas = document.getElementById('confettiCanvas');
+const confettiCtx = confettiCanvas.getContext('2d');
+let confettiParticles = [];
+let confettiTimer = null;
+
+function resizeConfettiCanvas() {
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeConfettiCanvas);
+resizeConfettiCanvas();
+
+class ConfettiParticle {
+  constructor() {
+    this.x = window.innerWidth / 2;
+    this.y = window.innerHeight / 2 + 100;
+    this.vx = (Math.random() - 0.5) * 12;
+    this.vy = -(Math.random() * 12 + 8);
+    this.color = ['#ff5f1f', '#ffb830', '#1a8fff', '#00ffcc', '#e94560', '#52b788'][Math.floor(Math.random()*6)];
+    this.size = Math.random() * 6 + 4;
+    this.rot = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - 0.5) * 0.2;
+    this.gravity = 0.35;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vy += this.gravity;
+    this.vx *= 0.98;
+    this.rot += this.rotSpeed;
+  }
+  draw() {
+    confettiCtx.save();
+    confettiCtx.translate(this.x, this.y);
+    confettiCtx.rotate(this.rot);
+    confettiCtx.fillStyle = this.color;
+    confettiCtx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
+    confettiCtx.restore();
+  }
+}
+
+function triggerConfetti() {
+  confettiParticles = [];
+  for (let i = 0; i < 90; i++) {
+    confettiParticles.push(new ConfettiParticle());
+  }
+
+  if (confettiTimer) clearInterval(confettiTimer);
+
+  confettiTimer = setInterval(() => {
+    confettiCtx.clearRect(0,0, confettiCanvas.width, confettiCanvas.height);
+    confettiParticles.forEach(p => {
+      p.update();
+      p.draw();
+    });
+    // Remove out of bounds particles
+    confettiParticles = confettiParticles.filter(p => p.y < window.innerHeight + 20);
+
+    if (confettiParticles.length === 0) {
+      clearInterval(confettiTimer);
+      confettiTimer = null;
+    }
+  }, 16);
+}
+
+// ============================================================
+//  STICKER BOOK & GACHA
+// ============================================================
+function openStickers() {
+  refreshStickersGrid();
+  // Check Gacha eligibility
+  document.getElementById('btnGacha').disabled = (state.coins < 10);
+  showScreen('stickerModal');
+}
+
+function closeStickers() {
+  showScreen('gameScreen');
+}
+
+function refreshStickersGrid() {
+  const grid = document.getElementById('stickerGrid');
+  grid.innerHTML = "";
+
+  STICKERS_BANK.forEach(item => {
+    const slot = document.createElement('div');
+    const unlocked = state.unlockedStickers.includes(item.id);
+    slot.className = "sticker-slot" + (unlocked ? " unlocked" : "");
+
+    const emoji = document.createElement('span');
+    emoji.className = "sticker-emoji";
+    emoji.textContent = unlocked ? item.emoji : "❓";
+
+    const label = document.createElement('span');
+    label.className = "sticker-name";
+    label.textContent = unlocked ? item.name : "Locked";
+
+    slot.appendChild(emoji);
+    slot.appendChild(label);
+    grid.appendChild(slot);
+  });
+}
+
+function rollSticker() {
+  if (state.coins < 10) return;
+
+  state.coins -= 10;
+  document.getElementById('coinCount').textContent = state.coins;
+  document.getElementById('btnGacha').disabled = true;
+
+  // Run visual waddle loop
+  const graphic = document.getElementById('gachaGraphic');
+  graphic.style.animation = "waddle 0.15s linear infinite";
+
+  let ticks = 0;
+  const rollInterval = setInterval(() => {
+    ticks++;
+    playSound('roll');
+    if (ticks >= 12) {
+      clearInterval(rollInterval);
+      graphic.style.animation = "waddle 1.5s ease-in-out infinite";
+      determineRolledSticker();
+    }
+  }, 140);
+}
+
+function determineRolledSticker() {
+  // Roll randomly
+  const rolledIdx = Math.floor(Math.random() * STICKERS_BANK.length);
+  const sticker = STICKERS_BANK[rolledIdx];
+
+  if (!state.unlockedStickers.includes(sticker.id)) {
+    state.unlockedStickers.push(sticker.id);
+  }
+
+  saveProgress();
+
+  // Trigger popup overlay
+  document.getElementById('popupEmoji').textContent = sticker.emoji;
+  document.getElementById('popupName').textContent = sticker.name;
+  document.getElementById('stickerPopupOverlay').classList.add('active');
+
+  // Trigger win confetti
+  triggerConfetti();
+  playSound('correct');
+}
+
+function closeStickerPopup() {
+  document.getElementById('stickerPopupOverlay').classList.remove('active');
+  // Refresh views
+  refreshStickersGrid();
+  document.getElementById('btnGacha').disabled = (state.coins < 10);
+}
+
+// Load logic on start
+loadProgress();
+</script>
+</body>
+</html>
