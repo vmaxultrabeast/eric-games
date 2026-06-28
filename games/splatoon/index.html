@@ -1087,6 +1087,7 @@ let touchInput = {
 let moveTouch = { id: null, startX: 0, startY: 0 };
 let aimTouch = { id: null, startX: 0, startY: 0 };
 let swimTouch = { id: null };
+let lastTouchTime = 0;
 
 function togglePause() {
   if (!gameActive) return;
@@ -1527,6 +1528,8 @@ function setupTouchEvents() {
   window.addEventListener('touchstart', e => {
     if (!gameActive || paused || (players[0] && players[0].isBot)) return;
 
+    lastTouchTime = Date.now();
+
     if (!touchInput.active) {
       touchInput.active = true;
       container.classList.add('active');
@@ -1578,6 +1581,8 @@ function setupTouchEvents() {
 
   window.addEventListener('touchmove', e => {
     if (!gameActive || !touchInput.active) return;
+
+    lastTouchTime = Date.now();
 
     for (let i = 0; i < e.touches.length; i++) {
       const touch = e.touches[i];
@@ -1644,12 +1649,14 @@ function setupTouchEvents() {
   }
 
   window.addEventListener('touchend', e => {
+    lastTouchTime = Date.now();
     for (let i = 0; i < e.changedTouches.length; i++) {
       handleTouchEnd(e.changedTouches[i].identifier);
     }
   });
 
   window.addEventListener('touchcancel', e => {
+    lastTouchTime = Date.now();
     for (let i = 0; i < e.changedTouches.length; i++) {
       handleTouchEnd(e.changedTouches[i].identifier);
     }
@@ -1663,7 +1670,7 @@ function setupTouchEvents() {
   });
   window.addEventListener('mousedown', e => {
     if (touchInput.active) {
-      if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
+      if (Date.now() - lastTouchTime < 1000) return;
       resetTouchInput();
     }
   });
