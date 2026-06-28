@@ -1529,16 +1529,23 @@ function setupTouchEvents() {
     if (!gameActive || paused || (players[0] && players[0].isBot)) return;
 
     lastTouchTime = Date.now();
-
-    if (!touchInput.active) {
-      touchInput.active = true;
-      container.classList.add('active');
-    }
+    const rect = canvas.getBoundingClientRect();
 
     for (let i = 0; i < e.changedTouches.length; i++) {
       const touch = e.changedTouches[i];
       const tx = touch.clientX;
       const ty = touch.clientY;
+
+      // Ignore touches on HUD area so menu/quit buttons can still be clicked
+      const canvasY = (ty - rect.top) / cscale;
+      if (canvasY < UI_H) continue;
+
+      e.preventDefault();
+
+      if (!touchInput.active) {
+        touchInput.active = true;
+        container.classList.add('active');
+      }
 
       // Check swim button first
       const swimRect = swimBtn.getBoundingClientRect();
@@ -1589,6 +1596,10 @@ function setupTouchEvents() {
       const id = touch.identifier;
       const tx = touch.clientX;
       const ty = touch.clientY;
+
+      if (id === moveTouch.id || id === aimTouch.id || id === swimTouch.id) {
+        e.preventDefault();
+      }
 
       if (id === moveTouch.id) {
         let dx = tx - moveTouch.startX;
