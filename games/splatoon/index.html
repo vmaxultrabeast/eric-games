@@ -188,17 +188,79 @@ body {
   transform: scale(1);
 }
 
-/* ---- PAUSE HINT ---- */
-#pauseHint {
+/* ---- TOUCH CONTROLS ---- */
+#touchControls {
   position: fixed;
-  bottom: 12px;
+  inset: 0;
+  z-index: 180;
+  pointer-events: none;
+  display: none;
+}
+#touchControls.active {
+  display: block;
+}
+.touch-joystick {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.3);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.joystick-base {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.joystick-handle {
+  position: absolute;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.7rem;
-  color: rgba(255,255,255,0.2);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  z-index: 100;
+  width: 54px;
+  height: 54px;
+  margin-top: -27px;
+  margin-left: -27px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  will-change: transform;
+}
+#rightJoystick .joystick-handle {
+  background: rgba(255, 95, 31, 0.25);
+  border-color: rgba(255, 95, 31, 0.65);
+  box-shadow: 0 6px 14px rgba(255, 95, 31, 0.25);
+}
+#touchSwimBtn {
+  position: absolute;
+  bottom: 40px;
+  right: 40px;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF5F1F, #FF9A00);
+  border: 3px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  color: white;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  will-change: transform;
+}
+#touchSwimBtn.pressed {
+  transform: scale(0.86);
+  background: linear-gradient(135deg, #FF9A00, #FF5F1F);
+  border-color: #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
 }
 </style>
 </head>
@@ -258,6 +320,21 @@ body {
 
 <canvas id="gameCanvas"></canvas>
 <div id="pauseHint">P — Pause</div>
+
+<!-- Touch controls overlay -->
+<div id="touchControls">
+  <div id="leftJoystick" class="touch-joystick" style="display: none;">
+    <div class="joystick-base">
+      <div class="joystick-handle"></div>
+    </div>
+  </div>
+  <div id="rightJoystick" class="touch-joystick" style="display: none;">
+    <div class="joystick-base">
+      <div class="joystick-handle"></div>
+    </div>
+  </div>
+  <div id="touchSwimBtn">🦑</div>
+</div>
 
 <script>
 // ============================================================
@@ -651,20 +728,35 @@ class Player {
       if ((keys['KeyL'] || keys['Slash']) && this.ammo >= AMMO_COST && !this.isSwimming && this.shootCD <= 0)
         this._shoot();
     } else {
-      if (keys['KeyW'] || keys['ArrowUp'])    dy -= 1;
-      if (keys['KeyS'] || keys['ArrowDown'])  dy += 1;
-      if (keys['KeyA'] || keys['ArrowLeft'])  dx -= 1;
-      if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
-      // Aim at mouse
-      this.angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
-      this.isSwimming = keys['ShiftLeft'] || keys['ShiftRight'] || keys['Space'];
-      if ((mouse.down || mouse.clicked || keys['KeyJ']) && this.ammo >= AMMO_COST && !this.isSwimming && this.shootCD <= 0)
-        this._shoot();
+      if (touchInput.active) {
+        dx = touchInput.moveX;
+        dy = touchInput.moveY;
+        if (touchInput.isAiming) {
+          this.angle = touchInput.aimAngle;
+        }
+        this.isSwimming = touchInput.isSwimming;
+        if (touchInput.isAiming && this.ammo >= AMMO_COST && !this.isSwimming && this.shootCD <= 0)
+          this._shoot();
+      } else {
+        if (keys['KeyW'] || keys['ArrowUp'])    dy -= 1;
+        if (keys['KeyS'] || keys['ArrowDown'])  dy += 1;
+        if (keys['KeyA'] || keys['ArrowLeft'])  dx -= 1;
+        if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+        // Aim at mouse
+        this.angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
+        this.isSwimming = keys['ShiftLeft'] || keys['ShiftRight'] || keys['Space'];
+        if ((mouse.down || mouse.clicked || keys['KeyJ']) && this.ammo >= AMMO_COST && !this.isSwimming && this.shootCD <= 0)
+          this._shoot();
+      }
     }
     mouse.clicked = false;
 
     const len = Math.hypot(dx, dy);
-    if (len > 0) { this._vx = dx / len * speed; this._vy = dy / len * speed; }
+    if (len > 0) {
+      const normLen = Math.min(1, len);
+      this._vx = (dx / len) * normLen * speed;
+      this._vy = (dy / len) * normLen * speed;
+    }
     else         { this._vx *= 0.7; this._vy *= 0.7; }
   }
 
@@ -980,6 +1072,21 @@ let matchTimer = MATCH_SEC;
 let gameActive = false;
 let paused = false;
 let numHumans = 1;
+
+// ============================================================
+//  TOUCH STATE
+// ============================================================
+let touchInput = {
+  active: false,
+  moveX: 0,
+  moveY: 0,
+  aimAngle: 0,
+  isAiming: false,
+  isSwimming: false
+};
+let moveTouch = { id: null, startX: 0, startY: 0 };
+let aimTouch = { id: null, startX: 0, startY: 0 };
+let swimTouch = { id: null };
 
 function togglePause() {
   if (!gameActive) return;
@@ -1318,6 +1425,15 @@ function startGame(humans) {
   document.getElementById('startScreen').classList.add('hidden');
   document.getElementById('gameOverScreen').classList.add('hidden');
 
+  // Check for touch device to show touch controls initially
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  if (isTouchDevice && humans > 0 && !players[0].isBot) {
+    touchInput.active = true;
+    document.getElementById('touchControls').classList.add('active');
+  } else {
+    resetTouchInput();
+  }
+
   // Countdown
   showCountdown();
 }
@@ -1344,6 +1460,7 @@ function showCountdown() {
 
 function endGame() {
   gameActive = false;
+  resetTouchInput();
 
   const { t0, t1, total } = calcScore();
   const pct0 = total > 0 ? Math.round(t0 / total * 100) : 0;
@@ -1372,14 +1489,190 @@ function returnToMenu() {
   players = [];
   projectiles = [];
   particles = [];
+  resetTouchInput();
 
   // Clear canvas
   ctx.clearRect(0, 0, GW, GH + UI_H);
 }
 
 // ============================================================
+//  TOUCH CONTROLS HANDLERS
+// ============================================================
+function resetTouchInput() {
+  touchInput.active = false;
+  touchInput.moveX = 0;
+  touchInput.moveY = 0;
+  touchInput.isAiming = false;
+  touchInput.isSwimming = false;
+  moveTouch.id = null;
+  aimTouch.id = null;
+  swimTouch.id = null;
+  document.getElementById('touchControls').classList.remove('active');
+  document.getElementById('leftJoystick').style.display = 'none';
+  document.getElementById('rightJoystick').style.display = 'none';
+  document.getElementById('touchSwimBtn').classList.remove('pressed');
+}
+
+function setupTouchEvents() {
+  const container = document.getElementById('touchControls');
+  const leftJoy = document.getElementById('leftJoystick');
+  const rightJoy = document.getElementById('rightJoystick');
+  const leftHandle = leftJoy.querySelector('.joystick-handle');
+  const rightHandle = rightJoy.querySelector('.joystick-handle');
+  const swimBtn = document.getElementById('touchSwimBtn');
+
+  const maxJoyDist = 50; // max displacement in pixels
+
+  // Trigger touch active on first touchstart
+  window.addEventListener('touchstart', e => {
+    if (!gameActive || paused || (players[0] && players[0].isBot)) return;
+
+    if (!touchInput.active) {
+      touchInput.active = true;
+      container.classList.add('active');
+    }
+
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i];
+      const tx = touch.clientX;
+      const ty = touch.clientY;
+
+      // Check swim button first
+      const swimRect = swimBtn.getBoundingClientRect();
+      const onSwim = tx >= swimRect.left && tx <= swimRect.right &&
+                     ty >= swimRect.top && ty <= swimRect.bottom;
+
+      if (onSwim) {
+        if (swimTouch.id === null) {
+          swimTouch.id = touch.identifier;
+          touchInput.isSwimming = true;
+          swimBtn.classList.add('pressed');
+        }
+        continue;
+      }
+
+      // Check left/right half
+      if (tx < window.innerWidth / 2) {
+        if (moveTouch.id === null) {
+          moveTouch.id = touch.identifier;
+          moveTouch.startX = tx;
+          moveTouch.startY = ty;
+          leftJoy.style.left = tx + 'px';
+          leftJoy.style.top = ty + 'px';
+          leftJoy.style.display = 'block';
+          leftHandle.style.transform = 'translate(0px, 0px)';
+        }
+      } else {
+        if (aimTouch.id === null) {
+          aimTouch.id = touch.identifier;
+          aimTouch.startX = tx;
+          aimTouch.startY = ty;
+          rightJoy.style.left = tx + 'px';
+          rightJoy.style.top = ty + 'px';
+          rightJoy.style.display = 'block';
+          rightHandle.style.transform = 'translate(0px, 0px)';
+        }
+      }
+    }
+  }, { passive: false });
+
+  window.addEventListener('touchmove', e => {
+    if (!gameActive || !touchInput.active) return;
+
+    for (let i = 0; i < e.touches.length; i++) {
+      const touch = e.touches[i];
+      const id = touch.identifier;
+      const tx = touch.clientX;
+      const ty = touch.clientY;
+
+      if (id === moveTouch.id) {
+        let dx = tx - moveTouch.startX;
+        let dy = ty - moveTouch.startY;
+        let dist = Math.hypot(dx, dy);
+
+        if (dist > maxJoyDist) {
+          dx = (dx / dist) * maxJoyDist;
+          dy = (dy / dist) * maxJoyDist;
+        }
+
+        leftHandle.style.transform = `translate(${dx}px, ${dy}px)`;
+
+        // Normalize to -1 to 1
+        touchInput.moveX = dx / maxJoyDist;
+        touchInput.moveY = dy / maxJoyDist;
+      }
+
+      if (id === aimTouch.id) {
+        let dx = tx - aimTouch.startX;
+        let dy = ty - aimTouch.startY;
+        let dist = Math.hypot(dx, dy);
+
+        if (dist > maxJoyDist) {
+          dx = (dx / dist) * maxJoyDist;
+          dy = (dy / dist) * maxJoyDist;
+        }
+
+        rightHandle.style.transform = `translate(${dx}px, ${dy}px)`;
+
+        if (dist > 8) { // Deadzone
+          touchInput.isAiming = true;
+          touchInput.aimAngle = Math.atan2(dy, dx);
+        } else {
+          touchInput.isAiming = false;
+        }
+      }
+    }
+  }, { passive: false });
+
+  function handleTouchEnd(id) {
+    if (id === moveTouch.id) {
+      moveTouch.id = null;
+      leftJoy.style.display = 'none';
+      touchInput.moveX = 0;
+      touchInput.moveY = 0;
+    }
+    if (id === aimTouch.id) {
+      aimTouch.id = null;
+      rightJoy.style.display = 'none';
+      touchInput.isAiming = false;
+    }
+    if (id === swimTouch.id) {
+      swimTouch.id = null;
+      touchInput.isSwimming = false;
+      swimBtn.classList.remove('pressed');
+    }
+  }
+
+  window.addEventListener('touchend', e => {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      handleTouchEnd(e.changedTouches[i].identifier);
+    }
+  });
+
+  window.addEventListener('touchcancel', e => {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      handleTouchEnd(e.changedTouches[i].identifier);
+    }
+  });
+
+  // Revert to keyboard/mouse when physical inputs are used
+  window.addEventListener('keydown', e => {
+    if (touchInput.active) {
+      resetTouchInput();
+    }
+  });
+  window.addEventListener('mousedown', e => {
+    if (touchInput.active) {
+      if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
+      resetTouchInput();
+    }
+  });
+}
+
+// ============================================================
 //  START
 // ============================================================
+setupTouchEvents();
 requestAnimationFrame(gameLoop);
 </script>
 </body>

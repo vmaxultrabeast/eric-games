@@ -77,7 +77,7 @@ const GAMES_REGISTRY = [
         cover: 'games/splatoon/cover.png',
         controls: 'P1: WASD move, Mouse aim, Click/J shoot, Shift/Space swim. P2: Arrow keys, L/↵ shoot, Enter swim.',
         addedDate: '2026-06-24',
-        updatedDate: '2026-06-24'
+        updatedDate: '2026-06-27'
     }
     // New games can be easily appended here in the future
 ];
