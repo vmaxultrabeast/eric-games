@@ -300,6 +300,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Setup interactive pokeball clicking
     document.getElementById("interactivePokeball").addEventListener("click", triggerPokeballOpening);
+
+    // Setup sell all duplicates button
+    document.getElementById("sellAllDuplicatesBtn").addEventListener("click", sellAllDuplicates);
 });
 
 // ==========================================================================
@@ -861,6 +864,19 @@ function renderCollectionList() {
             </div>
         `;
     }
+
+    // Toggle Visibility of the Sell All Duplicates button based on actual inventory duplicates
+    let hasDuplicates = false;
+    Object.keys(gameState.inventory).forEach(name => {
+        if (gameState.inventory[name] > 1) {
+            hasDuplicates = true;
+        }
+    });
+
+    const sellAllBtn = document.getElementById("sellAllDuplicatesBtn");
+    if (sellAllBtn) {
+        sellAllBtn.style.display = hasDuplicates ? "inline-block" : "none";
+    }
 }
 
 // Global scope accessor for inline HTML clicks
@@ -881,6 +897,38 @@ window.sellDuplicate = function(pokemonName) {
     updateStatsBar();
     renderCollectionList();
 };
+
+function sellAllDuplicates() {
+    let totalProfit = 0;
+    let duplicatesFound = false;
+
+    // Loop through inventory and sell duplicates
+    Object.keys(gameState.inventory).forEach(pokemonName => {
+        const count = gameState.inventory[pokemonName] || 0;
+        if (count > 1) {
+            const pokemon = ALL_POKEMON_FLAT.find(p => p.name === pokemonName);
+            if (pokemon) {
+                const worth = RARITY_WORTH[pokemon.rarity];
+                const duplicatesCount = count - 1;
+                totalProfit += worth * duplicatesCount;
+                gameState.inventory[pokemonName] = 1; // Reset to 1 copy
+                duplicatesFound = true;
+            }
+        }
+    });
+
+    if (duplicatesFound) {
+        gameState.coins += totalProfit;
+        saveState();
+        updateStatsBar();
+        renderCollectionList();
+        
+        // Show success alert
+        alert(`Sold all duplicate Pokemon for ${totalProfit}p!`);
+    } else {
+        alert("No duplicates found in your inventory.");
+    }
+}
 
 // ==========================================================================
 // Trade Center Tab (Refreshing NPC offers)
