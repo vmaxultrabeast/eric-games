@@ -1,33 +1,47 @@
 /* ==========================================================================
-   CSS Variables & Design Tokens
+   CSS Variables - Pokemon Theme
    ========================================================================== */
 :root {
-    --bg-dark: #07080e;
-    --bg-panel: rgba(18, 20, 35, 0.6);
-    --bg-panel-hover: rgba(28, 31, 55, 0.85);
-    --border-glow-cyan: rgba(0, 245, 255, 0.35);
-    --border-glow-purple: rgba(157, 78, 221, 0.35);
-    --border-default: rgba(255, 255, 255, 0.08);
+    --poke-red: #cc0000;
+    --poke-red-dark: #990000;
+    --poke-red-light: #ff4444;
+    --poke-yellow: #f5c518;
+    --poke-yellow-dark: #c9a100;
+    --poke-blue: #3b5bdb;
+    --poke-blue-light: #74c0fc;
+    --poke-green: #2e7d32;
+    --poke-green-light: #66bb6a;
 
-    --color-cyan: #00f5ff;
-    --color-purple: #9d4edd;
-    --color-pink: #ff007f;
-    --color-gold: #ffb703;
-    --color-red: #ff3333;
-    
+    --bg-cream: #faf6f0;
+    --bg-white: #ffffff;
+    --bg-panel: #ffffff;
+    --bg-panel-inner: #f7f2ea;
+    --bg-tile: #e8f5e9;
+    --bg-tile-hover: #c8e6c9;
+
+    --border-thick: #4a3728;
+    --border-mid: #8d6e63;
+    --border-light: #bcaaa4;
+    --border-grass: #388e3c;
+
     /* Rarity Palette */
-    --rarity-legendary: linear-gradient(135deg, #ffb703, #9d4edd);
-    --rarity-no-evolve: linear-gradient(135deg, #00f5ff, #3a86ff);
-    --rarity-evolution3: linear-gradient(135deg, #00f5ff, #38ef7d);
-    --rarity-evolution2: linear-gradient(135deg, #f77f00, #fcbf49);
-    --rarity-basic: linear-gradient(135deg, #8d99ae, #4a5568);
+    --rarity-legendary: linear-gradient(135deg, #ff9800, #9c27b0);
+    --rarity-no-evolve: linear-gradient(135deg, #29b6f6, #1565c0);
+    --rarity-evolution3: linear-gradient(135deg, #26c6da, #2e7d32);
+    --rarity-evolution2: linear-gradient(135deg, #ff7043, #f5c518);
+    --rarity-basic: linear-gradient(135deg, #90a4ae, #546e7a);
 
-    --text-main: #f1f5f9;
-    --text-muted: #64748b;
-    --text-dark: #0f172a;
+    --text-dark: #1a120b;
+    --text-mid: #4a3728;
+    --text-muted: #8d6e63;
+    --text-white: #ffffff;
 
     --font-ui: 'Outfit', sans-serif;
     --font-display: 'Orbitron', sans-serif;
+
+    --shadow-card: 0 4px 0 var(--border-thick), 0 6px 12px rgba(0,0,0,0.2);
+    --shadow-btn: 0 4px 0 var(--poke-red-dark);
+    --radius-box: 14px;
 }
 
 /* ==========================================================================
@@ -40,123 +54,134 @@
 }
 
 body {
-    background-color: var(--bg-dark);
-    color: var(--text-main);
+    background-color: var(--bg-cream);
+    color: var(--text-dark);
     font-family: var(--font-ui);
     overflow: hidden;
     height: 100vh;
     width: 100vw;
+    background-image:
+        radial-gradient(circle at 10% 20%, rgba(102,187,106,0.1) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(245,197,24,0.08) 0%, transparent 40%);
 }
 
 /* Scrollbars */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-::-webkit-scrollbar-track {
-    background: rgba(10, 11, 20, 0.5);
-}
-::-webkit-scrollbar-thumb {
-    background: rgba(0, 245, 255, 0.2);
-    border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 245, 255, 0.4);
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f0e8d8; }
+::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-thick); }
 
 /* ==========================================================================
-   Main Game Layout Wrapper
+   Main Layout Wrapper
    ========================================================================== */
 .game-wrapper {
     display: flex;
     flex-direction: column;
     height: 100vh;
     max-height: 100vh;
-    padding: 1rem;
-    gap: 1rem;
-    background: linear-gradient(180deg, #05060b 0%, #0c0e17 100%);
+    padding: 0.75rem;
+    gap: 0.65rem;
+    background: var(--bg-cream);
     box-sizing: border-box;
 }
 
 /* ==========================================================================
-   Game Header / Dashboard
+   Game Header / Pokedex-style Dashboard
    ========================================================================== */
 .game-dashboard {
     display: grid;
-    grid-template-columns: 1.2fr 1.6fr 1.2fr;
+    grid-template-columns: 1.2fr 1.4fr 1.2fr;
     align-items: center;
-    background: var(--bg-panel);
-    border: 1px solid var(--border-default);
-    border-radius: 12px;
-    padding: 0.75rem 1.5rem;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    background: var(--poke-red);
+    border: 3px solid var(--border-thick);
+    border-radius: var(--radius-box);
+    padding: 0.6rem 1.25rem;
+    box-shadow: 0 4px 0 var(--poke-red-dark), 0 6px 15px rgba(0,0,0,0.25);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Decorative Pokedex bump dot */
+.game-dashboard::before {
+    content: '';
+    position: absolute;
+    top: 0.6rem;
+    left: 1rem;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--poke-blue-light);
+    border: 3px solid var(--border-thick);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.2);
 }
 
 .brand {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    padding-left: 2rem;
 }
 
 .brand h1 {
     font-family: var(--font-display);
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 900;
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
+    color: var(--text-white);
+    text-shadow: 1px 2px 0 var(--poke-red-dark);
 }
 
 .logo-glow {
     font-size: 1.4rem;
-    color: var(--color-cyan);
-    text-shadow: 0 0 10px rgba(0, 245, 255, 0.6);
-    animation: rotateLogo 8s linear infinite;
+    color: var(--poke-yellow);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+    animation: spinBall 6s linear infinite;
 }
 
-@keyframes rotateLogo {
+@keyframes spinBall {
     to { transform: rotate(360deg); }
 }
 
 .cyan-text {
-    color: var(--color-cyan);
-    text-shadow: 0 0 8px rgba(0, 245, 255, 0.4);
+    color: var(--poke-yellow);
 }
 
-.text-cyan { color: var(--color-cyan); }
-.text-purple { color: var(--color-purple); }
+.text-cyan { color: var(--poke-yellow); }
+.text-purple { color: #e1bee7; }
 
+/* Stats Panel */
 .stats-panel {
     display: flex;
     justify-content: center;
-    gap: 2rem;
+    gap: 1.25rem;
 }
 
 .stat-box {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: rgba(10, 11, 20, 0.4);
-    border: 1px solid var(--border-default);
-    padding: 0.4rem 1.25rem;
+    background: rgba(0,0,0,0.25);
+    border: 2px solid rgba(255,255,255,0.25);
+    padding: 0.3rem 1rem;
     border-radius: 8px;
-    min-width: 120px;
+    min-width: 110px;
 }
 
 .stat-label {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-family: var(--font-display);
-    color: var(--text-muted);
+    color: rgba(255,255,255,0.7);
     letter-spacing: 1px;
 }
 
 .stat-value {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-family: var(--font-display);
     font-weight: 700;
+    color: var(--poke-yellow);
 }
 
-/* Cheat Panel Styles */
+/* Cheat Code Input */
 .cheat-container {
     display: flex;
     justify-content: flex-end;
@@ -164,49 +189,58 @@ body {
 }
 
 .cheat-container input {
-    background: rgba(5, 6, 11, 0.8);
-    border: 1px solid var(--border-default);
-    color: var(--text-main);
+    background: rgba(0,0,0,0.3);
+    border: 2px solid rgba(255,255,255,0.3);
+    color: var(--text-white);
     font-family: var(--font-display);
-    font-size: 0.75rem;
-    padding: 0.4rem 0.75rem;
+    font-size: 0.7rem;
+    padding: 0.35rem 0.65rem;
     border-radius: 6px;
     outline: none;
-    width: 130px;
+    width: 120px;
     text-align: center;
     letter-spacing: 1px;
     transition: all 0.2s ease;
 }
 
+.cheat-container input::placeholder { color: rgba(255,255,255,0.4); }
+
 .cheat-container input:focus {
-    border-color: var(--color-cyan);
-    box-shadow: 0 0 8px rgba(0, 245, 255, 0.2);
+    border-color: var(--poke-yellow);
+    background: rgba(0,0,0,0.4);
 }
 
 .action-btn {
-    background: linear-gradient(135deg, var(--color-cyan), var(--color-purple));
-    color: var(--bg-dark);
+    background: var(--poke-yellow);
+    color: var(--text-dark);
     font-family: var(--font-display);
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.4rem 1rem;
-    border: none;
+    font-size: 0.7rem;
+    font-weight: 900;
+    padding: 0.35rem 0.85rem;
+    border: 2px solid var(--poke-yellow-dark);
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    box-shadow: 0 3px 0 var(--poke-yellow-dark);
+    transition: all 0.1s ease;
 }
 
 .action-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 0 10px rgba(0, 245, 255, 0.4);
+    box-shadow: 0 4px 0 var(--poke-yellow-dark);
+}
+
+.action-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--poke-yellow-dark);
 }
 
 .cheat-feedback {
     font-size: 0.65rem;
-    color: var(--color-pink);
+    color: var(--poke-red);
     text-align: right;
-    margin-top: 0.25rem;
-    min-height: 12px;
+    margin-top: 0.2rem;
+    min-height: 11px;
+    font-weight: 700;
 }
 
 /* ==========================================================================
@@ -215,52 +249,55 @@ body {
 .game-tabs {
     display: flex;
     justify-content: center;
-    gap: 1rem;
+    gap: 0.5rem;
 }
 
 .tab-btn {
-    background: var(--bg-panel);
-    border: 1px solid var(--border-default);
+    background: var(--bg-white);
+    border: 2px solid var(--border-mid);
     color: var(--text-muted);
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 1.5px;
-    padding: 0.6rem 1.5rem;
-    border-radius: 8px;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    padding: 0.5rem 1.5rem;
+    border-radius: 10px 10px 0 0;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
+    border-bottom: none;
 }
 
 .tab-btn:hover {
-    color: var(--text-main);
-    background: rgba(255, 255, 255, 0.03);
+    color: var(--poke-red);
+    background: #fff8f0;
 }
 
 .tab-btn.active {
-    color: var(--color-cyan);
-    background: rgba(0, 245, 255, 0.08);
-    border-color: rgba(0, 245, 255, 0.25);
-    box-shadow: 0 0 15px rgba(0, 245, 255, 0.1);
+    color: var(--poke-red);
+    background: var(--bg-panel);
+    border-color: var(--poke-red);
+    border-bottom: 2px solid var(--bg-panel);
+    box-shadow: 0 -3px 8px rgba(204,0,0,0.1);
+    position: relative;
+    z-index: 2;
 }
 
 /* ==========================================================================
-   Main Display Container
+   Main Display Area
    ========================================================================== */
 .main-display {
     flex: 1;
     background: var(--bg-panel);
-    border: 1px solid var(--border-default);
-    border-radius: 12px;
-    padding: 1.5rem;
+    border: 3px solid var(--border-thick);
+    border-radius: 0 var(--radius-box) var(--radius-box) var(--radius-box);
+    padding: 1.25rem;
     overflow-y: auto;
     position: relative;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--shadow-card);
 }
 
 .tab-content {
@@ -272,95 +309,107 @@ body {
     display: block;
 }
 
-/* Header descriptors within tabs */
+/* Section headers */
 .map-info-header, .collection-info-header, .trade-info-header {
-    margin-bottom: 1.25rem;
-    border-bottom: 1px solid var(--border-default);
-    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    border-bottom: 3px solid var(--bg-panel-inner);
+    padding-bottom: 0.65rem;
 }
 
 .map-info-header h2, .collection-info-header h2, .trade-info-header h2 {
     font-family: var(--font-display);
-    font-size: 1.25rem;
-    letter-spacing: 1px;
-    margin-bottom: 0.25rem;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+    color: var(--poke-red);
+    margin-bottom: 0.2rem;
 }
 
 .map-info-header p, .collection-info-header p, .trade-info-header p {
     color: var(--text-muted);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
 }
 
 /* ==========================================================================
-   Grid Explorer Map (8x11 Grid = 88 tiles)
+   Map Grid (8x11 = 88 tiles)
    ========================================================================== */
 .grid-container {
     display: grid;
     grid-template-columns: repeat(11, 1fr);
     grid-template-rows: repeat(8, 1fr);
-    gap: 0.5rem;
-    height: calc(100% - 75px);
+    gap: 4px;
+    height: calc(100% - 70px);
     min-height: 380px;
 }
 
 .tile {
-    background: rgba(10, 11, 18, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
-    aspect-ratio: 1.25/1;
+    background: var(--bg-tile);
+    border: 2px solid #a5d6a7;
+    border-radius: 5px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     position: relative;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.15s ease;
     user-select: none;
     overflow: hidden;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Grass texture pattern on tiles */
+.tile::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        repeating-linear-gradient(
+            45deg,
+            rgba(56,142,60,0.06) 0px,
+            rgba(56,142,60,0.06) 2px,
+            transparent 2px,
+            transparent 8px
+        );
+    pointer-events: none;
 }
 
 .tile:hover {
-    background: rgba(0, 245, 255, 0.03);
-    border-color: var(--color-cyan);
-    box-shadow: 0 0 12px rgba(0, 245, 255, 0.15);
+    background: var(--bg-tile-hover);
+    border-color: var(--border-grass);
     transform: translateY(-2px);
+    box-shadow: 0 4px 0 #2e7d32, 0 5px 8px rgba(0,0,0,0.2);
 }
 
 .tile-coord {
     font-family: var(--font-display);
-    font-size: 0.85rem;
+    font-size: 0.7rem;
     font-weight: 700;
-    color: var(--text-muted);
-    transition: color 0.2s ease;
+    color: #388e3c;
+    transition: color 0.15s ease;
+    position: relative;
+    z-index: 1;
 }
 
 .tile:hover .tile-coord {
-    color: var(--color-cyan);
+    color: var(--poke-green);
 }
 
 /* Tile States */
 .tile.available {
-    border-color: rgba(157, 78, 221, 0.2);
-}
-
-.tile.available::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle, rgba(157, 78, 221, 0.08) 0%, transparent 80%);
-    opacity: 0.5;
+    border-color: #a5d6a7;
 }
 
 .tile.cooldown {
     cursor: not-allowed;
-    background: rgba(15, 17, 26, 0.9);
-    border-color: rgba(255, 255, 255, 0.02);
+    background: #f5f5f5;
+    border-color: #e0e0e0;
 }
 
 .tile.cooldown:hover {
     transform: none;
     box-shadow: none;
-    border-color: rgba(255, 255, 255, 0.02);
+    background: #f5f5f5;
+    border-color: #e0e0e0;
 }
 
 .tile-overlay-info {
@@ -370,56 +419,58 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(5, 6, 11, 0.85);
-    gap: 0.2rem;
+    background: rgba(245,245,245,0.92);
+    gap: 0.15rem;
+    z-index: 5;
 }
 
 .tile-overlay-info i {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-muted);
 }
 
 .tile-overlay-info span {
     font-family: var(--font-display);
-    font-size: 0.6rem;
+    font-size: 0.5rem;
     color: var(--text-muted);
+    text-align: center;
+    line-height: 1.2;
 }
 
-/* Locked Tile by Braivery (7 Days) */
+/* Locked Tile */
 .tile.locked {
     cursor: not-allowed;
-    border-color: rgba(255, 51, 51, 0.3);
-    background: rgba(26, 10, 10, 0.5);
-    animation: pulseBorderRed 3s infinite ease-in-out;
+    border-color: #ef9a9a;
+    background: #ffebee;
+    animation: pulseRedBorder 3s infinite ease-in-out;
 }
 
 .tile.locked:hover {
     transform: none;
     box-shadow: none;
-    border-color: rgba(255, 51, 51, 0.3);
+    border-color: #ef9a9a;
 }
 
 .tile.locked .tile-coord {
-    color: rgba(255, 51, 51, 0.4);
+    color: #e57373;
 }
 
 .tile.locked .tile-overlay-info {
-    background: rgba(20, 5, 5, 0.9);
+    background: rgba(255,235,238,0.93);
 }
 
 .tile.locked .tile-overlay-info i {
-    color: var(--color-red);
-    text-shadow: 0 0 5px rgba(255, 51, 51, 0.6);
+    color: var(--poke-red);
 }
 
 .tile.locked .tile-overlay-info span {
-    color: #fca5a5;
+    color: var(--poke-red);
     font-weight: 700;
 }
 
-@keyframes pulseBorderRed {
-    0%, 100% { border-color: rgba(255, 51, 51, 0.2); }
-    50% { border-color: rgba(255, 51, 51, 0.65); }
+@keyframes pulseRedBorder {
+    0%, 100% { border-color: #ef9a9a; }
+    50% { border-color: var(--poke-red); }
 }
 
 /* ==========================================================================
@@ -429,133 +480,140 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
 }
 
 .rarity-filter {
-    background: rgba(10, 11, 20, 0.5);
-    border: 1px solid var(--border-default);
+    background: var(--bg-white);
+    border: 2px solid var(--border-light);
     color: var(--text-muted);
     font-family: var(--font-display);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 700;
-    padding: 0.4rem 1rem;
-    border-radius: 6px;
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 0 var(--border-light);
 }
 
 .rarity-filter:hover {
-    color: var(--text-main);
-    border-color: var(--text-muted);
+    border-color: var(--border-mid);
+    color: var(--text-dark);
 }
 
 .rarity-filter.active {
-    color: var(--bg-dark);
+    color: var(--text-white);
     font-weight: 900;
+    border-color: transparent;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.3);
 }
 
-.rarity-filter[data-rarity="all"].active { background: var(--text-main); }
-.rarity-filter[data-rarity="legendary"].active { background: linear-gradient(90deg, #ffb703, #9d4edd); }
-.rarity-filter[data-rarity="no-evolve"].active { background: linear-gradient(90deg, #00f5ff, #3a86ff); }
-.rarity-filter[data-rarity="evolution3"].active { background: linear-gradient(90deg, #00f5ff, #38ef7d); }
-.rarity-filter[data-rarity="evolution2"].active { background: linear-gradient(90deg, #f77f00, #fcbf49); }
-.rarity-filter[data-rarity="basic"].active { background: linear-gradient(90deg, #8d99ae, #4a5568); }
+.rarity-filter[data-rarity="all"].active { background: var(--border-thick); }
+.rarity-filter[data-rarity="legendary"].active { background: linear-gradient(90deg, #ff9800, #9c27b0); }
+.rarity-filter[data-rarity="no-evolve"].active { background: linear-gradient(90deg, #29b6f6, #1565c0); }
+.rarity-filter[data-rarity="evolution3"].active { background: linear-gradient(90deg, #26c6da, #2e7d32); }
+.rarity-filter[data-rarity="evolution2"].active { background: linear-gradient(90deg, #ff7043, #f5c518); }
+.rarity-filter[data-rarity="basic"].active { background: linear-gradient(90deg, #90a4ae, #546e7a); }
 
 .collection-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 0.85rem;
 }
 
 .pokemon-card {
-    background: rgba(10, 11, 20, 0.45);
-    border: 1px solid var(--border-default);
-    border-radius: 10px;
-    padding: 1rem;
+    background: var(--bg-white);
+    border: 3px solid var(--border-light);
+    border-radius: 12px;
+    padding: 0.85rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
-    transition: all 0.25s ease;
+    transition: all 0.2s ease;
+    box-shadow: 0 3px 0 var(--border-light);
 }
 
 .pokemon-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 6px 0 var(--border-mid), 0 8px 16px rgba(0,0,0,0.1);
 }
 
-/* Highlight card borders based on rarity */
-.pokemon-card.tier-legendary { border-color: rgba(255, 183, 3, 0.3); }
-.pokemon-card.tier-no-evolve { border-color: rgba(0, 245, 255, 0.3); }
-.pokemon-card.tier-evolution3 { border-color: rgba(56, 239, 125, 0.3); }
-.pokemon-card.tier-evolution2 { border-color: rgba(247, 127, 0, 0.3); }
-.pokemon-card.tier-basic { border-color: rgba(141, 153, 174, 0.3); }
+.pokemon-card.tier-legendary { border-color: #ce93d8; }
+.pokemon-card.tier-no-evolve { border-color: #81d4fa; }
+.pokemon-card.tier-evolution3 { border-color: #80cbc4; }
+.pokemon-card.tier-evolution2 { border-color: #ffcc80; }
+.pokemon-card.tier-basic { border-color: #cfd8dc; }
 
 .pokemon-card .card-count {
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    background: rgba(10, 11, 20, 0.8);
-    border: 1px solid var(--border-default);
+    top: 0.4rem;
+    right: 0.4rem;
+    background: var(--poke-red);
+    color: white;
     border-radius: 20px;
-    padding: 0.15rem 0.5rem;
-    font-size: 0.7rem;
+    padding: 0.1rem 0.45rem;
+    font-size: 0.65rem;
     font-family: var(--font-display);
     font-weight: 700;
+    border: 1px solid var(--poke-red-dark);
 }
 
 .pokemon-card .card-image-wrap {
-    width: 90px;
-    height: 90px;
+    width: 80px;
+    height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
     position: relative;
+    background: radial-gradient(circle, rgba(245,245,245,1) 0%, var(--bg-panel-inner) 100%);
+    border-radius: 50%;
+    border: 2px solid var(--border-light);
 }
 
 .pokemon-card .card-image-wrap img {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 90%;
+    max-height: 90%;
     object-fit: contain;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
 }
 
-/* Background element glow inside card */
 .pokemon-card .glow-spot {
     position: absolute;
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    filter: blur(15px);
-    opacity: 0.15;
+    filter: blur(12px);
+    opacity: 0.2;
     z-index: 0;
 }
 
-.pokemon-card.tier-legendary .glow-spot { background: var(--color-purple); }
-.pokemon-card.tier-no-evolve .glow-spot { background: var(--color-cyan); }
-.pokemon-card.tier-evolution3 .glow-spot { background: #38ef7d; }
-.pokemon-card.tier-evolution2 .glow-spot { background: var(--color-gold); }
-.pokemon-card.tier-basic .glow-spot { background: #8d99ae; }
+.pokemon-card.tier-legendary .glow-spot { background: #9c27b0; }
+.pokemon-card.tier-no-evolve .glow-spot { background: #1565c0; }
+.pokemon-card.tier-evolution3 .glow-spot { background: #2e7d32; }
+.pokemon-card.tier-evolution2 .glow-spot { background: #ff7043; }
+.pokemon-card.tier-basic .glow-spot { background: #546e7a; }
 
 .pokemon-card .card-name {
     font-family: var(--font-display);
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     font-weight: 700;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.2rem;
     text-align: center;
+    color: var(--text-dark);
     z-index: 1;
 }
 
 .pokemon-card .card-tier-tag {
-    font-size: 0.65rem;
+    font-size: 0.55rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 0.15rem 0.4rem;
+    letter-spacing: 0.3px;
+    padding: 0.1rem 0.35rem;
     border-radius: 4px;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.6rem;
     color: #fff;
     z-index: 1;
 }
@@ -574,26 +632,32 @@ body {
 
 .sell-btn {
     width: 100%;
-    background: rgba(255, 51, 51, 0.1);
-    border: 1px solid rgba(255, 51, 51, 0.3);
-    color: #fca5a5;
+    background: var(--poke-red);
+    border: 2px solid var(--poke-red-dark);
+    color: white;
     font-family: var(--font-display);
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     font-weight: 700;
-    padding: 0.35rem 0;
-    border-radius: 4px;
+    padding: 0.3rem 0;
+    border-radius: 6px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.1s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.25rem;
+    box-shadow: 0 2px 0 var(--poke-red-dark);
 }
 
 .sell-btn:hover {
-    background: rgba(255, 51, 51, 0.25);
-    border-color: rgba(255, 51, 51, 0.5);
-    color: #fff;
+    background: var(--poke-red-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 var(--poke-red-dark);
+}
+
+.sell-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 0 var(--poke-red-dark);
 }
 
 .no-pokemon-prompt {
@@ -610,7 +674,7 @@ body {
 
 .no-pokemon-prompt i {
     font-size: 2.5rem;
-    opacity: 0.4;
+    opacity: 0.3;
     margin-bottom: 0.5rem;
 }
 
@@ -621,92 +685,94 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 2rem 0;
+    padding: 1.5rem 0;
 }
 
 .trade-card {
-    background: rgba(13, 15, 28, 0.7);
-    border: 1px solid var(--border-default);
+    background: var(--bg-white);
+    border: 3px solid var(--border-thick);
     border-radius: 16px;
     width: 100%;
-    max-width: 420px;
-    padding: 2rem;
+    max-width: 380px;
+    padding: 1.75rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     position: relative;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-card);
 }
 
+/* Pokemon center style stripe at top of trade card */
 .trade-card::before {
     content: '';
     position: absolute;
-    inset: -1px;
-    border-radius: 17px;
-    padding: 1.5px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), var(--border-glow-cyan), rgba(255, 255, 255, 0.05));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: var(--poke-red);
+    border-radius: 13px 13px 0 0;
 }
 
 .trade-timer-badge {
-    background: rgba(10, 11, 20, 0.85);
-    border: 1px solid var(--border-default);
-    border-radius: 30px;
-    padding: 0.35rem 1rem;
+    background: var(--bg-panel-inner);
+    border: 2px solid var(--border-light);
+    border-radius: 20px;
+    padding: 0.3rem 0.9rem;
     font-family: var(--font-display);
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     font-weight: 700;
     color: var(--text-muted);
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
 }
 
 .trade-timer-badge span.timer-value {
-    color: var(--color-cyan);
+    color: var(--poke-red);
 }
 
 .trade-graphic-box {
-    width: 130px;
-    height: 130px;
-    background: radial-gradient(circle, rgba(0, 245, 255, 0.05) 0%, transparent 70%);
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, #f5f5f5, var(--bg-panel-inner));
+    border-radius: 50%;
+    border: 3px solid var(--border-light);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1.25rem;
-    position: relative;
+    margin-bottom: 1rem;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.08);
 }
 
 .trade-graphic-box img {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 85%;
+    max-height: 85%;
     object-fit: contain;
-    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.4));
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
 }
 
 .trade-pokemon-name {
     font-family: var(--font-display);
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     font-weight: 900;
-    letter-spacing: 1px;
-    margin-bottom: 0.25rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.2rem;
+    color: var(--text-dark);
 }
 
 .trade-rarity-badge {
     font-family: var(--font-ui);
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
-    padding: 0.2rem 0.6rem;
+    padding: 0.15rem 0.55rem;
     border-radius: 4px;
     color: #fff;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
     display: inline-block;
 }
 
@@ -717,89 +783,96 @@ body {
 .trade-rarity-badge.tier-basic { background: var(--rarity-basic); }
 
 .trade-pricing {
-    background: rgba(10, 11, 20, 0.5);
-    border: 1px solid var(--border-default);
+    background: var(--bg-panel-inner);
+    border: 2px solid var(--border-light);
     border-radius: 8px;
-    padding: 0.75rem 2rem;
-    margin-bottom: 1.5rem;
+    padding: 0.6rem 2rem;
+    margin-bottom: 1.25rem;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
 .trade-price-label {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-family: var(--font-display);
     color: var(--text-muted);
     letter-spacing: 1px;
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.1rem;
 }
 
 .trade-price-val {
     font-family: var(--font-display);
     font-size: 1.4rem;
     font-weight: 700;
-    color: var(--color-gold);
+    color: var(--poke-red);
 }
 
 .trade-buy-btn {
     width: 100%;
-    background: linear-gradient(135deg, var(--color-cyan), var(--color-purple));
-    color: var(--bg-dark);
+    background: var(--poke-red);
+    color: var(--text-white);
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: 0.95rem;
-    letter-spacing: 1.5px;
-    padding: 0.75rem 0;
-    border: none;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    padding: 0.7rem 0;
+    border: 2px solid var(--poke-red-dark);
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.1s ease;
+    box-shadow: var(--shadow-btn);
 }
 
 .trade-buy-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 245, 255, 0.4);
+    box-shadow: 0 6px 0 var(--poke-red-dark);
+}
+
+.trade-buy-btn:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--poke-red-dark);
 }
 
 .trade-buy-btn:disabled {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-default);
-    color: var(--text-muted);
+    background: #e0e0e0;
+    border-color: #bdbdbd;
+    color: #9e9e9e;
     cursor: not-allowed;
+    box-shadow: 0 2px 0 #bdbdbd;
 }
 
 .trade-completed {
     font-family: var(--font-display);
-    color: #4ade80;
+    color: var(--poke-green);
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.75rem;
-    background: rgba(74, 222, 128, 0.1);
-    border: 1px solid rgba(74, 222, 128, 0.3);
+    padding: 0.65rem;
+    background: #e8f5e9;
+    border: 2px solid #a5d6a7;
     border-radius: 8px;
     width: 100%;
+    font-size: 0.8rem;
 }
 
 /* ==========================================================================
-   Full Screen Inspection & Modal Overlay Screens
+   Overlays (Full-screen modal screens)
    ========================================================================== */
 .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(5, 6, 11, 0.85);
-    backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.65);
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.25s ease;
 }
 
 .overlay.active {
@@ -808,53 +881,57 @@ body {
 }
 
 .overlay-container {
-    background: rgba(13, 16, 28, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-white);
+    border: 4px solid var(--border-thick);
     width: 90%;
-    max-width: 720px;
+    max-width: 680px;
     border-radius: 16px;
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    box-shadow: 0 8px 0 var(--border-thick), 0 10px 30px rgba(0,0,0,0.4);
     position: relative;
 }
 
+/* Pokemon-style colored top stripe on overlays */
 .overlay-container::before {
     content: '';
     position: absolute;
-    inset: -1px;
-    border-radius: 17px;
-    padding: 1px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1), var(--border-glow-purple), rgba(255,255,255,0.1));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: var(--poke-red);
+    border-radius: 12px 12px 0 0;
 }
 
 .inspection-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--border-default);
-    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--bg-panel-inner);
+    padding-bottom: 0.65rem;
 }
 
 .inspection-header h2 {
     font-family: var(--font-display);
-    font-size: 1.1rem;
+    font-size: 1rem;
+    color: var(--text-dark);
 }
 
 .timer-container {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    background: var(--bg-panel-inner);
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    padding: 0.25rem 0.75rem;
 }
 
 .timer-label {
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     font-family: var(--font-display);
     color: var(--text-muted);
 }
@@ -862,64 +939,108 @@ body {
 .timer-countdown {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 1.2rem;
-    color: var(--color-pink);
-    text-shadow: 0 0 8px rgba(255, 0, 127, 0.4);
-    min-width: 75px;
+    font-size: 1.1rem;
+    color: var(--poke-red);
+    min-width: 68px;
     text-align: right;
 }
 
+.inspection-footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
 /* ==========================================================================
-   Field View (Where Pokeball is Hidden)
+   Field View - Where the Pokeball is Hidden
+   The field is a dense meadow. The pokeball is tiny and concealed under grass.
    ========================================================================== */
 .field-view {
     width: 100%;
     aspect-ratio: 16/9;
     border-radius: 8px;
-    background: #14321a; /* Forest green base */
+    background: #3a7d44;
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6);
+    border: 3px solid #2e5c35;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+    cursor: crosshair;
 }
 
-/* Background textures */
 .field-background {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, #102915 0%, #173f20 100%);
+    background:
+        radial-gradient(ellipse at 20% 30%, #4a9955 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 70%, #337a3e 0%, transparent 50%),
+        linear-gradient(170deg, #3e8c48 0%, #2e6e38 60%, #265c30 100%);
 }
 
-/* Random Grass/Bush CSS shapes */
-.shrub-block {
+/* Grass blade - base element */
+.grass-blade {
     position: absolute;
+    bottom: 0;
+    width: 6px;
+    transform-origin: bottom center;
+    animation: sway 2s ease-in-out infinite alternate;
+    z-index: 4;
+    pointer-events: none;
+}
+
+@keyframes sway {
+    from { transform: rotate(-4deg) scaleY(1); }
+    to   { transform: rotate(4deg) scaleY(0.97); }
+}
+
+/* Tall grass patch that completely covers areas */
+.tall-grass-patch {
+    position: absolute;
+    pointer-events: none;
+    z-index: 8;
+}
+
+.tall-grass-blade {
+    position: absolute;
+    bottom: 0;
+    width: 5px;
+    border-radius: 3px 3px 0 0;
+    transform-origin: bottom center;
+}
+
+/* Flowers and small rocks scattered around */
+.field-flower {
+    position: absolute;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    background: #0f4d1e;
-    filter: blur(1px);
+    z-index: 3;
+    pointer-events: none;
 }
 
-.rock-block {
+.field-rock {
     position: absolute;
-    background: #4a5568;
-    border-radius: 6px;
+    background: #9e9e9e;
+    border-radius: 40% 60% 50% 40%;
+    z-index: 3;
+    pointer-events: none;
+    box-shadow: inset 0 -2px 3px rgba(0,0,0,0.2);
 }
 
-/* The Hidden Pokeball style */
+/* The hidden pokeball - tiny, mostly obscured by tall grass on top */
 .hidden-pokeball {
     position: absolute;
-    width: 32px;
-    height: 32px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    background: #e63946;
+    background: #d32f2f;
     overflow: hidden;
-    border: 2px solid #000;
-    transition: transform 0.15s ease, opacity 0.3s ease;
-    z-index: 10;
+    border: 2px solid #1a1a1a;
+    z-index: 6;
+    opacity: 0.85;
+    transition: opacity 0.15s ease;
 }
 
-/* Make it look like a pokeball */
 .hidden-pokeball::before {
     content: '';
     position: absolute;
@@ -927,8 +1048,8 @@ body {
     left: 0;
     right: 0;
     height: 50%;
-    background: #f1faee;
-    border-top: 2px solid #000;
+    background: #f5f5f5;
+    border-top: 2px solid #1a1a1a;
 }
 
 .hidden-pokeball::after {
@@ -937,48 +1058,30 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 10px;
-    height: 10px;
+    width: 5px;
+    height: 5px;
     background: #fff;
-    border: 2px solid #000;
+    border: 1px solid #1a1a1a;
     border-radius: 50%;
 }
 
 .hidden-pokeball:hover {
-    transform: scale(1.15);
-    filter: brightness(1.2) drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
-}
-
-/* Animate Pokeball vibration occasionally */
-.hidden-pokeball.shake-pulse {
-    animation: ballPulse 2s infinite alternate;
-}
-
-@keyframes ballPulse {
-    0% { transform: scale(1); }
-    80% { transform: scale(1) rotate(0deg); }
-    90% { transform: scale(1.08) rotate(-8deg); }
-    95% { transform: scale(1.08) rotate(8deg); }
-    100% { transform: scale(1) rotate(0deg); }
-}
-
-.inspection-footer {
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.8rem;
+    opacity: 1;
+    filter: brightness(1.15);
+    z-index: 15;
 }
 
 /* ==========================================================================
    Braivery Attack Screen
    ========================================================================== */
 .braivery-card {
-    background: rgba(20, 5, 5, 0.95);
-    border: 2px solid var(--color-red);
-    box-shadow: 0 0 30px rgba(255, 51, 51, 0.3);
+    background: var(--bg-white);
+    border: 4px solid var(--poke-red);
+    box-shadow: 0 6px 0 var(--poke-red-dark), 0 10px 25px rgba(0,0,0,0.3);
     width: 90%;
-    max-width: 440px;
+    max-width: 420px;
     border-radius: 16px;
-    padding: 2.5rem 2rem;
+    padding: 2rem 1.75rem;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -987,98 +1090,112 @@ body {
     z-index: 1100;
 }
 
+.braivery-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: var(--poke-red);
+    border-radius: 12px 12px 0 0;
+}
+
 .braivery-icon-box {
-    width: 70px;
-    height: 70px;
+    width: 65px;
+    height: 65px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1.5rem;
+    background: #ffebee;
+    border-radius: 50%;
+    border: 3px solid #ef9a9a;
+    margin-bottom: 1.25rem;
 }
 
 .braivery-icon-box i {
-    font-size: 3.5rem;
-    color: var(--color-red);
-    text-shadow: 0 0 15px rgba(255, 51, 51, 0.8);
+    font-size: 2.5rem;
+    color: var(--poke-red);
 }
 
 .pulse-danger {
-    animation: dangerPulse 1.2s infinite alternate;
+    animation: dangerPulse 1s infinite alternate;
 }
 
 @keyframes dangerPulse {
-    from { transform: scale(1); opacity: 0.8; }
-    to { transform: scale(1.15); opacity: 1; }
+    from { transform: scale(1); }
+    to { transform: scale(1.12); }
 }
 
 .braivery-card h2 {
     font-family: var(--font-display);
-    font-size: 1.5rem;
-    color: #fca5a5;
-    letter-spacing: 2px;
-    margin-bottom: 0.75rem;
+    font-size: 1.4rem;
+    color: var(--poke-red);
+    letter-spacing: 1px;
+    margin-bottom: 0.65rem;
 }
 
 .braivery-message {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-muted);
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
     line-height: 1.5;
 }
 
 .lock-duration-alert {
-    background: rgba(255, 51, 51, 0.1);
-    border: 1px solid rgba(255, 51, 51, 0.3);
-    padding: 0.6rem 1.5rem;
+    background: #ffebee;
+    border: 2px solid #ef9a9a;
+    padding: 0.5rem 1.25rem;
     border-radius: 8px;
-    color: #fecaca;
+    color: var(--poke-red-dark);
     font-family: var(--font-display);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.75rem;
 }
 
-.lock-duration-alert i {
-    color: var(--color-red);
-}
+.lock-duration-alert i { color: var(--poke-red); }
 
 .glow-btn {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 1px;
-    padding: 0.65rem 1.75rem;
-    border: none;
-    border-radius: 6px;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.1s ease;
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, var(--color-red), #990000);
-    color: #fff;
-    box-shadow: 0 4px 10px rgba(255, 51, 51, 0.2);
+    background: var(--poke-red);
+    color: white;
+    border: 2px solid var(--poke-red-dark);
+    box-shadow: 0 4px 0 var(--poke-red-dark);
 }
 
 .btn-danger:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 15px rgba(255, 51, 51, 0.45);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--poke-red-dark);
 }
 
-/* Shake effect classes */
-.screen-shake {
-    animation: screenShake 0.4s ease-in-out infinite;
+.btn-danger:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--poke-red-dark);
 }
+
+/* Screen shake */
+.screen-shake { animation: screenShake 0.4s ease-in-out infinite; }
 
 @keyframes screenShake {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); }
-    20% { transform: translate(-8px, 5px) rotate(-1deg); }
-    40% { transform: translate(6px, -6px) rotate(1.5deg); }
-    60% { transform: translate(-5px, -3px) rotate(-1deg); }
-    80% { transform: translate(7px, 6px) rotate(1deg); }
+    0%, 100% { transform: translate(0,0) rotate(0deg); }
+    20% { transform: translate(-7px, 4px) rotate(-1deg); }
+    40% { transform: translate(5px, -5px) rotate(1.5deg); }
+    60% { transform: translate(-4px, -3px) rotate(-1deg); }
+    80% { transform: translate(6px, 5px) rotate(1deg); }
 }
 
 /* ==========================================================================
@@ -1086,7 +1203,7 @@ body {
    ========================================================================== */
 .opening-container {
     width: 90%;
-    max-width: 460px;
+    max-width: 440px;
     text-align: center;
     position: relative;
 }
@@ -1095,6 +1212,21 @@ body {
     display: none;
     flex-direction: column;
     align-items: center;
+    background: var(--bg-white);
+    border: 4px solid var(--border-thick);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 6px 0 var(--border-thick), 0 10px 25px rgba(0,0,0,0.35);
+    position: relative;
+}
+
+.pokeball-stage::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 8px;
+    background: var(--poke-red);
+    border-radius: 12px 12px 0 0;
 }
 
 .pokeball-stage.active {
@@ -1103,35 +1235,35 @@ body {
 
 .pokeball-stage h2 {
     font-family: var(--font-display);
-    font-size: 1.3rem;
-    letter-spacing: 2px;
-    margin-bottom: 0.5rem;
+    font-size: 1.15rem;
+    letter-spacing: 1px;
+    color: var(--text-dark);
+    margin-bottom: 0.4rem;
 }
 
 .pokeball-stage p {
     color: var(--text-muted);
-    font-size: 0.85rem;
-    margin-bottom: 2.5rem;
+    font-size: 0.8rem;
+    margin-bottom: 2rem;
 }
 
 .pokeball-wrapper {
     position: relative;
-    width: 180px;
-    height: 180px;
+    width: 160px;
+    height: 160px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Halo light behind pokeball */
 .pokeball-glowing-ring {
     position: absolute;
-    width: 210px;
-    height: 210px;
+    width: 185px;
+    height: 185px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(0, 245, 255, 0.2) 0%, transparent 70%);
-    animation: spinRing 4s linear infinite;
-    z-index: 1;
+    border: 3px dashed #ef9a9a;
+    animation: spinRing 5s linear infinite;
+    opacity: 0.5;
 }
 
 @keyframes spinRing {
@@ -1140,11 +1272,11 @@ body {
 
 .pokeball-graphic {
     position: relative;
-    width: 130px;
-    height: 130px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
-    border: 6px solid #000;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 -10px 15px rgba(0,0,0,0.2);
+    border: 5px solid #1a1a1a;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.35);
     overflow: hidden;
     cursor: pointer;
     z-index: 2;
@@ -1154,74 +1286,55 @@ body {
 
 .pokeball-top {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     width: 100%;
     height: 50%;
-    background: linear-gradient(180deg, #ff3b30 0%, #d62828 100%);
-    border-bottom: 3px solid #000;
+    background: linear-gradient(170deg, #e53935 0%, #c62828 100%);
+    border-bottom: 4px solid #1a1a1a;
 }
 
 .pokeball-band {
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     width: 100%;
-    height: 12px;
-    background: #000;
+    height: 10px;
+    background: #1a1a1a;
     z-index: 3;
 }
 
 .pokeball-button {
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     background: #fff;
-    border: 5px solid #000;
+    border: 4px solid #1a1a1a;
     border-radius: 50%;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
     z-index: 4;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.pokeball-button::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 10px;
-    height: 10px;
-    background: #fff;
-    border-radius: 50%;
-    transition: background-color 0.2s ease;
-}
-
-.pokeball-graphic:hover {
-    transform: scale(1.05);
-}
+.pokeball-graphic:hover { transform: scale(1.06); }
 
 .pokeball-graphic.shake {
-    animation: ballShake 0.6s ease-in-out infinite;
+    animation: ballShake 0.55s ease-in-out infinite;
 }
 
-.pokeball-graphic.shake .pokeball-button::after {
-    background: var(--color-pink);
-    box-shadow: 0 0 8px var(--color-pink);
+.pokeball-graphic.shake .pokeball-button {
+    background: #ffcc02;
 }
 
 @keyframes ballShake {
     0%, 100% { transform: rotate(0deg); }
-    12.5% { transform: rotate(-15deg) translate(-2px, -1px); }
-    37.5% { transform: rotate(15deg) translate(2px, 1px); }
-    62.5% { transform: rotate(-5deg) translate(-1px, 0); }
-    87.5% { transform: rotate(5deg) translate(1px, 0); }
+    15% { transform: rotate(-18deg) translate(-2px,-1px); }
+    35% { transform: rotate(18deg) translate(2px, 1px); }
+    55% { transform: rotate(-7deg); }
+    75% { transform: rotate(7deg); }
 }
 
-/* Stage 2: Reveal Styling */
+/* Stage 2: Reveal */
 .reveal-stage {
     display: none;
     flex-direction: column;
@@ -1230,181 +1343,162 @@ body {
 
 .reveal-stage.active {
     display: flex;
-    animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-@keyframes scaleIn {
-    from { transform: scale(0.85); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+@keyframes popIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
 }
 
 .reveal-rarity-badge {
     font-family: var(--font-display);
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 900;
-    letter-spacing: 3px;
-    margin-bottom: 1.5rem;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+    letter-spacing: 2px;
+    margin-bottom: 1.25rem;
+    color: var(--text-dark);
 }
 
 .pokemon-reveal-card {
-    background: rgba(15, 18, 32, 0.95);
-    border: 1px solid var(--border-default);
-    border-radius: 20px;
-    padding: 2rem;
-    width: 280px;
+    background: var(--bg-white);
+    border: 4px solid var(--border-thick);
+    border-radius: 18px;
+    padding: 1.75rem;
+    width: 270px;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
-    margin-bottom: 2rem;
+    box-shadow: 0 6px 0 var(--border-thick), 0 10px 24px rgba(0,0,0,0.3);
+    margin-bottom: 1.5rem;
     overflow: hidden;
 }
 
 .pokemon-reveal-card::before {
     content: '';
     position: absolute;
-    inset: 0;
-    border-radius: 20px;
-    padding: 2px;
-    background: linear-gradient(135deg, transparent, rgba(255,255,255,0.05), transparent);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
+    top: 0; left: 0; right: 0;
+    height: 8px;
+    border-radius: 14px 14px 0 0;
 }
 
-/* Glowing backgrounds per rarity on reveal */
-.pokemon-reveal-card.reveal-legendary { border-color: rgba(255, 183, 3, 0.4); }
 .pokemon-reveal-card.reveal-legendary::before { background: var(--rarity-legendary); }
-.pokemon-reveal-card.reveal-no-evolve { border-color: rgba(0, 245, 255, 0.4); }
 .pokemon-reveal-card.reveal-no-evolve::before { background: var(--rarity-no-evolve); }
-.pokemon-reveal-card.reveal-evolution3 { border-color: rgba(56, 239, 125, 0.4); }
 .pokemon-reveal-card.reveal-evolution3::before { background: var(--rarity-evolution3); }
-.pokemon-reveal-card.reveal-evolution2 { border-color: rgba(247, 127, 0, 0.4); }
 .pokemon-reveal-card.reveal-evolution2::before { background: var(--rarity-evolution2); }
-.pokemon-reveal-card.reveal-basic { border-color: rgba(141, 153, 174, 0.4); }
 .pokemon-reveal-card.reveal-basic::before { background: var(--rarity-basic); }
 
+.pokemon-reveal-card.reveal-legendary { border-color: #ce93d8; }
+.pokemon-reveal-card.reveal-no-evolve { border-color: #81d4fa; }
+.pokemon-reveal-card.reveal-evolution3 { border-color: #80cbc4; }
+.pokemon-reveal-card.reveal-evolution2 { border-color: #ffcc80; }
+.pokemon-reveal-card.reveal-basic { border-color: #cfd8dc; }
+
 .reveal-image-wrap {
-    width: 150px;
-    height: 150px;
+    width: 130px;
+    height: 130px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
+    background: radial-gradient(circle, #f5f5f5 0%, var(--bg-panel-inner) 100%);
+    border-radius: 50%;
+    border: 3px solid var(--border-light);
     position: relative;
     z-index: 1;
 }
 
 .reveal-image-wrap img {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 90%;
+    max-height: 90%;
     object-fit: contain;
-    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));
-    animation: floatArtwork 3s ease-in-out infinite alternate;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));
+    animation: floatArtwork 2.5s ease-in-out infinite alternate;
 }
 
 @keyframes floatArtwork {
     from { transform: translateY(0); }
-    to { transform: translateY(-8px); }
+    to   { transform: translateY(-6px); }
 }
 
 .reveal-name {
     font-family: var(--font-display);
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: 900;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     margin-bottom: 0.5rem;
     text-align: center;
+    color: var(--text-dark);
     z-index: 1;
 }
 
 .reveal-worth-badge {
-    background: rgba(10, 11, 20, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg-panel-inner);
+    border: 2px solid var(--border-light);
     border-radius: 6px;
-    padding: 0.35rem 1rem;
+    padding: 0.3rem 0.85rem;
     font-family: var(--font-display);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 700;
-    color: var(--color-gold);
+    color: var(--poke-red);
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.35rem;
     z-index: 1;
 }
 
-.reveal-worth-badge i {
-    font-size: 0.75rem;
-}
-
 .reveal-stage .glow-btn {
-    background: linear-gradient(135deg, var(--color-cyan), var(--color-purple));
-    color: var(--bg-dark);
+    background: var(--poke-red);
+    color: white;
+    border: 2px solid var(--poke-red-dark);
+    box-shadow: 0 4px 0 var(--poke-red-dark);
     font-weight: 900;
-    box-shadow: 0 4px 15px rgba(0, 245, 255, 0.2);
+    font-size: 0.85rem;
 }
 
 .reveal-stage .glow-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0, 245, 255, 0.5);
+    box-shadow: 0 6px 0 var(--poke-red-dark);
 }
 
-/* Burst particle light styling */
 .burst-light {
     position: absolute;
-    width: 250px;
-    height: 250px;
+    width: 220px;
+    height: 220px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
-    z-index: 0;
-    top: 30%;
+    background: radial-gradient(circle, rgba(245,197,24,0.3) 0%, transparent 65%);
+    top: 20%;
     pointer-events: none;
-    animation: pulseGlow 2s infinite alternate;
+    animation: burstPulse 1.5s infinite alternate;
 }
 
-@keyframes pulseGlow {
-    from { transform: scale(1); opacity: 0.5; }
-    to { transform: scale(1.2); opacity: 0.8; }
+@keyframes burstPulse {
+    from { transform: scale(1); opacity: 0.6; }
+    to   { transform: scale(1.15); opacity: 1; }
 }
 
 /* ==========================================================================
-   Responsive Adaptations
+   Responsive
    ========================================================================== */
 @media (max-width: 900px) {
     .game-dashboard {
         grid-template-columns: 1fr;
-        gap: 0.75rem;
+        gap: 0.5rem;
         text-align: center;
     }
-    .dash-left {
-        justify-content: center;
-        display: flex;
-    }
-    .cheat-container {
-        justify-content: center;
-    }
+    .brand { justify-content: center; padding-left: 0; }
+    .game-dashboard::before { display: none; }
+    .cheat-container { justify-content: center; }
     .grid-container {
         grid-template-columns: repeat(6, 1fr);
         grid-template-rows: auto;
         overflow-y: auto;
     }
-    .tile {
-        aspect-ratio: 1/1;
-    }
 }
 
 @media (max-width: 600px) {
-    .grid-container {
-        grid-template-columns: repeat(4, 1fr);
-    }
-    .game-tabs {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .tab-btn {
-        justify-content: center;
-    }
+    .grid-container { grid-template-columns: repeat(4, 1fr); }
+    .game-tabs { flex-wrap: wrap; }
+    .tab-btn { padding: 0.4rem 0.75rem; font-size: 0.7rem; }
 }

@@ -483,52 +483,26 @@ function startTileInspection(tileIndex) {
     // Remove any previously placed pokeball and decor
     const oldBall = document.getElementById("targetPokeball");
     if (oldBall) oldBall.remove();
-    document.querySelectorAll(".shrub-block, .rock-block").forEach(el => el.remove());
+    document.querySelectorAll(".shrub-block, .rock-block, .grass-blade, .tall-grass-patch, .field-flower, .field-rock").forEach(el => el.remove());
 
     // Wait one frame so the overlay is visible and clientWidth/clientHeight are accurate
     requestAnimationFrame(() => {
         const fieldWidth = fieldView.clientWidth || 640;
         const fieldHeight = fieldView.clientHeight || 360;
 
-        // Add green decor bushes directly to fieldView for correct absolute positioning
-        for (let j = 0; j < 12; j++) {
-            const bush = document.createElement("div");
-            bush.className = "shrub-block";
-            const size = Math.random() * 40 + 35;
-            bush.style.width = `${size}px`;
-            bush.style.height = `${size}px`;
-            bush.style.left = `${Math.random() * (fieldWidth - size)}px`;
-            bush.style.top = `${Math.random() * (fieldHeight - size)}px`;
-            bush.style.background = `rgba(15, ${Math.floor(Math.random() * 50 + 60)}, 30, 0.9)`;
-            bush.style.zIndex = "2";
-            fieldView.appendChild(bush);
-        }
-
-        // Add grey rock blocks directly to fieldView
-        for (let j = 0; j < 6; j++) {
-            const rock = document.createElement("div");
-            rock.className = "rock-block";
-            const width = Math.random() * 30 + 20;
-            const height = Math.random() * 20 + 15;
-            rock.style.width = `${width}px`;
-            rock.style.height = `${height}px`;
-            rock.style.left = `${Math.random() * (fieldWidth - width)}px`;
-            rock.style.top = `${Math.random() * (fieldHeight - height)}px`;
-            rock.style.position = "absolute";
-            rock.style.zIndex = "3";
-            fieldView.appendChild(rock);
-        }
-
-        // Generate Hidden Pokeball at random position (on top of decor)
-        const ballSize = 28;
-        const posX = Math.random() * Math.max(10, fieldWidth - ballSize - 30) + 15;
-        const posY = Math.random() * Math.max(10, fieldHeight - ballSize - 30) + 15;
+        // Generate Hidden Pokeball at random position (tiny size: 18px)
+        const ballSize = 18;
+        const posX = Math.random() * Math.max(10, fieldWidth - ballSize - 40) + 20;
+        const posY = Math.random() * Math.max(10, fieldHeight - ballSize - 40) + 20;
 
         const pokeball = document.createElement("div");
         pokeball.className = "hidden-pokeball shake-pulse";
         pokeball.id = "targetPokeball";
         pokeball.style.left = `${posX}px`;
         pokeball.style.top = `${posY}px`;
+        pokeball.style.width = `${ballSize}px`;
+        pokeball.style.height = `${ballSize}px`;
+        pokeball.style.zIndex = "6";
 
         // Click handler for Pokeball capture
         pokeball.addEventListener("click", (e) => {
@@ -536,7 +510,99 @@ function startTileInspection(tileIndex) {
             successfullyFoundPokeball();
         });
 
+        // 1. Add background details: Scattered flowers (zIndex 3)
+        const flowerColors = ["#ffd54f", "#e91e63", "#f48fb1", "#ba68c8", "#ff8a65"];
+        for (let j = 0; j < 20; j++) {
+            const flower = document.createElement("div");
+            flower.className = "field-flower";
+            flower.style.left = `${Math.random() * (fieldWidth - 10)}px`;
+            flower.style.top = `${Math.random() * (fieldHeight - 10)}px`;
+            flower.style.background = flowerColors[Math.floor(Math.random() * flowerColors.length)];
+            fieldView.appendChild(flower);
+        }
+
+        // 2. Add background details: Scattered small grey rocks (zIndex 3)
+        for (let j = 0; j < 8; j++) {
+            const rock = document.createElement("div");
+            rock.className = "field-rock";
+            const rSize = Math.random() * 12 + 8;
+            rock.style.width = `${rSize}px`;
+            rock.style.height = `${rSize * 0.8}px`;
+            rock.style.left = `${Math.random() * (fieldWidth - rSize)}px`;
+            rock.style.top = `${Math.random() * (fieldHeight - rSize)}px`;
+            fieldView.appendChild(rock);
+        }
+
+        // 3. Add base layer grass: 120 small swaying grass blades (zIndex 4)
+        for (let j = 0; j < 120; j++) {
+            const blade = document.createElement("div");
+            blade.className = "grass-blade";
+            const bladeHeight = Math.random() * 14 + 10;
+            const bladeWidth = Math.random() * 3 + 2;
+            blade.style.height = `${bladeHeight}px`;
+            blade.style.width = `${bladeWidth}px`;
+            blade.style.left = `${Math.random() * (fieldWidth - 5)}px`;
+            blade.style.top = `${Math.random() * (fieldHeight - bladeHeight)}px`;
+            
+            // Random green shades
+            const g = Math.floor(Math.random() * 40 + 130);
+            blade.style.background = `linear-gradient(to top, #2e5c30, rgb(46, ${g}, 48))`;
+            blade.style.borderRadius = `${bladeWidth}px ${bladeWidth}px 0 0`;
+            blade.style.animationDelay = `${Math.random() * 2}s`;
+            fieldView.appendChild(blade);
+        }
+
+        // Add the Pokeball to the field view
         fieldView.appendChild(pokeball);
+
+        // 4. Add tall grass patches (zIndex 8) to hide the Pokeball
+        // We will place 12 tall grass patches, and force one to sit exactly over the Pokeball
+        const patchCount = 12;
+        for (let p = 0; p < patchCount; p++) {
+            const patch = document.createElement("div");
+            patch.className = "tall-grass-patch";
+
+            // The first patch is placed exactly over the Pokeball coordinates to cover it
+            let patchX, patchY;
+            if (p === 0) {
+                patchX = posX - 10;
+                patchY = posY - 8;
+            } else {
+                patchX = Math.random() * (fieldWidth - 50);
+                patchY = Math.random() * (fieldHeight - 40);
+            }
+
+            patch.style.left = `${patchX}px`;
+            patch.style.top = `${patchY}px`;
+            patch.style.width = "45px";
+            patch.style.height = "35px";
+
+            // Generate 12-18 overlapping blades inside this patch
+            const bladesInPatch = Math.floor(Math.random() * 7) + 12;
+            for (let b = 0; b < bladesInPatch; b++) {
+                const tallBlade = document.createElement("div");
+                tallBlade.className = "tall-grass-blade";
+                const bHeight = Math.random() * 12 + 22; // Tall grass height
+                const bWidth = Math.random() * 2 + 3;
+                tallBlade.style.height = `${bHeight}px`;
+                tallBlade.style.width = `${bWidth}px`;
+                tallBlade.style.left = `${Math.random() * 35}px`;
+                tallBlade.style.bottom = `${Math.random() * 6}px`;
+
+                // Lush forest green gradient
+                const g = Math.floor(Math.random() * 30 + 100);
+                tallBlade.style.background = `linear-gradient(to top, #1e3f20, rgb(30, ${g}, 32))`;
+                tallBlade.style.borderRadius = `${bWidth}px ${bWidth}px 0 0`;
+                tallBlade.style.animation = `sway ${Math.random() * 1.5 + 1.5}s ease-in-out infinite alternate`;
+                tallBlade.style.animationDelay = `${Math.random() * 2}s`;
+                tallBlade.style.transformOrigin = "bottom center";
+                tallBlade.style.pointerEvents = "none";
+
+                patch.appendChild(tallBlade);
+            }
+
+            fieldView.appendChild(patch);
+        }
     });
 
     // Start 30s countdown timer
