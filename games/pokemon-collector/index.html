@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Collector</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-wrapper">
+        <!-- Game Header / Stats Dashboard -->
+        <header class="game-dashboard">
+            <div class="dash-left">
+                <div class="brand">
+                    <i class="fa-solid fa-circle-nodes logo-glow"></i>
+                    <h1>POKEMON <span class="cyan-text">COLLECTOR</span></h1>
+                </div>
+            </div>
+            
+            <div class="dash-center">
+                <div class="stats-panel">
+                    <div class="stat-box">
+                        <span class="stat-label">POKECOINS</span>
+                        <span id="coinCount" class="stat-value text-cyan">0 p</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">CAUGHT</span>
+                        <span id="caughtCount" class="stat-value text-purple">0 / 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-right">
+                <!-- Cheat Code Section -->
+                <div class="cheat-container">
+                    <input type="text" id="cheatInput" placeholder="ENTER CODE" maxlength="10">
+                    <button id="cheatBtn" class="action-btn">APPLY</button>
+                </div>
+                <div id="cheatFeedback" class="cheat-feedback"></div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="game-tabs">
+            <button class="tab-btn active" data-tab="map">
+                <i class="fa-solid fa-map-location-dot"></i> EXPLORE MAP
+            </button>
+            <button class="tab-btn" data-tab="collection">
+                <i class="fa-solid fa-box-archive"></i> MY COLLECTION
+            </button>
+            <button class="tab-btn" data-tab="trade">
+                <i class="fa-solid fa-handshake"></i> TRADE CENTER
+            </button>
+        </nav>
+
+        <!-- Main Display Content Area -->
+        <main class="main-display">
+            <!-- Map Grid Tab -->
+            <section id="tab-map" class="tab-content active">
+                <div class="map-info-header">
+                    <h2>Select a Field to Search</h2>
+                    <p>Click any active tile to search for a hidden Pokeball. Be quick, every field has a guard!</p>
+                </div>
+                <div class="grid-container" id="mapGrid">
+                    <!-- 88 Grid Tiles dynamically populated by JS -->
+                </div>
+            </section>
+
+            <!-- My Collection Tab -->
+            <section id="tab-collection" class="tab-content">
+                <div class="collection-info-header">
+                    <h2>My Pokemon Collection</h2>
+                    <p>Browse your caught Pokemon. You can sell duplicate Pokemon (if count is more than 1) for PokeCoins.</p>
+                </div>
+                
+                <div class="collection-filter-bar">
+                    <button class="rarity-filter active" data-rarity="all">All Tiers</button>
+                    <button class="rarity-filter" data-rarity="legendary">Legendary / Mythical / UB</button>
+                    <button class="rarity-filter" data-rarity="no-evolve">No Evolution</button>
+                    <button class="rarity-filter" data-rarity="evolution3">Evo 3</button>
+                    <button class="rarity-filter" data-rarity="evolution2">Evo 2</button>
+                    <button class="rarity-filter" data-rarity="basic">Basic</button>
+                </div>
+
+                <div class="collection-grid" id="collectionGrid">
+                    <!-- Caught Pokemon cards dynamically populated -->
+                </div>
+            </section>
+
+            <!-- Trade Center Tab -->
+            <section id="tab-trade" class="tab-content">
+                <div class="trade-info-header">
+                    <h2>Active Trade Offer</h2>
+                    <p>A traveling merchant offers you a random Pokemon in exchange for PokeCoins. Offers refresh every 30 minutes.</p>
+                </div>
+
+                <div class="trade-card-container">
+                    <div class="trade-card" id="tradeCard">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- FIELD INSPECTION OVERLAY -->
+    <div id="inspectionOverlay" class="overlay">
+        <div class="overlay-container">
+            <div class="inspection-header">
+                <h2>Searching Field <span id="activeTileNum">00</span></h2>
+                <div class="timer-container">
+                    <span class="timer-label">SEC REMAINING:</span>
+                    <span id="timerText" class="timer-countdown">30.00s</span>
+                </div>
+            </div>
+            
+            <!-- Visual searching field canvas-like box -->
+            <div class="field-view" id="fieldView">
+                <div class="field-background" id="fieldBackground"></div>
+                <!-- Pokeball is generated here dynamically -->
+            </div>
+
+            <div class="inspection-footer">
+                <p>Locate the hidden Pokeball and click on it before the Braivery guard attacks!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- BRAIVERY ATTACK OVERLAY -->
+    <div id="braiveryOverlay" class="overlay critical-overlay">
+        <div class="braivery-card">
+            <div class="braivery-icon-box">
+                <i class="fa-solid fa-triangle-exclamation pulse-danger"></i>
+            </div>
+            <h2>GUARD ATTACK!</h2>
+            <p class="braivery-message">A wild Braivery swooped down to protect the field! You were forced to retreat.</p>
+            <div class="lock-duration-alert">
+                <i class="fa-solid fa-lock"></i>
+                <span>FIELD LOCKED FOR 7 DAYS</span>
+            </div>
+            <button id="braiveryCloseBtn" class="glow-btn btn-danger">RETURN TO MAP</button>
+        </div>
+    </div>
+
+    <!-- POKEBALL OPENING OVERLAY -->
+    <div id="openingOverlay" class="overlay">
+        <div class="opening-container">
+            <!-- Stage 1: The Pokeball to click -->
+            <div id="pokeballStage" class="pokeball-stage active">
+                <h2>POKEBALL TELEPORTED!</h2>
+                <p>Click the Pokeball to release the captured Pokemon.</p>
+                
+                <div class="pokeball-wrapper">
+                    <div class="pokeball-glowing-ring"></div>
+                    <div class="pokeball-graphic" id="interactivePokeball">
+                        <div class="pokeball-top"></div>
+                        <div class="pokeball-band">
+                            <div class="pokeball-button"></div>
+                        </div>
+                        <div class="pokeball-bottom"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 2: The Pokemon reveal -->
+            <div id="revealStage" class="reveal-stage">
+                <div class="burst-light"></div>
+                <h2 id="revealRarity" class="reveal-rarity-badge">LEGENDARY</h2>
+                
+                <div class="pokemon-reveal-card" id="pokemonRevealCard">
+                    <!-- Populated dynamically with Pokemon artwork, title, stats -->
+                </div>
+                
+                <button id="revealCloseBtn" class="glow-btn">COLLECT POKEMON</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

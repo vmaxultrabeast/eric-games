@@ -89,6 +89,17 @@ const GAMES_REGISTRY = [
         controls: 'Hear words, then spell them! Touch/Click floating letter bubbles in order, or type on your keyboard. Earn stars and get stickers!',
         addedDate: '2026-06-27',
         updatedDate: '2026-06-27'
+    },
+    {
+        id: 'pokemon-collector',
+        title: 'Pokemon Collector',
+        category: 'arcade',
+        description: 'Explore a map of 88 fields to find hidden Pokeballs. Sell duplicate Pokemon for PokeCoins, purchase exclusive creatures in the 30-minute rotation trade shop, and type the ESID cheat code once per hour to complete your collection. But beware of the Braivery guard!',
+        folder: 'games/pokemon-collector',
+        cover: 'games/pokemon-collector/cover.png',
+        controls: 'Click on tiles to search. Click the hidden Pokeball before 30 seconds run out. Open Pokeballs to collect Pokemon. Manage your collection and trades.',
+        addedDate: '2026-07-02',
+        updatedDate: '2026-07-02'
     }
     // New games can be easily appended here in the future
 ];
