@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "packageId": "fun.board.magnetmaze",
+  "appId": "8d1b314c-bef4-41ba-8fa1-1ebe7aa02455",
+  "name": "Neon Magnet Maze",
+  "sdkVersion": "1.0.0-beta.6",
+  "entry": "index.html",
+  "model": "model.tflite",
+  "modelSha256": "32fb80482b974e09e142985cf0210c712726f1ad289a532b21d2edcd84fbc8a5"
+}

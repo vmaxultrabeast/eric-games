@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Neon Magnet Maze</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "@board.fun/web-sdk": "./js/libs/board-sdk.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Top HUD -->
+    <div id="hud">
+      <div class="hud-item level-info">
+        <span class="hud-label">LEVEL</span>
+        <span id="current-level-val" class="hud-value">1</span>
+      </div>
+      <div class="hud-item level-title">
+        <span id="level-name-val" class="hud-value share-tech">GRID ENTRANCE</span>
+      </div>
+      <div class="hud-item score-info">
+        <span class="hud-label">FRAGMENTS</span>
+        <span id="score-val" class="hud-value">0 / 3</span>
+      </div>
+    </div>
+
+    <!-- Simulator Mode Indicator -->
+    <div id="simulator-badge" class="badge">
+      <span class="pulse-dot"></span>
+      <span id="mode-text">SIMULATOR MODE</span>
+    </div>
+
+    <!-- Start Overlay Screen -->
+    <div id="start-overlay" class="overlay active">
+      <div class="panel glass">
+        <div class="neon-title share-tech">MAGNET MAZE</div>
+        <p class="subtitle">TACTILE NEON LABYRINTH</p>
+        
+        <div class="instructions">
+          <p class="instruction-title">HOW TO PLAY</p>
+          <div class="instruction-steps">
+            <div class="step">
+              <span class="step-icon">🧲</span>
+              <p>Place a <strong>physical piece</strong> (or finger) on the screen to generate a magnetic attractor field.</p>
+            </div>
+            <div class="step">
+              <span class="step-icon">⚪</span>
+              <p>Slide the piece to **magnetically pull** the glowing marble through the maze.</p>
+            </div>
+            <div class="step">
+              <span class="step-icon">💥</span>
+              <p>Avoid red **plasma barriers** and moving lasers. Collect energy fragments to open the exit wormhole.</p>
+            </div>
+            <div class="step simulator-note">
+              <span class="step-icon">💻</span>
+              <p><strong>Off-device:</strong> Click and drag anywhere on the canvas to simulate a physical magnet piece!</p>
+            </div>
+          </div>
+        </div>
+
+        <button id="start-btn" class="glow-btn">INITIALIZE GRID</button>
+      </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="fail-overlay" class="overlay">
+      <div class="panel glass red-border">
+        <div class="neon-title red share-tech">SYSTEM FAILURE</div>
+        <p class="subtitle">MARBLE VAPORIZED</p>
+        <button id="retry-btn" class="glow-btn red">REBOOT MARBLE</button>
+      </div>
+    </div>
+
+    <!-- Level Complete Transition Screen -->
+    <div id="complete-overlay" class="overlay">
+      <div class="panel glass green-border">
+        <div class="neon-title green share-tech">GRID ALIGNED</div>
+        <p class="subtitle">WORMHOLE STABILIZED</p>
+        <button id="next-btn" class="glow-btn green">NEXT MAZE</button>
+      </div>
+    </div>
+
+    <!-- Victory / Game Finished Screen -->
+    <div id="victory-overlay" class="overlay">
+      <div class="panel glass gold-border">
+        <div class="neon-title gold share-tech">SIMULATION COMPLETE</div>
+        <p class="subtitle">ALL MAZES CONQUERED</p>
+        <p class="stats-text share-tech">Grid fully synchronized. All energy cores secure.</p>
+        <button id="reset-btn" class="glow-btn gold">RESET GRID</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/game.js"></script>
+</body>
+</html>

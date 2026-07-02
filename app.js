@@ -80,17 +80,6 @@ const GAMES_REGISTRY = [
         updatedDate: '2026-06-27'
     },
     {
-        id: 'spelling-safari',
-        title: 'Spelling Safari',
-        category: 'arcade',
-        description: 'An interactive spelling adventure for 1st-4th graders! Hear words read aloud with native voice synthesis, see sentence clues, and spell by popping letter balloons or typing. Earn coins to unlock cute animal stickers for your collection!',
-        folder: 'games/spelling-safari',
-        cover: 'games/spelling-safari/cover.png',
-        controls: 'Hear words, then spell them! Touch/Click floating letter bubbles in order, or type on your keyboard. Earn stars and get stickers!',
-        addedDate: '2026-06-27',
-        updatedDate: '2026-06-27'
-    },
-    {
         id: 'pokemon-collector',
         title: 'Pokemon Collector',
         category: 'arcade',

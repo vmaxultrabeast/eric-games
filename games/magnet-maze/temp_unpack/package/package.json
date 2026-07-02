@@ -1,0 +1,16 @@
+{
+  "name": "@board.fun/web-pack",
+  "version": "1.0.0-beta.3",
+  "private": false,
+  "license": "SEE LICENSE IN LICENSE",
+  "description": "Package a built Board web app (Vite/etc. dist) into an installable .webapp bundle for Board Connect.",
+  "bin": {
+    "web-pack": "pack.mjs"
+  },
+  "files": [
+    "pack.mjs",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ]
+}
