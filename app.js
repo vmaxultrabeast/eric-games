@@ -89,6 +89,18 @@ const GAMES_REGISTRY = [
         controls: 'Click on tiles to search. Click the hidden Pokeball before 30 seconds run out. Open Pokeballs to collect Pokemon. Manage your collection and trades.',
         addedDate: '2026-07-02',
         updatedDate: '2026-07-02'
+    },
+    {
+        id: 'spelling_app',
+        title: 'Spelling Bee',
+        category: 'puzzle',
+        description: 'An interactive German-English Spelling Bee. Choose the correct spelling for words presented with their meanings and sentences.',
+        folder: 'games/spelling_app',
+        cover: 'games/spelling_app/cover.png',
+        controls: 'Click on the correctly spelled word option from the choices given.',
+        addedDate: '2026-07-04',
+        updatedDate: '2026-07-04',
+        hidden: true
     }
     // New games can be easily appended here in the future
 ];
@@ -128,6 +140,9 @@ function renderGames() {
 
     // Filter games
     const filteredGames = GAMES_REGISTRY.filter(game => {
+        // Skip hidden games from standard library list
+        if (game.hidden) return false;
+
         const matchesCategory = currentFilter === 'all' || game.category === currentFilter;
         const matchesSearch = game.title.toLowerCase().includes(currentSearchQuery) ||
             game.description.toLowerCase().includes(currentSearchQuery) ||
@@ -504,6 +519,23 @@ function initConsoleGraphic() {
 document.addEventListener('DOMContentLoaded', () => {
     renderGames();
     initConsoleGraphic();
+
+    // Wire secret easter egg triggers to launch the hidden Spelling Bee app
+    const secretTriggers = [
+        document.querySelector('.logo-icon'),
+        document.querySelector('.status-dot'),
+        document.getElementById('consoleGlitchText'),
+        document.querySelector('footer .pulse')
+    ];
+    
+    secretTriggers.forEach(el => {
+        if (el) {
+            el.addEventListener('click', (e) => {
+                e.preventDefault();
+                launchGame('spelling_app');
+            });
+        }
+    });
 
     // Smooth scrolling updates for nav links
     const sections = document.querySelectorAll('section');

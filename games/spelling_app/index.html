@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐝 Spelling Bee</title>
+<style>
+  :root {
+    --bg: #f0f4ff;
+    --card: #ffffff;
+    --primary: #4361ee;
+    --success: #06d6a0;
+    --danger: #ef476f;
+    --warning: #ffd166;
+    --text: #2b2d42;
+    --text-light: #8d99ae;
+    --shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+  }
+  header {
+    background: linear-gradient(135deg, var(--primary), #7209b7);
+    color: white; width: 100%; padding: 20px; text-align: center;
+    box-shadow: var(--shadow);
+  }
+  header h1 { font-size: 1.8rem; margin-bottom: 4px; }
+  header p { opacity: 0.85; font-size: 0.95rem; }
+  .container { max-width: 640px; width: 100%; padding: 20px; flex: 1; }
+
+  /* Progress bar */
+  .progress-container {
+    background: var(--card); border-radius: 16px; padding: 16px 20px;
+    margin-bottom: 16px; box-shadow: var(--shadow);
+  }
+  .progress-stats {
+    display: flex; justify-content: space-between;
+    font-size: 0.85rem; color: var(--text-light); margin-bottom: 8px;
+  }
+  .progress-bar {
+    width: 100%; height: 10px; background: #e9ecef;
+    border-radius: 5px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--primary), #7209b7);
+    border-radius: 5px; transition: width 0.5s ease;
+  }
+  .score-display { display: flex; gap: 16px; justify-content: center; margin-top: 10px; }
+  .score-item { display: flex; align-items: center; gap: 4px; font-size: 0.9rem; font-weight: 600; }
+  .score-item.correct { color: var(--success); }
+  .score-item.wrong { color: var(--danger); }
+  .score-item.streak { color: var(--warning); }
+
+  /* Word card */
+  .word-card {
+    background: var(--card); border-radius: 16px; padding: 28px 24px;
+    box-shadow: var(--shadow); margin-bottom: 16px; animation: slideIn 0.4s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .word-info { text-align: center; margin-bottom: 20px; }
+  .german-word { font-size: 1.4rem; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+  .german-label {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-light); margin-bottom: 2px;
+  }
+  .example-sentence {
+    font-size: 0.95rem; color: var(--text-light); font-style: italic;
+    margin-top: 10px; padding: 10px 16px; background: #f8f9fa;
+    border-radius: 10px; line-height: 1.5;
+  }
+  .example-sentence .blank {
+    display: inline-block; min-width: 60px;
+    border-bottom: 2px dashed var(--primary); color: transparent; margin: 0 2px;
+  }
+  .question-label {
+    font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;
+    text-align: center; color: var(--text);
+  }
+
+  /* Options */
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .option-btn {
+    padding: 14px 16px; border: 2px solid #e9ecef; border-radius: 12px;
+    background: white; font-size: 1.1rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s ease; text-align: center; letter-spacing: 0.5px;
+  }
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--primary); background: #f0f4ff; transform: scale(1.02);
+  }
+  .option-btn:active:not(:disabled) { transform: scale(0.98); }
+  .option-btn.correct { border-color: var(--success); background: #d4f5e9; color: #065f46; }
+  .option-btn.wrong { border-color: var(--danger); background: #fde8e8; color: #9b1c31; }
+  .option-btn:disabled { cursor: default; opacity: 0.7; }
+
+  /* Typing mode */
+  .typing-area { text-align: center; }
+  .typing-input {
+    width: 100%; max-width: 320px; padding: 14px 20px; font-size: 1.3rem;
+    font-weight: 600; border: 3px solid #e9ecef; border-radius: 14px;
+    text-align: center; outline: none; transition: border-color 0.2s;
+    letter-spacing: 1px;
+  }
+  .typing-input:focus { border-color: var(--primary); }
+  .typing-input.correct-input { border-color: var(--success); background: #d4f5e9; }
+  .typing-input.wrong-input { border-color: var(--danger); background: #fde8e8; }
+  .submit-btn {
+    margin-top: 12px; padding: 12px 32px; border: none; border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), #7209b7);
+    color: white; font-size: 1rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .submit-btn:hover { transform: translateY(-1px); }
+  .submit-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+  .hint-text {
+    margin-top: 10px; font-size: 0.85rem; color: var(--text-light);
+  }
+  .hint-text .hint-letters {
+    font-family: monospace; font-size: 1.1rem; letter-spacing: 4px;
+    color: var(--primary); font-weight: 700;
+  }
+
+  /* Feedback */
+  .feedback {
+    text-align: center; padding: 16px; border-radius: 12px;
+    margin-top: 16px; font-weight: 600; font-size: 1.05rem;
+    animation: fadeIn 0.3s ease; display: none;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .feedback.show { display: block; }
+  .feedback.correct-feedback { background: #d4f5e9; color: #065f46; }
+  .feedback.wrong-feedback { background: #fde8e8; color: #9b1c31; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 14px 28px; border: none; border-radius: 12px;
+    font-size: 1rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s ease; width: 100%;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn-primary { background: linear-gradient(135deg, var(--primary), #7209b7); color: white; }
+  .btn-secondary { background: #e9ecef; color: var(--text); }
+  .next-btn { margin-top: 16px; display: none; }
+  .next-btn.show { display: flex; }
+
+  /* Start / End screens */
+  .screen {
+    background: var(--card); border-radius: 16px; padding: 32px 24px;
+    box-shadow: var(--shadow); text-align: center;
+  }
+  .screen h2 { font-size: 1.5rem; margin-bottom: 8px; }
+  .screen p { color: var(--text-light); margin-bottom: 20px; line-height: 1.6; }
+  .emoji-big { font-size: 4rem; margin-bottom: 16px; }
+  .results-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 20px 0; }
+  .result-box { padding: 16px; border-radius: 12px; background: #f8f9fa; }
+  .result-box .number { font-size: 2rem; font-weight: 700; }
+  .result-box .label { font-size: 0.75rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; }
+  .result-box.green .number { color: var(--success); }
+  .result-box.red .number { color: var(--danger); }
+  .result-box.blue .number { color: var(--primary); }
+
+  /* Mode & Difficulty selectors */
+  .selector-group { margin-bottom: 16px; }
+  .selector-group label {
+    display: block; font-size: 0.85rem; font-weight: 600;
+    color: var(--text-light); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .selector-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .sel-btn {
+    padding: 8px 16px; border: 2px solid #e9ecef; border-radius: 20px;
+    background: white; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .sel-btn:hover { border-color: var(--primary); }
+  .sel-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+  /* Stats panel */
+  .stats-panel {
+    background: var(--card); border-radius: 16px; padding: 20px;
+    box-shadow: var(--shadow); margin-top: 16px;
+  }
+  .stats-panel h3 { font-size: 1rem; margin-bottom: 12px; color: var(--text-light); }
+  .trouble-words { display: flex; flex-wrap: wrap; gap: 6px; }
+  .trouble-word {
+    padding: 4px 10px; background: #fde8e8; color: #9b1c31;
+    border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+  }
+  .learned-word {
+    padding: 4px 10px; background: #d4f5e9; color: #065f46;
+    border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+  }
+  .stats-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
+  .stats-toggle button {
+    flex: 1; padding: 8px; border: 2px solid #e9ecef; border-radius: 10px;
+    background: white; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .stats-toggle button.active { border-color: var(--primary); background: #f0f4ff; color: var(--primary); }
+  .stats-section { display: none; }
+  .stats-section.active { display: block; }
+
+  /* History table */
+  .history-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .history-table th {
+    text-align: left; padding: 8px 6px; border-bottom: 2px solid #e9ecef;
+    color: var(--text-light); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .history-table td { padding: 8px 6px; border-bottom: 1px solid #f0f0f0; }
+  .history-table tr:last-child td { border-bottom: none; }
+  .history-table .score-good { color: var(--success); font-weight: 700; }
+  .history-table .score-ok { color: var(--warning); font-weight: 700; }
+  .history-table .score-bad { color: var(--danger); font-weight: 700; }
+  .history-scroll { max-height: 300px; overflow-y: auto; }
+  .history-empty { color: var(--text-light); font-size: 0.85rem; padding: 12px 0; }
+
+  /* Recent sessions card on main page */
+  .recent-sessions {
+    background: var(--card); border-radius: 16px; padding: 20px;
+    box-shadow: var(--shadow); margin-bottom: 16px; text-align: left;
+  }
+  .recent-sessions h3 {
+    font-size: 1rem; margin-bottom: 14px; color: var(--text); text-align: center;
+  }
+  .recent-session-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid #f0f0f5;
+  }
+  .recent-session-row:last-child { border-bottom: none; }
+  .rs-date {
+    font-size: 0.75rem; color: var(--text-light); min-width: 70px;
+    line-height: 1.3;
+  }
+  .rs-info { flex: 1; min-width: 0; }
+  .rs-info-top {
+    font-size: 0.85rem; font-weight: 600; display: flex;
+    align-items: center; gap: 6px; margin-bottom: 4px;
+  }
+  .rs-bar-bg {
+    height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden;
+  }
+  .rs-bar-fill {
+    height: 100%; border-radius: 4px; transition: width 0.5s;
+  }
+  .rs-bar-fill.good { background: var(--success); }
+  .rs-bar-fill.ok { background: var(--warning); }
+  .rs-bar-fill.bad { background: var(--danger); }
+  .rs-score {
+    font-size: 1.1rem; font-weight: 700; min-width: 48px; text-align: right;
+  }
+  .rs-missed {
+    font-size: 0.7rem; color: var(--text-light); margin-top: 3px;
+  }
+  .rs-empty {
+    text-align: center; color: var(--text-light); font-size: 0.9rem;
+    padding: 16px 0;
+  }
+  .reset-area { margin-top: 20px; text-align: center; }
+  .reset-btn {
+    padding: 8px 20px; border: 2px solid var(--danger); border-radius: 10px;
+    background: white; color: var(--danger); font-size: 0.85rem;
+    font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .reset-btn:hover { background: var(--danger); color: white; }
+  .hidden { display: none !important; }
+  .checkbox-row {
+    display: flex; align-items: center; gap: 8px; justify-content: center;
+    margin-bottom: 16px; font-size: 0.9rem;
+  }
+  .checkbox-row input { width: 18px; height: 18px; }
+
+  /* Confetti */
+  .confetti {
+    position: fixed; top: -10px; font-size: 1.5rem;
+    animation: confetti-fall 3s linear forwards; pointer-events: none; z-index: 100;
+  }
+  @keyframes confetti-fall {
+    to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🐝 Spelling Bee</h1>
+  <p>Learn to spell English words correctly!</p>
+</header>
+
+<div class="container">
+  <!-- START SCREEN -->
+  <div id="start-screen" class="screen">
+    <div class="emoji-big">📚</div>
+    <h2>Welcome!</h2>
+    <p>Choose your level and mode, then practice 50 English words.</p>
+
+    <div class="selector-group">
+      <label>Grade Level</label>
+      <div class="selector-row" id="grade-selector">
+        <button class="sel-btn" data-grade="1">Grade 1</button>
+        <button class="sel-btn" data-grade="2">Grade 2</button>
+        <button class="sel-btn active" data-grade="3">Grade 3</button>
+        <button class="sel-btn" data-grade="4">Grade 4</button>
+        <button class="sel-btn" data-grade="5">Grade 5</button>
+        <button class="sel-btn" data-grade="mix">Mix 🎲</button>
+      </div>
+    </div>
+
+    <div class="selector-group">
+      <label>Mode</label>
+      <div class="selector-row" id="mode-selector">
+        <button class="sel-btn active" data-mode="choice">Multiple Choice 🔘</button>
+        <button class="sel-btn" data-mode="typing">Typing ⌨️</button>
+      </div>
+    </div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="focus-trouble">
+      <span>Focus on trouble words first</span>
+    </div>
+
+    <button class="btn btn-primary" onclick="startSession()">
+      Let's Go! 🚀
+    </button>
+
+    <!-- Recent Sessions - always visible on main page -->
+    <div class="recent-sessions" id="recent-sessions">
+      <h3>📅 Recent Sessions</h3>
+      <div id="recent-sessions-content">
+        <div class="rs-empty">No sessions yet — start your first one! 🚀</div>
+      </div>
+    </div>
+
+    <div class="stats-panel" id="stats-panel">
+      <div class="stats-toggle">
+        <button class="active" onclick="showStats('trouble')">❌ Trouble</button>
+        <button onclick="showStats('learned')">✅ Learned</button>
+        <button onclick="showStats('all')">📊 All Stats</button>
+        <button onclick="showStats('history')">📅 History</button>
+      </div>
+      <div id="stats-trouble" class="stats-section active">
+        <h3>Words you find tricky:</h3>
+        <div class="trouble-words" id="trouble-words-list">
+          <span style="color:var(--text-light);font-size:0.85rem;">None yet — start practicing!</span>
+        </div>
+      </div>
+      <div id="stats-learned" class="stats-section">
+        <h3>Words you've learned:</h3>
+        <div class="trouble-words" id="learned-words-list">
+          <span style="color:var(--text-light);font-size:0.85rem;">None yet — start practicing!</span>
+        </div>
+      </div>
+      <div id="stats-all" class="stats-section">
+        <h3>Overall statistics:</h3>
+        <div id="all-stats-content" style="font-size:0.9rem;color:var(--text-light);">No data yet.</div>
+      </div>
+      <div id="stats-history" class="stats-section">
+        <h3>Session history:</h3>
+        <div id="history-content"></div>
+      </div>
+      <div class="reset-area">
+        <button class="reset-btn" onclick="resetProgress()">🗑️ Reset All Progress</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quiz-screen" class="hidden">
+    <div class="progress-container">
+      <div class="progress-stats">
+        <span id="word-counter">Word 1 of 20</span>
+        <span id="session-score">0 correct</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+      <div class="score-display">
+        <div class="score-item correct">✅ <span id="correct-count">0</span></div>
+        <div class="score-item wrong">❌ <span id="wrong-count">0</span></div>
+        <div class="score-item streak">🔥 <span id="streak-count">0</span></div>
+      </div>
+    </div>
+
+    <div class="word-card" id="word-card">
+      <div class="word-info">
+        <div class="german-label">🇩🇪 German:</div>
+        <div class="german-word" id="german-word"></div>
+        <div class="example-sentence" id="example-sentence"></div>
+      </div>
+      <div class="question-label" id="question-label">Which spelling is correct?</div>
+
+      <!-- Multiple Choice area -->
+      <div id="choice-area">
+        <div class="options" id="options"></div>
+      </div>
+
+      <!-- Typing area -->
+      <div id="typing-area" class="typing-area hidden">
+        <input type="text" class="typing-input" id="typing-input"
+               placeholder="Type the word..." autocomplete="off" autocapitalize="off" spellcheck="false">
+        <br>
+        <button class="submit-btn" id="submit-typing-btn" onclick="submitTyping()">Check ✓</button>
+        <div class="hint-text" id="hint-text"></div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+      <button class="btn btn-primary next-btn" id="next-btn" onclick="nextWord()">
+        Next Word ➡️
+      </button>
+    </div>
+  </div>
+
+  <!-- END SCREEN -->
+  <div id="end-screen" class="hidden screen">
+    <div class="emoji-big" id="end-emoji">🎉</div>
+    <h2 id="end-title">Great job!</h2>
+    <p id="end-subtitle">You practiced all 50 words!</p>
+    <div class="results-grid">
+      <div class="result-box green">
+        <div class="number" id="final-correct">0</div>
+        <div class="label">Correct</div>
+      </div>
+      <div class="result-box red">
+        <div class="number" id="final-wrong">0</div>
+        <div class="label">Wrong</div>
+      </div>
+      <div class="result-box blue">
+        <div class="number" id="final-percent">0%</div>
+        <div class="label">Score</div>
+      </div>
+    </div>
+    <div id="end-trouble-section" style="margin:16px 0;">
+      <h3 style="font-size:0.95rem;margin-bottom:8px;">Let's practice these again:</h3>
+      <div class="trouble-words" id="end-trouble-words"></div>
+    </div>
+    <button class="btn btn-primary" onclick="startSession()" style="margin-bottom:10px;">
+      Play Again! 🔄
+    </button>
+    <button class="btn btn-secondary" onclick="showStartScreen()">
+      Back to Start 🏠
+    </button>
+  </div>
+</div>
+
+<script>
+// ==========================================================
+// WORD DATABASE
+// Each word: { word, german, sentence, grade, traps: [...] }
+// traps = curated misspellings targeting German-speaker confusion
+// ==========================================================
+const WORDS = [
+  // GRADE 1
+  {word:"all", german:"alle", sentence:"We are ___ going to the park.", grade:1, traps:["al","awl","oll"]},
+  {word:"and", german:"und", sentence:"I like cats ___ dogs.", grade:1, traps:["ant","adn","en"]},
+  {word:"ball", german:"Ball", sentence:"She threw the ___ to me.", grade:1, traps:["bal","bawl","baall"]},
+  {word:"bed", german:"Bett", sentence:"I go to ___ at nine o'clock.", grade:1, traps:["bet","bedd","bad"]},
+  {word:"big", german:"groß", sentence:"The elephant is very ___.", grade:1, traps:["bik","bigg","pig"]},
+  {word:"book", german:"Buch", sentence:"I am reading a good ___.", grade:1, traps:["boock","buk","bukk"]},
+  {word:"box", german:"Kiste", sentence:"Put the toys in the ___.", grade:1, traps:["bocks","boks","bocx"]},
+  {word:"boy", german:"Junge", sentence:"The ___ is playing in the yard.", grade:1, traps:["boi","boj","boey"]},
+  {word:"but", german:"aber", sentence:"I wanted to go, ___ it was raining.", grade:1, traps:["bat","butt","bot"]},
+  {word:"came", german:"kam", sentence:"She ___ to my birthday party.", grade:1, traps:["caim","kaim","ceim"]},
+  {word:"can", german:"können", sentence:"I ___ ride a bike.", grade:1, traps:["ken","cen","kann"]},
+  {word:"car", german:"Auto", sentence:"My dad drives a blue ___.", grade:1, traps:["kar","carr","cahr"]},
+  {word:"cat", german:"Katze", sentence:"The ___ is sleeping on the sofa.", grade:1, traps:["kat","catt","ket"]},
+  {word:"come", german:"kommen", sentence:"Please ___ to my house.", grade:1, traps:["cum","kom","kome"]},
+  {word:"cow", german:"Kuh", sentence:"The ___ gives us milk.", grade:1, traps:["cou","kow","kau"]},
+  {word:"dad", german:"Papa", sentence:"My ___ makes great pancakes.", grade:1, traps:["ded","dat","dadd"]},
+  {word:"day", german:"Tag", sentence:"What a beautiful ___!", grade:1, traps:["dai","dey","dae"]},
+  {word:"did", german:"tat", sentence:"What ___ you do today?", grade:1, traps:["dit","didd","dyd"]},
+  {word:"dog", german:"Hund", sentence:"My ___ loves to play fetch.", grade:1, traps:["dok","dogg","dawg"]},
+  {word:"fun", german:"Spaß", sentence:"We had so much ___ at the beach.", grade:1, traps:["fan","funn","fon"]},
+  {word:"get", german:"bekommen", sentence:"Can I ___ some water?", grade:1, traps:["gett","ket","git"]},
+  {word:"good", german:"gut", sentence:"You did a ___ job!", grade:1, traps:["goud","gud","guud"]},
+  {word:"got", german:"bekam", sentence:"I ___ a new bike for my birthday.", grade:1, traps:["gott","goot","ght"]},
+  {word:"had", german:"hatte", sentence:"She ___ a great idea.", grade:1, traps:["hat","hed","hadd"]},
+  {word:"hat", german:"Hut", sentence:"He is wearing a funny ___.", grade:1, traps:["hatt","het","hut"]},
+  {word:"home", german:"Zuhause", sentence:"Let's go ___.", grade:1, traps:["hoam","hom","hohm"]},
+  {word:"hot", german:"heiß", sentence:"The soup is very ___.", grade:1, traps:["hott","hoat","hod"]},
+  {word:"like", german:"mögen", sentence:"I ___ to eat pizza.", grade:1, traps:["liek","lik","laik"]},
+  {word:"look", german:"schauen", sentence:"___ at the rainbow!", grade:1, traps:["luk","lok","loock"]},
+  {word:"man", german:"Mann", sentence:"The ___ is reading a newspaper.", grade:1, traps:["men","mann","menn"]},
+  {word:"mom", german:"Mama", sentence:"My ___ bakes the best cookies.", grade:1, traps:["mam","momm","mum"]},
+  {word:"not", german:"nicht", sentence:"I am ___ tired.", grade:1, traps:["nott","nod","knot"]},
+  {word:"old", german:"alt", sentence:"My grandfather is very ___.", grade:1, traps:["oald","olld","owld"]},
+  {word:"one", german:"eins", sentence:"I have ___ brother and two sisters.", grade:1, traps:["won","wone","oen"]},
+  {word:"out", german:"raus", sentence:"Let's go ___ and play.", grade:1, traps:["aut","owt","outt"]},
+  {word:"play", german:"spielen", sentence:"Can we ___ a game?", grade:1, traps:["plai","plej","pley"]},
+  {word:"red", german:"rot", sentence:"She has a ___ dress.", grade:1, traps:["ret","redd","rad"]},
+  {word:"ride", german:"fahren", sentence:"I like to ___ my bicycle.", grade:1, traps:["ried","ried","ryde"]},
+  {word:"run", german:"rennen", sentence:"The children ___ fast.", grade:1, traps:["runn","ron","wrun"]},
+  {word:"see", german:"sehen", sentence:"I can ___ the mountains.", grade:1, traps:["sea","sie","cee"]},
+  {word:"she", german:"sie", sentence:"___ is my best friend.", grade:1, traps:["sche","shee","che"]},
+  {word:"stop", german:"stoppen", sentence:"___ at the red light!", grade:1, traps:["stopp","stap","shtop"]},
+  {word:"sun", german:"Sonne", sentence:"The ___ is shining today.", grade:1, traps:["sunn","san","son"]},
+  {word:"the", german:"der/die/das", sentence:"___ cat is on the roof.", grade:1, traps:["ze","da","teh"]},
+  {word:"this", german:"dies", sentence:"___ is my favourite book.", grade:1, traps:["zis","dis","thiss"]},
+  {word:"top", german:"Spitze", sentence:"We climbed to the ___ of the hill.", grade:1, traps:["topp","tap","tob"]},
+  {word:"two", german:"zwei", sentence:"I have ___ hands.", grade:1, traps:["to","too","tow"]},
+  {word:"was", german:"war", sentence:"He ___ very happy yesterday.", grade:1, traps:["wos","wass","waz"]},
+  {word:"will", german:"werden", sentence:"I ___ help you tomorrow.", grade:1, traps:["wil","vill","whil"]},
+  {word:"yes", german:"ja", sentence:"___, I would like some cake.", grade:1, traps:["yess","jes","yeas"]},
+  {word:"you", german:"du", sentence:"___ are my friend.", grade:1, traps:["jou","yoo","yu"]},
+
+  // GRADE 2
+  {word:"about", german:"über", sentence:"Tell me ___ your holiday.", grade:2, traps:["abaut","abowt","abbout"]},
+  {word:"after", german:"nach", sentence:"We eat dessert ___ dinner.", grade:2, traps:["afther","affter","aftir"]},
+  {word:"any", german:"irgendein", sentence:"Do you have ___ questions?", grade:2, traps:["eny","ani","anny"]},
+  {word:"apple", german:"Apfel", sentence:"I ate a red ___ for lunch.", grade:2, traps:["appel","aple","appl"]},
+  {word:"are", german:"sind", sentence:"Where ___ you going?", grade:2, traps:["ar","ahr","arr"]},
+  {word:"away", german:"weg", sentence:"The bird flew ___.", grade:2, traps:["awey","awei","avay"]},
+  {word:"baby", german:"Baby", sentence:"The ___ is sleeping.", grade:2, traps:["babey","beby","babby"]},
+  {word:"back", german:"zurück", sentence:"Come ___ soon!", grade:2, traps:["bak","bakk","beck"]},
+  {word:"been", german:"gewesen", sentence:"I have ___ to London.", grade:2, traps:["bin","bean","bein"]},
+  {word:"before", german:"bevor", sentence:"Wash your hands ___ dinner.", grade:2, traps:["befor","befour","beafore"]},
+  {word:"best", german:"beste", sentence:"She is my ___ friend.", grade:2, traps:["bast","besst","brest"]},
+  {word:"bird", german:"Vogel", sentence:"The ___ is singing a song.", grade:2, traps:["burd","bierd","birrd"]},
+  {word:"black", german:"schwarz", sentence:"The cat is ___.", grade:2, traps:["blak","bleck","blackk"]},
+  {word:"blue", german:"blau", sentence:"The sky is ___.", grade:2, traps:["blew","bloo","blou"]},
+  {word:"boat", german:"Boot", sentence:"We went sailing on a ___.", grade:2, traps:["bote","boet","boht"]},
+  {word:"both", german:"beide", sentence:"___ answers are correct.", grade:2, traps:["bos","boath","bouth"]},
+  {word:"bring", german:"bringen", sentence:"Please ___ your book to school.", grade:2, traps:["brink","brinng","breng"]},
+  {word:"brother", german:"Bruder", sentence:"My ___ is older than me.", grade:2, traps:["brozer","bruther","brather"]},
+  {word:"brown", german:"braun", sentence:"The dog has ___ fur.", grade:2, traps:["braun","broun","brownn"]},
+  {word:"buy", german:"kaufen", sentence:"I want to ___ a new toy.", grade:2, traps:["bai","bye","buj"]},
+  {word:"cake", german:"Kuchen", sentence:"Mom baked a chocolate ___.", grade:2, traps:["caik","kaik","cak"]},
+  {word:"call", german:"rufen", sentence:"I will ___ you later.", grade:2, traps:["kall","cawl","cal"]},
+  {word:"change", german:"ändern", sentence:"We need to ___ our plan.", grade:2, traps:["tschange","changge","chainge"]},
+  {word:"child", german:"Kind", sentence:"Every ___ likes to play.", grade:2, traps:["chaild","tschild","chilld"]},
+  {word:"city", german:"Stadt", sentence:"Berlin is a big ___.", grade:2, traps:["sity","citty","citi"]},
+  {word:"clean", german:"sauber", sentence:"Please ___ your room.", grade:2, traps:["cleen","klean","clien"]},
+  {word:"cold", german:"kalt", sentence:"The water is very ___.", grade:2, traps:["kold","colld","coald"]},
+  {word:"could", german:"konnte", sentence:"___ you help me please?", grade:2, traps:["coud","culd","chold"]},
+  {word:"cup", german:"Tasse", sentence:"I drank a ___ of tea.", grade:2, traps:["kup","cupp","cap"]},
+  {word:"dear", german:"lieb", sentence:"___ Mom, thank you for everything.", grade:2, traps:["deer","dier","diar"]},
+  {word:"door", german:"Tür", sentence:"Please close the ___.", grade:2, traps:["dor","doer","doar"]},
+  {word:"down", german:"runter", sentence:"The ball rolled ___.", grade:2, traps:["daun","doun","downn"]},
+  {word:"dress", german:"Kleid", sentence:"She wore a pretty ___.", grade:2, traps:["dres","drees","drass"]},
+  {word:"each", german:"jeder", sentence:"___ student gets a book.", grade:2, traps:["eatch","eech","eatsch"]},
+  {word:"eat", german:"essen", sentence:"I like to ___ fruit.", grade:2, traps:["eet","iet","eatt"]},
+  {word:"egg", german:"Ei", sentence:"I had an ___ for breakfast.", grade:2, traps:["eag","eg","agg"]},
+  {word:"fall", german:"fallen", sentence:"The leaves ___ from the trees.", grade:2, traps:["fal","foll","fawl"]},
+  {word:"farm", german:"Bauernhof", sentence:"We visited a ___ last weekend.", grade:2, traps:["fam","fahrm","farme"]},
+  {word:"fast", german:"schnell", sentence:"The horse runs very ___.", grade:2, traps:["fasst","fest","fahst"]},
+  {word:"father", german:"Vater", sentence:"My ___ works in an office.", grade:2, traps:["fazer","fathr","fathir"]},
+  {word:"feel", german:"fühlen", sentence:"I ___ happy today.", grade:2, traps:["fiel","feal","feell"]},
+  {word:"find", german:"finden", sentence:"Can you ___ my keys?", grade:2, traps:["fined","fynd","finnd"]},
+  {word:"fire", german:"Feuer", sentence:"We sat around the ___.", grade:2, traps:["fier","fyre","fiar"]},
+  {word:"first", german:"erste", sentence:"She was the ___ one to finish.", grade:2, traps:["furst","fist","firrst"]},
+  {word:"fish", german:"Fisch", sentence:"The ___ is swimming in the pond.", grade:2, traps:["fisch","fich","fissh"]},
+  {word:"five", german:"fünf", sentence:"I have ___ fingers on each hand.", grade:2, traps:["fiv","fife","fyve"]},
+  {word:"floor", german:"Boden", sentence:"Don't sit on the ___.", grade:2, traps:["flor","floar","flore"]},
+  {word:"food", german:"Essen", sentence:"The ___ smells delicious.", grade:2, traps:["foud","fuud","fud"]},
+  {word:"four", german:"vier", sentence:"There are ___ seasons in a year.", grade:2, traps:["for","fore","foar"]},
+  {word:"from", german:"von", sentence:"I am ___ Germany.", grade:2, traps:["frome","fromm","frum"]},
+  {word:"funny", german:"lustig", sentence:"That joke was so ___!", grade:2, traps:["fanny","funy","funni"]},
+  {word:"game", german:"Spiel", sentence:"Let's play a board ___.", grade:2, traps:["gaim","geim","gam"]},
+  {word:"gave", german:"gab", sentence:"She ___ me a present.", grade:2, traps:["gaiv","gafe","gaev"]},
+  {word:"girl", german:"Mädchen", sentence:"The ___ is reading a book.", grade:2, traps:["gurl","gerrl","gril"]},
+  {word:"give", german:"geben", sentence:"Please ___ me the pencil.", grade:2, traps:["giv","ghive","gife"]},
+  {word:"goes", german:"geht", sentence:"He ___ to school every day.", grade:2, traps:["gose","goze","goos"]},
+  {word:"going", german:"gehen", sentence:"We are ___ to the zoo.", grade:2, traps:["goeing","gowing","goign"]},
+  {word:"green", german:"grün", sentence:"The grass is ___.", grade:2, traps:["grean","griin","gren"]},
+  {word:"grow", german:"wachsen", sentence:"Plants need water to ___.", grade:2, traps:["gro","groe","groh"]},
+  {word:"hand", german:"Hand", sentence:"Raise your ___ if you know.", grade:2, traps:["hend","hennd","hannt"]},
+  {word:"happy", german:"glücklich", sentence:"She looks very ___ today.", grade:2, traps:["hapy","heppy","happey"]},
+  {word:"hard", german:"schwer", sentence:"This test is very ___.", grade:2, traps:["hart","harrd","haerd"]},
+  {word:"have", german:"haben", sentence:"I ___ two cats.", grade:2, traps:["hav","haff","hafe"]},
+  {word:"help", german:"helfen", sentence:"Can you ___ me please?", grade:2, traps:["hellp","halp","healp"]},
+  {word:"hold", german:"halten", sentence:"Please ___ my hand.", grade:2, traps:["hoald","holld","howld"]},
+  {word:"horse", german:"Pferd", sentence:"The ___ is running in the field.", grade:2, traps:["hors","hoars","horce"]},
+  {word:"house", german:"Haus", sentence:"We live in a big ___.", grade:2, traps:["hous","howse","houce"]},
+  {word:"how", german:"wie", sentence:"___ are you today?", grade:2, traps:["hau","howe","hou"]},
+  {word:"jump", german:"springen", sentence:"Can you ___ over the puddle?", grade:2, traps:["jamp","jomp","djump"]},
+  {word:"just", german:"gerade", sentence:"I ___ finished my homework.", grade:2, traps:["jast","djust","jusst"]},
+  {word:"keep", german:"behalten", sentence:"You can ___ the book.", grade:2, traps:["keap","kiep","kep"]},
+  {word:"king", german:"König", sentence:"The ___ lives in a castle.", grade:2, traps:["kink","kinng","quing"]},
+  {word:"know", german:"wissen", sentence:"Do you ___ the answer?", grade:2, traps:["now","noh","knoe"]},
+  {word:"lake", german:"See", sentence:"We went swimming in the ___.", grade:2, traps:["laik","laek","lak"]},
+  {word:"last", german:"letzter", sentence:"This is the ___ day of school.", grade:2, traps:["lasst","lahst","larst"]},
+  {word:"left", german:"links", sentence:"Turn ___ at the corner.", grade:2, traps:["lefft","laft","leaft"]},
+  {word:"light", german:"Licht", sentence:"Turn on the ___ please.", grade:2, traps:["lite","lihgt","licht"]},
+  {word:"little", german:"klein", sentence:"The ___ kitten is so cute.", grade:2, traps:["littel","litle","litlle"]},
+  {word:"long", german:"lang", sentence:"That is a ___ snake!", grade:2, traps:["lonng","longe","lang"]},
+  {word:"love", german:"Liebe", sentence:"I ___ my family.", grade:2, traps:["luv","lov","luve"]},
+  {word:"made", german:"gemacht", sentence:"Mom ___ a delicious dinner.", grade:2, traps:["maid","maid","maed"]},
+  {word:"make", german:"machen", sentence:"Let's ___ a sandcastle.", grade:2, traps:["maik","mak","maek"]},
+  {word:"many", german:"viele", sentence:"There are ___ stars in the sky.", grade:2, traps:["meny","manny","mani"]},
+  {word:"money", german:"Geld", sentence:"I saved my ___ for a new game.", grade:2, traps:["mony","muney","monney"]},
+  {word:"more", german:"mehr", sentence:"Can I have ___ juice please?", grade:2, traps:["moar","mor","moor"]},
+  {word:"mother", german:"Mutter", sentence:"My ___ reads to me every night.", grade:2, traps:["mozer","mothr","muther"]},
+  {word:"much", german:"viel", sentence:"Thank you very ___!", grade:2, traps:["mutch","matsch","mutsch"]},
+  {word:"name", german:"Name", sentence:"What is your ___?", grade:2, traps:["naim","naem","neim"]},
+  {word:"need", german:"brauchen", sentence:"I ___ a pencil.", grade:2, traps:["nied","nead","neet"]},
+  {word:"new", german:"neu", sentence:"I got a ___ backpack.", grade:2, traps:["niew","noo","knu"]},
+  {word:"nice", german:"nett", sentence:"That was very ___ of you.", grade:2, traps:["nise","niece","nyce"]},
+  {word:"night", german:"Nacht", sentence:"Good ___, sleep well!", grade:2, traps:["nite","nicht","nigt"]},
+  {word:"only", german:"nur", sentence:"I have ___ one cookie left.", grade:2, traps:["onley","onli","ownly"]},
+  {word:"open", german:"öffnen", sentence:"Please ___ the window.", grade:2, traps:["oppen","opan","oapen"]},
+  {word:"other", german:"andere", sentence:"The ___ team won the game.", grade:2, traps:["ozer","othr","uther"]},
+  {word:"over", german:"über", sentence:"The game is ___.", grade:2, traps:["ofer","ovar","ovver"]},
+  {word:"rain", german:"Regen", sentence:"The ___ is falling down.", grade:2, traps:["rane","rayn","rein"]},
+  {word:"read", german:"lesen", sentence:"I like to ___ books.", grade:2, traps:["reed","reat","ried"]},
+  {word:"road", german:"Straße", sentence:"Look both ways before crossing the ___.", grade:2, traps:["rode","roud","roat"]},
+  {word:"room", german:"Zimmer", sentence:"My ___ is very tidy.", grade:2, traps:["roum","ruum","rom"]},
+  {word:"said", german:"sagte", sentence:"She ___ hello to everyone.", grade:2, traps:["sed","seid","sayd"]},
+  {word:"same", german:"gleich", sentence:"We have the ___ shoes!", grade:2, traps:["saim","saem","seim"]},
+  {word:"saw", german:"sah", sentence:"I ___ a rainbow yesterday.", grade:2, traps:["soar","sor","sau"]},
+  {word:"school", german:"Schule", sentence:"I walk to ___ every day.", grade:2, traps:["scool","shool","schol"]},
+  {word:"show", german:"zeigen", sentence:"Can you ___ me how to do it?", grade:2, traps:["schow","sho","showe"]},
+  {word:"side", german:"Seite", sentence:"Stand on this ___ of the line.", grade:2, traps:["sied","syde","saide"]},
+  {word:"sleep", german:"schlafen", sentence:"I need eight hours of ___.", grade:2, traps:["sliep","sleap","slep"]},
+  {word:"small", german:"klein", sentence:"The mouse is very ___.", grade:2, traps:["smal","smoll","schmall"]},
+  {word:"snow", german:"Schnee", sentence:"The ___ is white and cold.", grade:2, traps:["snoe","snoh","schnow"]},
+  {word:"some", german:"einige", sentence:"Can I have ___ water?", grade:2, traps:["som","sum","sahm"]},
+  {word:"start", german:"anfangen", sentence:"Let's ___ the race!", grade:2, traps:["stard","sart","starrt"]},
+  {word:"still", german:"noch", sentence:"Are you ___ hungry?", grade:2, traps:["stil","schtill","stll"]},
+  {word:"story", german:"Geschichte", sentence:"Tell me a bedtime ___.", grade:2, traps:["storey","stori","storry"]},
+  {word:"take", german:"nehmen", sentence:"Please ___ your shoes off.", grade:2, traps:["taik","taek","tak"]},
+  {word:"talk", german:"reden", sentence:"Don't ___ during the movie.", grade:2, traps:["tawk","tok","tolk"]},
+  {word:"tell", german:"erzählen", sentence:"___ me about your day.", grade:2, traps:["tel","tall","teel"]},
+  {word:"thank", german:"danken", sentence:"___ you for your help!", grade:2, traps:["senk","tank","thenk"]},
+  {word:"that", german:"dass", sentence:"I think ___ is a great idea.", grade:2, traps:["zat","thet","thatt"]},
+  {word:"them", german:"ihnen", sentence:"Give ___ the ball.", grade:2, traps:["zem","tem","thm"]},
+  {word:"then", german:"dann", sentence:"First eat, ___ play.", grade:2, traps:["zen","thenn","thn"]},
+  {word:"there", german:"dort", sentence:"The book is over ___.", grade:2, traps:["their","ther","thare"]},
+  {word:"they", german:"sie (Plural)", sentence:"___ are playing outside.", grade:2, traps:["zey","thay","tey"]},
+  {word:"thing", german:"Ding", sentence:"What is that ___?", grade:2, traps:["zing","thig","tink"]},
+  {word:"think", german:"denken", sentence:"I ___ we should go now.", grade:2, traps:["zink","tink","thingk"]},
+  {word:"three", german:"drei", sentence:"I have ___ sisters.", grade:2, traps:["sree","tree","thre"]},
+  {word:"time", german:"Zeit", sentence:"What ___ is it?", grade:2, traps:["tyme","taim","tiem"]},
+  {word:"today", german:"heute", sentence:"___ is a sunny day.", grade:2, traps:["todai","tuday","tooday"]},
+  {word:"too", german:"auch", sentence:"I want to come ___!", grade:2, traps:["to","two","tou"]},
+  {word:"tree", german:"Baum", sentence:"The ___ has many green leaves.", grade:2, traps:["trea","tre","trie"]},
+  {word:"try", german:"versuchen", sentence:"___ your best!", grade:2, traps:["trie","trai","trey"]},
+  {word:"very", german:"sehr", sentence:"She is ___ tall.", grade:2, traps:["wery","verry","veri"]},
+  {word:"walk", german:"gehen", sentence:"Let's ___ to the park.", grade:2, traps:["wolk","wak","wauk"]},
+  {word:"want", german:"wollen", sentence:"I ___ to go swimming.", grade:2, traps:["wont","waunt","whant"]},
+  {word:"warm", german:"warm", sentence:"Put on a ___ sweater.", grade:2, traps:["worm","wahrm","waarm"]},
+  {word:"water", german:"Wasser", sentence:"Drink plenty of ___.", grade:2, traps:["watter","woter","warter"]},
+  {word:"week", german:"Woche", sentence:"There are seven days in a ___.", grade:2, traps:["wiek","weak","wek"]},
+  {word:"well", german:"gut", sentence:"She can sing very ___.", grade:2, traps:["wel","vell","whell"]},
+  {word:"went", german:"ging", sentence:"We ___ to the cinema.", grade:2, traps:["whent","vent","wentt"]},
+  {word:"were", german:"waren", sentence:"Where ___ you yesterday?", grade:2, traps:["wer","where","weer"]},
+  {word:"what", german:"was", sentence:"___ is your favourite colour?", grade:2, traps:["watt","wot","wat"]},
+  {word:"when", german:"wann", sentence:"___ is your birthday?", grade:2, traps:["wen","whan","whenn"]},
+  {word:"white", german:"weiß", sentence:"The snow is ___.", grade:2, traps:["wite","whit","whight"]},
+  {word:"who", german:"wer", sentence:"___ is at the door?", grade:2, traps:["hoo","whu","hwo"]},
+  {word:"why", german:"warum", sentence:"___ are you laughing?", grade:2, traps:["wai","wie","whi"]},
+  {word:"wind", german:"Wind", sentence:"The ___ blows the leaves.", grade:2, traps:["vind","winnd","wynd"]},
+  {word:"wish", german:"wünschen", sentence:"I ___ I could fly.", grade:2, traps:["wisch","wich","wissh"]},
+  {word:"with", german:"mit", sentence:"Come ___ me.", grade:2, traps:["wis","whith","wiz"]},
+  {word:"wood", german:"Holz", sentence:"The table is made of ___.", grade:2, traps:["woud","wud","woold"]},
+  {word:"work", german:"arbeiten", sentence:"My parents go to ___ every day.", grade:2, traps:["vork","werk","worrk"]},
+  {word:"yellow", german:"gelb", sentence:"Bananas are ___.", grade:2, traps:["jellow","yelow","yello"]},
+  {word:"your", german:"dein", sentence:"Is this ___ pencil?", grade:2, traps:["yor","jor","youre"]},
+
+  // GRADE 3
+  {word:"afraid", german:"ängstlich", sentence:"Don't be ___ of the dark.", grade:3, traps:["afrait","affraid","afreid"]},
+  {word:"again", german:"wieder", sentence:"Can we play that game ___?", grade:3, traps:["agein","agin","agen"]},
+  {word:"airplane", german:"Flugzeug", sentence:"The ___ flies above the clouds.", grade:3, traps:["airplain","aerplane","airplaen"]},
+  {word:"almost", german:"fast", sentence:"I ___ forgot my homework.", grade:3, traps:["allmost","almoast","olmost"]},
+  {word:"alone", german:"allein", sentence:"I don't like to be ___.", grade:3, traps:["aloan","alohne","allone"]},
+  {word:"along", german:"entlang", sentence:"We walked ___ the river.", grade:3, traps:["allong","alonng","allonge"]},
+  {word:"already", german:"bereits", sentence:"I have ___ finished my lunch.", grade:3, traps:["allready","alredy","alreaddy"]},
+  {word:"always", german:"immer", sentence:"She ___ brushes her teeth.", grade:3, traps:["allways","allwais","alwayz"]},
+  {word:"animal", german:"Tier", sentence:"My favourite ___ is the dolphin.", grade:3, traps:["animel","annimel","aniaml"]},
+  {word:"another", german:"ein anderer", sentence:"Can I have ___ cookie?", grade:3, traps:["anozer","anuther","anothr"]},
+  {word:"anything", german:"irgendetwas", sentence:"Is there ___ I can help with?", grade:3, traps:["anyzing","ennything","anythink"]},
+  {word:"around", german:"herum", sentence:"Let's walk ___ the lake.", grade:3, traps:["arround","araund","arounnd"]},
+  {word:"balloon", german:"Luftballon", sentence:"The red ___ floated into the sky.", grade:3, traps:["baloon","ballon","balon"]},
+  {word:"basket", german:"Korb", sentence:"Put the fruit in the ___.", grade:3, traps:["baskett","baskit","bascet"]},
+  {word:"beach", german:"Strand", sentence:"We played on the ___ all day.", grade:3, traps:["beech","beatch","beash"]},
+  {word:"bear", german:"Bär", sentence:"The ___ lives in the forest.", grade:3, traps:["bier","bare","bere"]},
+  {word:"because", german:"weil", sentence:"I stayed home ___ I was sick.", grade:3, traps:["becaus","becauze","becouse"]},
+  {word:"become", german:"werden", sentence:"I want to ___ a doctor.", grade:3, traps:["becum","becom","becam"]},
+  {word:"began", german:"begann", sentence:"The movie ___ at seven.", grade:3, traps:["begann","bigan","begon"]},
+  {word:"behind", german:"hinter", sentence:"The cat is hiding ___ the couch.", grade:3, traps:["behined","behynd","behinde"]},
+  {word:"believe", german:"glauben", sentence:"I ___ you can do it!", grade:3, traps:["beleive","belive","beleave"]},
+  {word:"better", german:"besser", sentence:"Practice makes ___.", grade:3, traps:["beter","bettr","bettar"]},
+  {word:"birthday", german:"Geburtstag", sentence:"Happy ___ to you!", grade:3, traps:["birdday","birthdey","birsday"]},
+  {word:"body", german:"Körper", sentence:"Exercise is good for your ___.", grade:3, traps:["boddy","bodi","bodie"]},
+  {word:"bought", german:"kaufte", sentence:"She ___ a new dress.", grade:3, traps:["bougth","bougt","boughd"]},
+  {word:"bread", german:"Brot", sentence:"I made a sandwich with ___.", grade:3, traps:["bred","breaad","bredd"]},
+  {word:"bright", german:"hell", sentence:"The stars are very ___ tonight.", grade:3, traps:["brite","brigt","brightt"]},
+  {word:"brought", german:"brachte", sentence:"He ___ flowers for his mom.", grade:3, traps:["brougth","brougt","brough"]},
+  {word:"busy", german:"beschäftigt", sentence:"My parents are very ___ today.", grade:3, traps:["bizzy","buzy","bussy"]},
+  {word:"catch", german:"fangen", sentence:"Can you ___ the ball?", grade:3, traps:["katch","catsh","cach"]},
+  {word:"children", german:"Kinder", sentence:"The ___ are playing in the park.", grade:3, traps:["childern","childran","childern"]},
+  {word:"close", german:"schließen", sentence:"Please ___ the window.", grade:3, traps:["cloze","clothe","cloes"]},
+  {word:"color", german:"Farbe", sentence:"What ___ is your bike?", grade:3, traps:["coler","collor","culler"]},
+  {word:"corner", german:"Ecke", sentence:"Wait at the ___ of the street.", grade:3, traps:["cornar","cornur","conner"]},
+  {word:"dark", german:"dunkel", sentence:"It gets ___ early in winter.", grade:3, traps:["darkk","darc","dahk"]},
+  {word:"dinner", german:"Abendessen", sentence:"What's for ___ tonight?", grade:3, traps:["diner","dinnar","dinnir"]},
+  {word:"does", german:"tut", sentence:"___ she like ice cream?", grade:3, traps:["dose","duz","doess"]},
+  {word:"done", german:"fertig", sentence:"Are you ___ with your homework?", grade:3, traps:["dun","donn","donne"]},
+  {word:"dragon", german:"Drache", sentence:"The ___ breathes fire.", grade:3, traps:["dragun","dragan","dragoon"]},
+  {word:"draw", german:"zeichnen", sentence:"I like to ___ pictures.", grade:3, traps:["drow","draugh","drah"]},
+  {word:"dream", german:"Traum", sentence:"I had a wonderful ___ last night.", grade:3, traps:["dreem","driem","driam"]},
+  {word:"drink", german:"trinken", sentence:"Would you like something to ___?", grade:3, traps:["drinck","drinnk","trink"]},
+  {word:"early", german:"früh", sentence:"I wake up ___ every morning.", grade:3, traps:["erly","earley","earlly"]},
+  {word:"earth", german:"Erde", sentence:"The ___ goes around the sun.", grade:3, traps:["erth","earthe","earss"]},
+  {word:"eight", german:"acht", sentence:"An octopus has ___ arms.", grade:3, traps:["eigth","eigt","eit"]},
+  {word:"every", german:"jeder", sentence:"I brush my teeth ___ morning.", grade:3, traps:["evry","everry","avery"]},
+  {word:"everyone", german:"alle", sentence:"___ is welcome at the party.", grade:3, traps:["everywon","evryone","evrywone"]},
+  {word:"everything", german:"alles", sentence:"___ is going to be fine.", grade:3, traps:["everysing","evryzing","everythink"]},
+  {word:"face", german:"Gesicht", sentence:"She has a friendly ___.", grade:3, traps:["fais","fase","faice"]},
+  {word:"family", german:"Familie", sentence:"I love my ___ very much.", grade:3, traps:["familly","familey","familiy"]},
+  {word:"flower", german:"Blume", sentence:"The ___ smells wonderful.", grade:3, traps:["flour","flouer","flowor"]},
+  {word:"follow", german:"folgen", sentence:"___ me to the classroom.", grade:3, traps:["folow","folloe","folloh"]},
+  {word:"forest", german:"Wald", sentence:"We went hiking in the ___.", grade:3, traps:["forrest","forrist","forast"]},
+  {word:"forgot", german:"vergaß", sentence:"I ___ my umbrella at home.", grade:3, traps:["forgott","forgod","furgot"]},
+  {word:"found", german:"fand", sentence:"I ___ a seashell on the beach.", grade:3, traps:["fownd","faund","foud"]},
+  {word:"friend", german:"Freund", sentence:"She is my best ___.", grade:3, traps:["freind","frend","frient"]},
+  {word:"great", german:"großartig", sentence:"That was a ___ movie!", grade:3, traps:["grate","greit","graet"]},
+  {word:"ground", german:"Boden", sentence:"The apple fell to the ___.", grade:3, traps:["graund","grownd","grond"]},
+  {word:"guess", german:"raten", sentence:"Can you ___ what I'm thinking?", grade:3, traps:["gues","gess","ghess"]},
+  {word:"hair", german:"Haare", sentence:"She has long brown ___.", grade:3, traps:["hare","hiar","hier"]},
+  {word:"half", german:"Hälfte", sentence:"I ate ___ of the pizza.", grade:3, traps:["haf","halfe","halv"]},
+  {word:"head", german:"Kopf", sentence:"Put the helmet on your ___.", grade:3, traps:["hed","hedd","heaad"]},
+  {word:"heard", german:"hörte", sentence:"I ___ a strange noise.", grade:3, traps:["herd","heered","heared"]},
+  {word:"high", german:"hoch", sentence:"The mountain is very ___.", grade:3, traps:["hye","hig","hi"]},
+  {word:"hour", german:"Stunde", sentence:"The movie is one ___ long.", grade:3, traps:["ouer","auer","houer"]},
+  {word:"hundred", german:"hundert", sentence:"There are one ___ cents in a dollar.", grade:3, traps:["hundret","hunderd","hundrid"]},
+  {word:"hurry", german:"beeilen", sentence:"___ up or we'll be late!", grade:3, traps:["hury","hurrey","hurri"]},
+  {word:"hurt", german:"verletzen", sentence:"Did you ___ yourself?", grade:3, traps:["hurrt","hert","hurd"]},
+  {word:"kind", german:"nett", sentence:"She is a very ___ person.", grade:3, traps:["kynd","kined","kinnd"]},
+  {word:"kitten", german:"Kätzchen", sentence:"The little ___ is so cute.", grade:3, traps:["kiten","kittan","kittin"]},
+  {word:"knew", german:"wusste", sentence:"I ___ the answer right away.", grade:3, traps:["new","kneu","nue"]},
+  {word:"knife", german:"Messer", sentence:"Cut the bread with a ___.", grade:3, traps:["nife","knive","knief"]},
+  {word:"large", german:"groß", sentence:"We need a ___ pizza for everyone.", grade:3, traps:["larg","lardge","larje"]},
+  {word:"later", german:"später", sentence:"See you ___!", grade:3, traps:["laiter","lator","latir"]},
+  {word:"learn", german:"lernen", sentence:"I want to ___ how to swim.", grade:3, traps:["lern","learne","lerrn"]},
+  {word:"leave", german:"verlassen", sentence:"We have to ___ at eight.", grade:3, traps:["leeve","leav","lieve"]},
+  {word:"letter", german:"Brief", sentence:"I wrote a ___ to my grandma.", grade:3, traps:["leter","lettar","lettir"]},
+  {word:"lunch", german:"Mittagessen", sentence:"What did you have for ___?", grade:3, traps:["luntch","lunsh","lantch"]},
+  {word:"maybe", german:"vielleicht", sentence:"___ we can go to the park.", grade:3, traps:["mabye","mabey","maybee"]},
+  {word:"might", german:"könnte", sentence:"It ___ rain later.", grade:3, traps:["mite","migt","mightt"]},
+  {word:"month", german:"Monat", sentence:"January is the first ___ of the year.", grade:3, traps:["monthe","munth","mons"]},
+  {word:"morning", german:"Morgen", sentence:"Good ___! How did you sleep?", grade:3, traps:["mourning","morining","mornig"]},
+  {word:"mouse", german:"Maus", sentence:"The ___ ate the cheese.", grade:3, traps:["maus","mowse","mouce"]},
+  {word:"mouth", german:"Mund", sentence:"Open your ___ wide at the dentist.", grade:3, traps:["mous","mouthe","mouf"]},
+  {word:"music", german:"Musik", sentence:"I love listening to ___.", grade:3, traps:["musick","muzik","musec"]},
+  {word:"near", german:"nah", sentence:"The store is ___ our house.", grade:3, traps:["neer","nier","neir"]},
+  {word:"never", german:"niemals", sentence:"I have ___ seen a whale.", grade:3, traps:["nver","nevver","nefar"]},
+  {word:"nothing", german:"nichts", sentence:"There is ___ in the box.", grade:3, traps:["nozing","nussing","nothink"]},
+  {word:"number", german:"Zahl", sentence:"What is your phone ___?", grade:3, traps:["nummer","numbar","nummber"]},
+  {word:"often", german:"oft", sentence:"She ___ visits her grandparents.", grade:3, traps:["offen","offten","oftan"]},
+  {word:"once", german:"einmal", sentence:"___ upon a time there was a king.", grade:3, traps:["wunce","onse","ounce"]},
+  {word:"orange", german:"Orange", sentence:"I had an ___ for breakfast.", grade:3, traps:["oranch","oringe","oranje"]},
+  {word:"own", german:"eigener", sentence:"I have my ___ room.", grade:3, traps:["oun","oan","ohwn"]},
+  {word:"paper", german:"Papier", sentence:"Write your name on the ___.", grade:3, traps:["payper","papir","papper"]},
+  {word:"party", german:"Party", sentence:"We had a fun birthday ___.", grade:3, traps:["partey","parti","partty"]},
+  {word:"people", german:"Leute", sentence:"Many ___ were at the concert.", grade:3, traps:["pepole","peeple","peaple"]},
+  {word:"picture", german:"Bild", sentence:"She drew a ___ of a cat.", grade:3, traps:["pictur","pikture","pictuer"]},
+  {word:"place", german:"Ort", sentence:"This is a nice ___ to sit.", grade:3, traps:["plase","plais","plaice"]},
+  {word:"please", german:"bitte", sentence:"___ pass me the salt.", grade:3, traps:["pleaze","pleas","pleese"]},
+  {word:"ready", german:"bereit", sentence:"Are you ___ to go?", grade:3, traps:["reddy","redy","readdy"]},
+  {word:"right", german:"richtig", sentence:"That is the ___ answer.", grade:3, traps:["rite","richt","righte"]},
+  {word:"river", german:"Fluss", sentence:"We swam in the ___.", grade:3, traps:["rivar","rivver","riffer"]},
+  {word:"running", german:"Laufen", sentence:"I go ___ every morning.", grade:3, traps:["runing","runnig","runig"]},
+  {word:"should", german:"sollte", sentence:"You ___ eat your vegetables.", grade:3, traps:["shoud","shuld","shauld"]},
+  {word:"sister", german:"Schwester", sentence:"My ___ is younger than me.", grade:3, traps:["sistor","sista","sistar"]},
+  {word:"someone", german:"jemand", sentence:"___ left their bag here.", grade:3, traps:["somewon","sumone","somone"]},
+  {word:"something", german:"etwas", sentence:"I want to tell you ___.", grade:3, traps:["somesing","somthing","somethink"]},
+  {word:"sorry", german:"Entschuldigung", sentence:"I'm ___ I'm late.", grade:3, traps:["sory","sorrey","sorri"]},
+  {word:"sound", german:"Geräusch", sentence:"What was that ___?", grade:3, traps:["sownd","saund","sounnd"]},
+  {word:"space", german:"Weltraum", sentence:"Rockets fly into ___.", grade:3, traps:["spase","spais","spaice"]},
+  {word:"spring", german:"Frühling", sentence:"Flowers bloom in ___.", grade:3, traps:["shpring","sprink","sprinng"]},
+  {word:"street", german:"Straße", sentence:"We live on a quiet ___.", grade:3, traps:["streat","striet","stret"]},
+  {word:"strong", german:"stark", sentence:"The elephant is very ___.", grade:3, traps:["shtrong","stronk","strog"]},
+  {word:"study", german:"lernen", sentence:"I need to ___ for the test.", grade:3, traps:["studdy","studie","studay"]},
+  {word:"sugar", german:"Zucker", sentence:"Do you take ___ in your tea?", grade:3, traps:["shugar","suger","suggar"]},
+  {word:"summer", german:"Sommer", sentence:"We go swimming in ___.", grade:3, traps:["sumer","summar","summor"]},
+  {word:"table", german:"Tisch", sentence:"Put the plates on the ___.", grade:3, traps:["tabel","tabl","tabble"]},
+  {word:"teacher", german:"Lehrer", sentence:"Our ___ is very nice.", grade:3, traps:["teatcher","teachar","teecher"]},
+  {word:"their", german:"ihr", sentence:"The children love ___ pets.", grade:3, traps:["there","thier","thair"]},
+  {word:"these", german:"diese", sentence:"___ cookies are delicious.", grade:3, traps:["thees","theese","thise"]},
+  {word:"those", german:"jene", sentence:"___ are my books.", grade:3, traps:["thoze","thoes","thoes"]},
+  {word:"thought", german:"dachte", sentence:"I ___ about it all day.", grade:3, traps:["thougth","thougt","thaugt"]},
+  {word:"together", german:"zusammen", sentence:"Let's do it ___!", grade:3, traps:["togehter","togather","togethr"]},
+  {word:"under", german:"unter", sentence:"The cat is ___ the table.", grade:3, traps:["undar","undr","undre"]},
+  {word:"watch", german:"beobachten", sentence:"I like to ___ cartoons.", grade:3, traps:["wotch","wach","whatsch"]},
+  {word:"water", german:"Wasser", sentence:"Plants need ___ to grow.", grade:3, traps:["watter","woter","warter"]},
+  {word:"weather", german:"Wetter", sentence:"The ___ is warm and sunny.", grade:3, traps:["wether","wheather","weathr"]},
+  {word:"where", german:"wo", sentence:"___ do you live?", grade:3, traps:["were","wher","whear"]},
+  {word:"which", german:"welcher", sentence:"___ colour do you like best?", grade:3, traps:["wich","wichh","whitch"]},
+  {word:"window", german:"Fenster", sentence:"Open the ___ to let in fresh air.", grade:3, traps:["windoe","windo","winddow"]},
+  {word:"winter", german:"Winter", sentence:"It snows a lot in ___.", grade:3, traps:["wintar","vinter","winnter"]},
+  {word:"without", german:"ohne", sentence:"I can't do it ___ your help.", grade:3, traps:["wisout","whithout","withowt"]},
+  {word:"world", german:"Welt", sentence:"There are many countries in the ___.", grade:3, traps:["wold","worlt","werld"]},
+  {word:"would", german:"würde", sentence:"I ___ like some tea, please.", grade:3, traps:["woud","wuld","whould"]},
+  {word:"write", german:"schreiben", sentence:"Please ___ your name here.", grade:3, traps:["rite","writ","wriet"]},
+  {word:"wrong", german:"falsch", sentence:"That answer is ___.", grade:3, traps:["rong","wronk","wronge"]},
+  {word:"yesterday", german:"gestern", sentence:"I went to the zoo ___.", grade:3, traps:["yestarday","yesterdai","yesturday"]},
+
+  // GRADE 4
+  {word:"across", german:"hinüber", sentence:"We walked ___ the bridge.", grade:4, traps:["acros","accross","acrosse"]},
+  {word:"against", german:"gegen", sentence:"She leaned ___ the wall.", grade:4, traps:["agenst","againsed","aganst"]},
+  {word:"answer", german:"Antwort", sentence:"Do you know the ___?", grade:4, traps:["anser","awnser","answar"]},
+  {word:"between", german:"zwischen", sentence:"The park is ___ the school and the library.", grade:4, traps:["beetween","betwen","betwean"]},
+  {word:"bottom", german:"Boden", sentence:"The treasure is at the ___ of the sea.", grade:4, traps:["bottem","bottum","botom"]},
+  {word:"breakfast", german:"Frühstück", sentence:"I eat cereal for ___.", grade:4, traps:["brekfast","breakfust","breckfast"]},
+  {word:"broken", german:"kaputt", sentence:"The window is ___.", grade:4, traps:["brocken","broked","broaken"]},
+  {word:"build", german:"bauen", sentence:"Let's ___ a treehouse.", grade:4, traps:["bild","bould","builld"]},
+  {word:"building", german:"Gebäude", sentence:"That is a tall ___.", grade:4, traps:["bilding","buildding","boulding"]},
+  {word:"built", german:"gebaut", sentence:"She ___ a sandcastle.", grade:4, traps:["bilt","buld","buillt"]},
+  {word:"captain", german:"Kapitän", sentence:"The ___ steers the ship.", grade:4, traps:["captin","captian","capten"]},
+  {word:"caught", german:"gefangen", sentence:"The cat ___ a mouse.", grade:4, traps:["caugth","cought","catched"]},
+  {word:"chicken", german:"Huhn", sentence:"We had ___ for dinner.", grade:4, traps:["chickin","chiken","tschicken"]},
+  {word:"clothes", german:"Kleidung", sentence:"Put your dirty ___ in the basket.", grade:4, traps:["cloths","clohes","clothse"]},
+  {word:"company", german:"Firma", sentence:"My mother works for a big ___.", grade:4, traps:["compeny","companie","companey"]},
+  {word:"country", german:"Land", sentence:"Germany is a ___ in Europe.", grade:4, traps:["contry","cuntry","countrie"]},
+  {word:"discover", german:"entdecken", sentence:"Scientists ___ new things every day.", grade:4, traps:["diskover","discovar","disscuver"]},
+  {word:"doctor", german:"Arzt", sentence:"The ___ helped me feel better.", grade:4, traps:["docter","doctar","doktor"]},
+  {word:"dollar", german:"Dollar", sentence:"This book costs one ___.", grade:4, traps:["doller","dollarr","dolar"]},
+  {word:"during", german:"während", sentence:"Please be quiet ___ the movie.", grade:4, traps:["durring","duering","dureing"]},
+  {word:"enjoy", german:"genießen", sentence:"I ___ playing soccer.", grade:4, traps:["enjoi","injoy","endjoy"]},
+  {word:"enough", german:"genug", sentence:"Is there ___ food for everyone?", grade:4, traps:["enuf","enugh","enouf"]},
+  {word:"everybody", german:"jeder", sentence:"___ had a great time.", grade:4, traps:["evrybody","everibody","everyboddy"]},
+  {word:"example", german:"Beispiel", sentence:"Can you give me an ___?", grade:4, traps:["exampel","exaple","exampl"]},
+  {word:"except", german:"außer", sentence:"Everyone came ___ Tom.", grade:4, traps:["exept","excapt","exsept"]},
+  {word:"excuse", german:"Entschuldigung", sentence:"___ me, where is the library?", grade:4, traps:["exkuse","excuze","exscuse"]},
+  {word:"field", german:"Feld", sentence:"The cows are in the ___.", grade:4, traps:["feild","fild","fielt"]},
+  {word:"fifth", german:"fünfte", sentence:"I'm in the ___ grade.", grade:4, traps:["fith","fifthe","fiffs"]},
+  {word:"finish", german:"beenden", sentence:"I need to ___ my homework.", grade:4, traps:["finisch","finnish","finist"]},
+  {word:"following", german:"folgend", sentence:"Read the ___ instructions.", grade:4, traps:["folowing","followeng","followign"]},
+  {word:"group", german:"Gruppe", sentence:"We worked in a ___ of four.", grade:4, traps:["groop","gruop","groap"]},
+  {word:"happened", german:"passierte", sentence:"What ___ at school today?", grade:4, traps:["happend","hapened","happaned"]},
+  {word:"heavy", german:"schwer", sentence:"This box is very ___.", grade:4, traps:["hevvy","heffy","heavey"]},
+  {word:"hospital", german:"Krankenhaus", sentence:"She went to the ___ to see a doctor.", grade:4, traps:["hospitol","hospitel","hospitall"]},
+  {word:"idea", german:"Idee", sentence:"I have a great ___!", grade:4, traps:["idear","idee","ideia"]},
+  {word:"instead", german:"stattdessen", sentence:"Let's play inside ___ of outside.", grade:4, traps:["insted","insteed","instaed"]},
+  {word:"known", german:"bekannt", sentence:"She is ___ for her painting.", grade:4, traps:["nown","knone","knowen"]},
+  {word:"laugh", german:"lachen", sentence:"That joke made me ___.", grade:4, traps:["laff","laug","lauf"]},
+  {word:"middle", german:"Mitte", sentence:"Sit in the ___ of the row.", grade:4, traps:["midel","middel","midle"]},
+  {word:"minute", german:"Minute", sentence:"Wait just one ___.", grade:4, traps:["minut","minuet","minit"]},
+  {word:"mountain", german:"Berg", sentence:"We climbed the ___ last summer.", grade:4, traps:["montain","mountian","maunten"]},
+  {word:"ocean", german:"Ozean", sentence:"The ___ is very deep.", grade:4, traps:["osean","ocian","oshan"]},
+  {word:"office", german:"Büro", sentence:"My dad works in an ___.", grade:4, traps:["offise","ofice","offica"]},
+  {word:"parent", german:"Elternteil", sentence:"Each ___ came to the school meeting.", grade:4, traps:["parant","parrent","perent"]},
+  {word:"pencil", german:"Bleistift", sentence:"Write with a ___ not a pen.", grade:4, traps:["pencel","pensil","pencill"]},
+  {word:"picnic", german:"Picknick", sentence:"We had a ___ in the park.", grade:4, traps:["picknick","piknic","piccnic"]},
+  {word:"police", german:"Polizei", sentence:"The ___ officer helped us.", grade:4, traps:["polise","polees","poliece"]},
+  {word:"pretty", german:"hübsch", sentence:"The flowers look ___.", grade:4, traps:["prety","pritty","prity"]},
+  {word:"prize", german:"Preis", sentence:"She won first ___.", grade:4, traps:["prise","preis","prys"]},
+  {word:"quite", german:"ziemlich", sentence:"It's ___ cold outside.", grade:4, traps:["quight","qwite","quait"]},
+  {word:"really", german:"wirklich", sentence:"I ___ like your new shoes.", grade:4, traps:["realy","reelly","relley"]},
+  {word:"reason", german:"Grund", sentence:"What is the ___ you are late?", grade:4, traps:["reson","reasen","reeson"]},
+  {word:"remember", german:"erinnern", sentence:"Do you ___ my name?", grade:4, traps:["remmember","remembar","remamber"]},
+  {word:"return", german:"zurückkehren", sentence:"Please ___ the books to the library.", grade:4, traps:["retrun","retern","returne"]},
+  {word:"second", german:"zweiter", sentence:"She came in ___ place.", grade:4, traps:["secend","secound","seccond"]},
+  {word:"since", german:"seit", sentence:"I have lived here ___ 2020.", grade:4, traps:["sinse","sincs","sience"]},
+  {word:"slowly", german:"langsam", sentence:"The turtle walks very ___.", grade:4, traps:["slowley","slowli","sloly"]},
+  {word:"student", german:"Schüler", sentence:"Every ___ needs a notebook.", grade:4, traps:["studant","studdent","stuedent"]},
+  {word:"sure", german:"sicher", sentence:"Are you ___ about that?", grade:4, traps:["shure","shor","shoor"]},
+  {word:"swimming", german:"Schwimmen", sentence:"We go ___ every Saturday.", grade:4, traps:["swiming","swmming","swimeng"]},
+  {word:"though", german:"obwohl", sentence:"I went outside even ___ it was cold.", grade:4, traps:["thougt","thow","tho"]},
+  {word:"tired", german:"müde", sentence:"I am very ___ after the game.", grade:4, traps:["tierd","tyred","tirred"]},
+  {word:"tomorrow", german:"morgen", sentence:"See you ___!", grade:4, traps:["tomorow","tommorow","tomorro"]},
+  {word:"trouble", german:"Ärger", sentence:"I got in ___ for being late.", grade:4, traps:["trubble","troble","trubbel"]},
+  {word:"truly", german:"wirklich", sentence:"I ___ believe in you.", grade:4, traps:["truely","truley","trully"]},
+  {word:"turtle", german:"Schildkröte", sentence:"The ___ moves very slowly.", grade:4, traps:["turtel","turtl","turdle"]},
+  {word:"until", german:"bis", sentence:"Wait ___ I come back.", grade:4, traps:["untill","untl","ontil"]},
+  {word:"village", german:"Dorf", sentence:"My grandma lives in a small ___.", grade:4, traps:["villege","vilage","villige"]},
+  {word:"visit", german:"besuchen", sentence:"We ___ our grandparents every Sunday.", grade:4, traps:["wisit","vizit","visitt"]},
+  {word:"wear", german:"tragen", sentence:"I ___ a jacket when it's cold.", grade:4, traps:["were","wier","ware"]},
+  {word:"whole", german:"ganz", sentence:"I read the ___ book in one day.", grade:4, traps:["hole","whol","whoal"]},
+  {word:"whose", german:"wessen", sentence:"___ bag is this?", grade:4, traps:["who's","whos","whoose"]},
+  {word:"women", german:"Frauen", sentence:"The ___ in my family are all tall.", grade:4, traps:["wimen","womman","womin"]},
+  {word:"writing", german:"Schreiben", sentence:"She enjoys ___ stories.", grade:4, traps:["writting","riting","writeing"]},
+  {word:"written", german:"geschrieben", sentence:"I have ___ a letter to Santa.", grade:4, traps:["writen","ritten","writtan"]},
+  {word:"wrote", german:"schrieb", sentence:"He ___ a poem about spring.", grade:4, traps:["rote","wrought","wrot"]},
+  {word:"young", german:"jung", sentence:"The ___ child learned fast.", grade:4, traps:["yung","joung","younge"]},
+
+  // GRADE 5
+  {word:"although", german:"obwohl", sentence:"___ it was raining, we went out.", grade:5, traps:["allthough","altho","althought"]},
+  {word:"among", german:"unter (mehreren)", sentence:"She sat ___ her friends.", grade:5, traps:["amoung","amung","aming"]},
+  {word:"arrive", german:"ankommen", sentence:"We will ___ at noon.", grade:5, traps:["ariv","arieve","arive"]},
+  {word:"attention", german:"Aufmerksamkeit", sentence:"Please pay ___ to the teacher.", grade:5, traps:["atention","attenshun","attension"]},
+  {word:"beautiful", german:"wunderschön", sentence:"The sunset is ___.", grade:5, traps:["beautifull","beatiful","beautful"]},
+  {word:"countries", german:"Länder", sentence:"There are many ___ in the world.", grade:5, traps:["countrys","contries","cuntrys"]},
+  {word:"course", german:"Kurs", sentence:"Of ___, you can come!", grade:5, traps:["coarse","corse","kourse"]},
+  {word:"cousin", german:"Cousin/Cousine", sentence:"My ___ lives in Munich.", grade:5, traps:["cosin","cusin","cousen"]},
+  {word:"decide", german:"entscheiden", sentence:"I can't ___ which one to pick.", grade:5, traps:["desied","deside","dicied"]},
+  {word:"different", german:"verschieden", sentence:"These two books are very ___.", grade:5, traps:["diffrent","differnt","diferent"]},
+  {word:"evening", german:"Abend", sentence:"We eat dinner in the ___.", grade:5, traps:["evning","eevening","evenig"]},
+  {word:"favorite", german:"Lieblings-", sentence:"Pizza is my ___ food.", grade:5, traps:["favorit","favrite","favarite"]},
+  {word:"finally", german:"endlich", sentence:"We ___ arrived at the beach.", grade:5, traps:["finaly","finially","finely"]},
+  {word:"future", german:"Zukunft", sentence:"What do you want to be in the ___?", grade:5, traps:["futur","fuchure","futere"]},
+  {word:"important", german:"wichtig", sentence:"It's ___ to be kind.", grade:5, traps:["importent","importand","importint"]},
+  {word:"interest", german:"Interesse", sentence:"She has an ___ in science.", grade:5, traps:["intrest","interrest","interst"]},
+  {word:"piece", german:"Stück", sentence:"Can I have a ___ of cake?", grade:5, traps:["peice","pease","pice"]},
+  {word:"planet", german:"Planet", sentence:"Earth is our home ___.", grade:5, traps:["plannet","planit","plenet"]},
+  {word:"present", german:"Geschenk", sentence:"I got a nice ___ for my birthday.", grade:5, traps:["presant","prezent","pressent"]},
+  {word:"president", german:"Präsident", sentence:"The ___ gave a speech.", grade:5, traps:["presidant","presedent","pressident"]},
+  {word:"probably", german:"wahrscheinlich", sentence:"It will ___ rain tomorrow.", grade:5, traps:["probaly","propably","probabley"]},
+  {word:"problem", german:"Problem", sentence:"Can you solve this math ___?", grade:5, traps:["problam","probem","problme"]},
+  {word:"receive", german:"erhalten", sentence:"I hope to ___ a letter soon.", grade:5, traps:["recieve","receve","resieve"]},
+  {word:"sentence", german:"Satz", sentence:"Write a ___ about your pet.", grade:5, traps:["sentense","sentance","senetence"]},
+  {word:"several", german:"mehrere", sentence:"I have ___ books to read.", grade:5, traps:["sevral","severel","severall"]},
+  {word:"special", german:"besonders", sentence:"Today is a ___ day.", grade:5, traps:["speacial","spetschal","spesial"]},
+  {word:"suddenly", german:"plötzlich", sentence:"___, a bird flew in the window.", grade:5, traps:["sudenly","suddenley","suddanly"]},
+  {word:"surprise", german:"Überraschung", sentence:"The party was a big ___!", grade:5, traps:["surpise","surprize","surprice"]},
+  {word:"through", german:"durch", sentence:"We walked ___ the tunnel.", grade:5, traps:["trough","throught","threw"]},
+  {word:"usually", german:"normalerweise", sentence:"I ___ wake up at seven.", grade:5, traps:["usally","ussually","usaully"]},
+  {word:"language", german:"Sprache", sentence:"English is a fun ___ to learn.", grade:5, traps:["languge","languige","langauge"]},
+  {word:"library", german:"Bibliothek", sentence:"I borrowed a book from the ___.", grade:4, traps:["libary","liberry","libery"]},
+  {word:"tongue", german:"Zunge", sentence:"She burned her ___ on the hot soup.", grade:5, traps:["tounge","tung","tonge"]},
+  {word:"island", german:"Insel", sentence:"We went to an ___ on holiday.", grade:5, traps:["iland","islend","ilannd"]},
+  {word:"Wednesday", german:"Mittwoch", sentence:"We have swimming on ___.", grade:5, traps:["Wendsday","Wensday","Wednsday"]},
+  {word:"February", german:"Februar", sentence:"___ is the shortest month.", grade:5, traps:["Febuary","Feburary","Febrary"]},
+  {word:"Tuesday", german:"Dienstag", sentence:"The test is on ___.", grade:5, traps:["Tusday","Tewsday","Tuseday"]},
+  {word:"scissors", german:"Schere", sentence:"Cut the paper with ___.", grade:5, traps:["scisors","sissors","sizors"]},
+  {word:"knowledge", german:"Wissen", sentence:"Reading gives you ___.", grade:5, traps:["knowlege","nowledge","knowladge"]},
+  {word:"daughter", german:"Tochter", sentence:"Their ___ is in my class.", grade:5, traps:["doughter","daugter","dauter"]},
+  {word:"straight", german:"gerade", sentence:"Walk ___ ahead for two blocks.", grade:5, traps:["straigt","strate","straite"]},
+  {word:"neighbor", german:"Nachbar", sentence:"Our ___ has a nice garden.", grade:5, traps:["nieghbor","naibour","neighbour"]},
+  {word:"quiet", german:"leise", sentence:"Please be ___ in the library.", grade:4, traps:["queit","kwiet","qiuet"]},
+  {word:"hungry", german:"hungrig", sentence:"I am ___ — let's eat!", grade:3, traps:["hangry","hungrey","hungri"]},
+  {word:"dangerous", german:"gefährlich", sentence:"Swimming alone can be ___.", grade:5, traps:["dangeros","dangerouse","dangrous"]},
+  {word:"comfortable", german:"bequem", sentence:"This chair is very ___.", grade:5, traps:["comftorble","comfertable","confortable"]},
+];
+
+// ==========================================================
+// STATE
+// ==========================================================
+let progress = loadProgress();
+let currentSession = null;
+
+function loadProgress() {
+  try {
+    const d = localStorage.getItem('spelling_bee_progress');
+    return d ? JSON.parse(d) : {};
+  } catch { return {}; }
+}
+function saveProgress() {
+  localStorage.setItem('spelling_bee_progress', JSON.stringify(progress));
+}
+
+// ==========================================================
+// SESSION
+// ==========================================================
+function getSelectedGrade() {
+  const a = document.querySelector('#grade-selector .sel-btn.active');
+  return a ? a.dataset.grade : '3';
+}
+function getSelectedMode() {
+  const a = document.querySelector('#mode-selector .sel-btn.active');
+  return a ? a.dataset.mode : 'choice';
+}
+
+function startSession() {
+  const grade = getSelectedGrade();
+  const mode = getSelectedMode();
+  const focusTrouble = document.getElementById('focus-trouble').checked;
+
+  let pool;
+  if (grade === 'mix') { pool = [...WORDS]; }
+  else { pool = WORDS.filter(w => w.grade <= parseInt(grade)); }
+
+  const seen = new Set();
+  pool = pool.filter(w => { if (seen.has(w.word)) return false; seen.add(w.word); return true; });
+
+  if (focusTrouble) {
+    const trouble = pool.filter(w => { const p = progress[w.word]; return p && p.wrong > p.correct; });
+    const other = pool.filter(w => { const p = progress[w.word]; return !p || p.wrong <= p.correct; });
+    shuffleArray(trouble); shuffleArray(other);
+    pool = [...trouble, ...other];
+  } else {
+    pool.sort((a, b) => {
+      const pa = progress[a.word] || {correct:0,wrong:0};
+      const pb = progress[b.word] || {correct:0,wrong:0};
+      const sa = pa.wrong - pa.correct + (pa.correct+pa.wrong===0?1:0);
+      const sb = pb.wrong - pb.correct + (pb.correct+pb.wrong===0?1:0);
+      return sb - sa + (Math.random()-0.5)*2;
+    });
+  }
+
+  currentSession = {
+    words: pool.slice(0, 50), current: 0, correct: 0, wrong: 0,
+    streak: 0, maxStreak: 0, wrongWords: [], mode: mode,
+    typingAttempts: 0,
+  };
+
+  document.getElementById('start-screen').classList.add('hidden');
+  document.getElementById('end-screen').classList.add('hidden');
+  document.getElementById('quiz-screen').classList.remove('hidden');
+  showCurrentWord();
+}
+
+function showCurrentWord() {
+  const s = currentSession;
+  const w = s.words[s.current];
+
+  document.getElementById('word-counter').textContent = `Word ${s.current+1} of ${s.words.length}`;
+  document.getElementById('session-score').textContent = `${s.correct} correct`;
+  document.getElementById('progress-fill').style.width = `${(s.current/s.words.length)*100}%`;
+  document.getElementById('correct-count').textContent = s.correct;
+  document.getElementById('wrong-count').textContent = s.wrong;
+  document.getElementById('streak-count').textContent = s.streak;
+
+  document.getElementById('german-word').textContent = w.german;
+  document.getElementById('example-sentence').innerHTML =
+    w.sentence.replace('___', `<span class="blank">${w.word}</span>`);
+
+  document.getElementById('feedback').classList.remove('show');
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('next-btn').classList.remove('show');
+
+  if (s.mode === 'choice') {
+    document.getElementById('choice-area').classList.remove('hidden');
+    document.getElementById('typing-area').classList.add('hidden');
+    document.getElementById('question-label').textContent = 'Which spelling is correct?';
+    showChoiceOptions(w);
+  } else {
+    document.getElementById('choice-area').classList.add('hidden');
+    document.getElementById('typing-area').classList.remove('hidden');
+    document.getElementById('question-label').textContent = 'Type the correct spelling:';
+    setupTypingMode(w);
+  }
+
+  const card = document.getElementById('word-card');
+  card.style.animation = 'none'; card.offsetHeight;
+  card.style.animation = 'slideIn 0.4s ease';
+}
+
+// ==========================================================
+// MULTIPLE CHOICE MODE
+// ==========================================================
+function showChoiceOptions(w) {
+  const traps = w.traps.slice(0, 3);
+  const options = [w.word, ...traps];
+  shuffleArray(options);
+
+  const div = document.getElementById('options');
+  div.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt;
+    btn.onclick = () => handleChoiceAnswer(opt, w.word, btn);
+    div.appendChild(btn);
+  });
+}
+
+function handleChoiceAnswer(selected, correct, btn) {
+  const s = currentSession;
+  const allBtns = document.querySelectorAll('.option-btn');
+  allBtns.forEach(b => b.disabled = true);
+  allBtns.forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
+
+  const feedback = document.getElementById('feedback');
+
+  if (selected === correct) {
+    markCorrect(correct, feedback);
+  } else {
+    btn.classList.add('wrong');
+    markWrong(correct, feedback);
+  }
+
+  document.getElementById('next-btn').classList.add('show');
+}
+
+// ==========================================================
+// TYPING MODE
+// ==========================================================
+function setupTypingMode(w) {
+  const input = document.getElementById('typing-input');
+  input.value = '';
+  input.className = 'typing-input';
+  input.disabled = false;
+  input.focus();
+
+  const submitBtn = document.getElementById('submit-typing-btn');
+  submitBtn.disabled = false;
+
+  currentSession.typingAttempts = 0;
+
+  // Show hint: first letter and length
+  const hint = document.getElementById('hint-text');
+  const hintStr = w.word[0] + ' _ '.repeat(w.word.length - 1).trim();
+  hint.innerHTML = `Hint: <span class="hint-letters">${hintStr}</span> (${w.word.length} letters)`;
+}
+
+function submitTyping() {
+  const s = currentSession;
+  const w = s.words[s.current];
+  const input = document.getElementById('typing-input');
+  const answer = input.value.trim();
+  const feedback = document.getElementById('feedback');
+
+  if (!answer) return;
+
+  s.typingAttempts++;
+
+  if (answer.toLowerCase() === w.word.toLowerCase()) {
+    input.disabled = true;
+    input.className = 'typing-input correct-input';
+    document.getElementById('submit-typing-btn').disabled = true;
+
+    if (s.typingAttempts === 1) {
+      markCorrect(w.word, feedback);
+    } else {
+      // Got it on retry — count as wrong since first attempt failed
+      feedback.textContent = `✅ Correct! The spelling is "${w.word}" — you got it on try #${s.typingAttempts}.`;
+      feedback.className = 'feedback correct-feedback show';
+    }
+
+    revealSentence(w);
+    document.getElementById('next-btn').classList.add('show');
+  } else {
+    if (s.typingAttempts >= 2) {
+      // Two wrong tries — reveal answer
+      input.disabled = true;
+      input.className = 'typing-input wrong-input';
+      document.getElementById('submit-typing-btn').disabled = true;
+      markWrong(w.word, feedback);
+      revealSentence(w);
+      document.getElementById('next-btn').classList.add('show');
+    } else {
+      // First wrong try — give another chance with more hints
+      input.className = 'typing-input wrong-input';
+      setTimeout(() => { input.className = 'typing-input'; }, 600);
+      input.value = '';
+      input.focus();
+
+      feedback.textContent = `❌ Not quite! Try once more...`;
+      feedback.className = 'feedback wrong-feedback show';
+
+      // Show better hint: reveal more letters
+      const hint = document.getElementById('hint-text');
+      let hintStr = '';
+      for (let i = 0; i < w.word.length; i++) {
+        hintStr += (i === 0 || i === w.word.length - 1 || Math.random() < 0.3) ? w.word[i] : ' _ ';
+      }
+      hint.innerHTML = `Hint: <span class="hint-letters">${hintStr}</span> (${w.word.length} letters)`;
+    }
+  }
+}
+
+function revealSentence(w) {
+  document.getElementById('example-sentence').innerHTML =
+    w.sentence.replace('___', `<strong style="color:var(--primary)">${w.word}</strong>`);
+}
+
+// Handle Enter key in typing mode
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const typingArea = document.getElementById('typing-area');
+    const nextBtn = document.getElementById('next-btn');
+    if (!typingArea.classList.contains('hidden')) {
+      if (nextBtn.classList.contains('show')) {
+        nextWord();
+      } else {
+        submitTyping();
+      }
+    } else if (nextBtn.classList.contains('show')) {
+      nextWord();
+    }
+  }
+});
+
+// ==========================================================
+// SCORING
+// ==========================================================
+function markCorrect(word, feedback) {
+  const s = currentSession;
+  s.correct++;
+  s.streak++;
+  if (s.streak > s.maxStreak) s.maxStreak = s.streak;
+
+  if (!progress[word]) progress[word] = {correct:0, wrong:0};
+  progress[word].correct++;
+  progress[word].lastSeen = Date.now();
+  saveProgress();
+
+  feedback.textContent = getCorrectMessage();
+  feedback.className = 'feedback correct-feedback show';
+  if (s.streak >= 3) spawnConfetti();
+
+  updateScoreDisplay();
+}
+
+function markWrong(word, feedback) {
+  const s = currentSession;
+  s.wrong++;
+  s.streak = 0;
+  s.wrongWords.push(word);
+
+  if (!progress[word]) progress[word] = {correct:0, wrong:0};
+  progress[word].wrong++;
+  progress[word].lastSeen = Date.now();
+  saveProgress();
+
+  feedback.textContent = `❌ The correct spelling is: "${word}"`;
+  feedback.className = 'feedback wrong-feedback show';
+  revealSentence(s.words[s.current]);
+
+  updateScoreDisplay();
+}
+
+function updateScoreDisplay() {
+  const s = currentSession;
+  document.getElementById('correct-count').textContent = s.correct;
+  document.getElementById('wrong-count').textContent = s.wrong;
+  document.getElementById('streak-count').textContent = s.streak;
+}
+
+function nextWord() {
+  currentSession.current++;
+  if (currentSession.current >= currentSession.words.length) { endSession(); }
+  else { showCurrentWord(); }
+}
+
+function endSession() {
+  const s = currentSession;
+  document.getElementById('quiz-screen').classList.add('hidden');
+  document.getElementById('end-screen').classList.remove('hidden');
+
+  const pct = Math.round((s.correct / s.words.length) * 100);
+  document.getElementById('final-correct').textContent = s.correct;
+  document.getElementById('final-wrong').textContent = s.wrong;
+  document.getElementById('final-percent').textContent = pct + '%';
+
+  if (pct >= 90) {
+    document.getElementById('end-emoji').textContent = '🏆';
+    document.getElementById('end-title').textContent = 'Amazing!';
+    document.getElementById('end-subtitle').textContent = 'You are a Spelling Champion!';
+    spawnConfetti(20);
+  } else if (pct >= 70) {
+    document.getElementById('end-emoji').textContent = '🎉';
+    document.getElementById('end-title').textContent = 'Well done!';
+    document.getElementById('end-subtitle').textContent = 'Keep it up!';
+  } else if (pct >= 50) {
+    document.getElementById('end-emoji').textContent = '💪';
+    document.getElementById('end-title').textContent = 'Not bad!';
+    document.getElementById('end-subtitle').textContent = 'Practice makes perfect!';
+  } else {
+    document.getElementById('end-emoji').textContent = '📖';
+    document.getElementById('end-title').textContent = 'Keep practicing!';
+    document.getElementById('end-subtitle').textContent = 'Every mistake helps you learn!';
+  }
+
+  const unique = [...new Set(s.wrongWords)];
+  const troubleDiv = document.getElementById('end-trouble-words');
+  if (unique.length === 0) {
+    document.getElementById('end-trouble-section').classList.add('hidden');
+  } else {
+    document.getElementById('end-trouble-section').classList.remove('hidden');
+    troubleDiv.innerHTML = unique.map(w => `<span class="trouble-word">${w}</span>`).join('');
+  }
+
+  // Save session to history
+  saveSessionHistory(s, pct, unique);
+}
+
+function saveSessionHistory(s, pct, wrongWords) {
+  let history = loadHistory();
+  history.push({
+    date: new Date().toISOString(),
+    mode: s.mode === 'choice' ? 'Multiple Choice' : 'Typing',
+    grade: getSelectedGrade(),
+    total: s.words.length,
+    correct: s.correct,
+    wrong: s.wrong,
+    percent: pct,
+    maxStreak: s.maxStreak,
+    wrongWords: wrongWords,
+  });
+  localStorage.setItem('spelling_bee_history', JSON.stringify(history));
+}
+
+function loadHistory() {
+  try {
+    const d = localStorage.getItem('spelling_bee_history');
+    return d ? JSON.parse(d) : [];
+  } catch { return []; }
+}
+
+// ==========================================================
+// START SCREEN & STATS
+// ==========================================================
+function showStartScreen() {
+  document.getElementById('start-screen').classList.remove('hidden');
+  document.getElementById('quiz-screen').classList.add('hidden');
+  document.getElementById('end-screen').classList.add('hidden');
+  updateStatsPanel();
+}
+
+function updateStatsPanel() {
+  const troubleList = document.getElementById('trouble-words-list');
+  const troubleWords = Object.entries(progress)
+    .filter(([_,p]) => p.wrong > p.correct)
+    .sort((a,b) => (b[1].wrong-b[1].correct)-(a[1].wrong-a[1].correct));
+  troubleList.innerHTML = troubleWords.length > 0
+    ? troubleWords.map(([w,p]) => `<span class="trouble-word">${w} (${p.wrong}✗/${p.correct}✓)</span>`).join('')
+    : '<span style="color:var(--text-light);font-size:0.85rem;">No trouble words — great! 🎉</span>';
+
+  const learnedList = document.getElementById('learned-words-list');
+  const learnedWords = Object.entries(progress)
+    .filter(([_,p]) => p.correct >= 3 && p.correct > p.wrong)
+    .sort((a,b) => b[1].correct - a[1].correct);
+  learnedList.innerHTML = learnedWords.length > 0
+    ? learnedWords.map(([w,p]) => `<span class="learned-word">${w} (${p.correct}✓)</span>`).join('')
+    : '<span style="color:var(--text-light);font-size:0.85rem;">No words mastered yet — keep practicing! 💪</span>';
+
+  const allStats = document.getElementById('all-stats-content');
+  const total = Object.keys(progress).length;
+  const tc = Object.values(progress).reduce((s,p) => s+p.correct, 0);
+  const tw = Object.values(progress).reduce((s,p) => s+p.wrong, 0);
+  const ta = tc + tw;
+  allStats.innerHTML = total > 0 ? `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div>📝 Words practiced:</div><div><strong>${total}</strong></div>
+      <div>✅ Correct answers:</div><div><strong>${tc}</strong></div>
+      <div>❌ Wrong answers:</div><div><strong>${tw}</strong></div>
+      <div>📊 Success rate:</div><div><strong>${ta>0?Math.round(tc/ta*100):0}%</strong></div>
+      <div>🏆 Mastered (3× ✓):</div><div><strong>${learnedWords.length}</strong></div>
+      <div>⚠️ Trouble words:</div><div><strong>${troubleWords.length}</strong></div>
+    </div>
+  ` : 'No data yet — start your first session!';
+
+  // Update recent sessions on main page
+  updateRecentSessions();
+}
+
+function updateRecentSessions() {
+  const history = loadHistory();
+  const container = document.getElementById('recent-sessions-content');
+
+  if (history.length === 0) {
+    container.innerHTML = '<div class="rs-empty">No sessions yet — start your first one! 🚀</div>';
+    return;
+  }
+
+  const recent = history.slice(-10).reverse();
+  container.innerHTML = recent.map(h => {
+    const d = new Date(h.date);
+    const dateStr = d.toLocaleDateString('en-GB', {day:'numeric', month:'short'});
+    const timeStr = d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+    const barClass = h.percent >= 80 ? 'good' : h.percent >= 50 ? 'ok' : 'bad';
+    const scoreClass = h.percent >= 80 ? 'score-good' : h.percent >= 50 ? 'score-ok' : 'score-bad';
+    const gradeLabel = h.grade === 'mix' ? 'Mix' : `Grade ${h.grade}`;
+    const modeIcon = h.mode === 'Multiple Choice' ? '🔘' : '⌨️';
+    const missedStr = h.wrongWords && h.wrongWords.length > 0
+      ? 'Missed: ' + h.wrongWords.slice(0, 4).join(', ') + (h.wrongWords.length > 4 ? ` +${h.wrongWords.length - 4} more` : '')
+      : '';
+
+    return `<div class="recent-session-row">
+      <div class="rs-date">${dateStr}<br>${timeStr}</div>
+      <div class="rs-info">
+        <div class="rs-info-top">
+          <span>${modeIcon}</span>
+          <span>${gradeLabel}</span>
+          <span style="color:var(--text-light);font-size:0.75rem">${h.correct}✓ ${h.wrong}✗ · 🔥${h.maxStreak || 0}</span>
+        </div>
+        <div class="rs-bar-bg"><div class="rs-bar-fill ${barClass}" style="width:${h.percent}%"></div></div>
+        ${missedStr ? `<div class="rs-missed">${missedStr}</div>` : ''}
+      </div>
+      <div class="rs-score ${scoreClass}">${h.percent}%</div>
+    </div>`;
+  }).join('') + (history.length > 10 ? `<div style="text-align:center;margin-top:8px;font-size:0.8rem;color:var(--text-light)">Showing last 10 of ${history.length} sessions</div>` : '');
+
+  // Update history tab (reuse same history data)
+  const historyContent = document.getElementById('history-content');
+  if (history.length > 0) {
+    const rows = history.slice().reverse().map(h => {
+      const d = new Date(h.date);
+      const dateStr = d.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+      const timeStr = d.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+      const scoreClass = h.percent >= 80 ? 'score-good' : h.percent >= 50 ? 'score-ok' : 'score-bad';
+      const gradeLabel = h.grade === 'mix' ? 'Mix' : `G${h.grade}`;
+      const wrongStr = h.wrongWords && h.wrongWords.length > 0
+        ? h.wrongWords.slice(0, 5).join(', ') + (h.wrongWords.length > 5 ? '...' : '')
+        : '—';
+      return `<tr>
+        <td>${dateStr}<br><small style="color:var(--text-light)">${timeStr}</small></td>
+        <td>${gradeLabel}</td>
+        <td>${h.mode === 'Multiple Choice' ? '🔘' : '⌨️'}</td>
+        <td class="${scoreClass}">${h.percent}%</td>
+        <td>${h.correct}✓ ${h.wrong}✗</td>
+        <td>🔥${h.maxStreak || 0}</td>
+        <td style="font-size:0.75rem;color:var(--text-light)">${wrongStr}</td>
+      </tr>`;
+    }).join('');
+    historyContent.innerHTML = `<div class="history-scroll"><table class="history-table">
+      <thead><tr><th>Date</th><th>Grade</th><th>Mode</th><th>Score</th><th>Result</th><th>Streak</th><th>Missed</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div style="margin-top:8px;font-size:0.8rem;color:var(--text-light)">Total sessions: <strong>${history.length}</strong></div>`;
+  } else {
+    historyContent.innerHTML = '<div class="history-empty">No sessions completed yet — start practicing!</div>';
+  }
+}
+
+function showStats(section) {
+  ['trouble','learned','all','history'].forEach(s => {
+    document.getElementById(`stats-${s}`).classList.toggle('active', s===section);
+  });
+  document.querySelectorAll('.stats-toggle button').forEach((btn,i) => {
+    btn.classList.toggle('active', ['trouble','learned','all','history'][i]===section);
+  });
+}
+
+function resetProgress() {
+  if (confirm('Really delete all progress and history?')) {
+    progress = {}; saveProgress();
+    localStorage.removeItem('spelling_bee_history');
+    updateStatsPanel();
+  }
+}
+
+// ==========================================================
+// UTILITIES
+// ==========================================================
+function shuffleArray(a) {
+  for (let i=a.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function getCorrectMessage() {
+  const m = ['✅ Correct!','✅ Great job!','✅ Exactly!','✅ Well done!','✅ Perfect!',
+    '✅ Bravo! 👏','✅ Awesome!','✅ Nailed it!'];
+  return m[Math.floor(Math.random()*m.length)];
+}
+function spawnConfetti(n=10) {
+  const e = ['🎉','⭐','🌟','✨','🎊','🎈','💫','🏅'];
+  for (let i=0;i<n;i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className='confetti'; el.textContent=e[Math.floor(Math.random()*e.length)];
+      el.style.left=Math.random()*100+'vw';
+      el.style.animationDuration=(2+Math.random()*2)+'s';
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),4000);
+    }, i*100);
+  }
+}
+
+// Selector buttons
+document.querySelectorAll('#grade-selector .sel-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#grade-selector .sel-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+document.querySelectorAll('#mode-selector .sel-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#mode-selector .sel-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+updateStatsPanel();
+</script>
+</body>
+</html>
