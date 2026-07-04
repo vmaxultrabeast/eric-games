@@ -283,6 +283,22 @@
   @keyframes confetti-fall {
     to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
   }
+  .hidden-reset-dot {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    opacity: 0.15;
+    font-size: 0.65rem;
+    cursor: pointer;
+    padding: 2px;
+    z-index: 10;
+  }
+  .hidden-reset-dot:hover {
+    opacity: 0.8;
+  }
 </style>
 </head>
 <body>
@@ -363,9 +379,7 @@
         <h3>Session history:</h3>
         <div id="history-content"></div>
       </div>
-      <div class="reset-area">
-        <button class="reset-btn" onclick="resetProgress()">🗑️ Reset All Progress</button>
-      </div>
+      <button onclick="resetProgress()" class="hidden-reset-dot" title="Reset Data">.</button>
     </div>
   </div>
 
@@ -943,6 +957,31 @@ function saveProgress() {
   localStorage.setItem('spelling_bee_progress', JSON.stringify(progress));
 }
 
+function saveSessionState() {
+  if (currentSession) {
+    localStorage.setItem('spelling_bee_current_session', JSON.stringify(currentSession));
+  } else {
+    localStorage.removeItem('spelling_bee_current_session');
+  }
+}
+
+function loadSessionState() {
+  try {
+    const d = localStorage.getItem('spelling_bee_current_session');
+    if (d) {
+      currentSession = JSON.parse(d);
+      document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('end-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+      showCurrentWord();
+      return true;
+    }
+  } catch (e) {
+    console.error("Failed to load spelling session state", e);
+  }
+  return false;
+}
+
 // ==========================================================
 // SESSION
 // ==========================================================
@@ -987,6 +1026,7 @@ function startSession() {
     streak: 0, maxStreak: 0, wrongWords: [], mode: mode,
     typingAttempts: 0,
   };
+  saveSessionState();
 
   document.getElementById('start-screen').classList.add('hidden');
   document.getElementById('end-screen').classList.add('hidden');
@@ -1110,6 +1150,7 @@ function submitTyping() {
       // Got it on retry — count as wrong since first attempt failed
       feedback.textContent = `✅ Correct! The spelling is "${w.word}" — you got it on try #${s.typingAttempts}.`;
       feedback.className = 'feedback correct-feedback show';
+      saveSessionState();
     }
 
     revealSentence(w);
@@ -1132,6 +1173,7 @@ function submitTyping() {
 
       feedback.textContent = `❌ Not quite! Try once more...`;
       feedback.className = 'feedback wrong-feedback show';
+      saveSessionState();
 
       // Show better hint: reveal more letters
       const hint = document.getElementById('hint-text');
@@ -1185,6 +1227,7 @@ function markCorrect(word, feedback) {
   if (s.streak >= 3) spawnConfetti();
 
   updateScoreDisplay();
+  saveSessionState();
 }
 
 function markWrong(word, feedback) {
@@ -1203,6 +1246,7 @@ function markWrong(word, feedback) {
   revealSentence(s.words[s.current]);
 
   updateScoreDisplay();
+  saveSessionState();
 }
 
 function updateScoreDisplay() {
@@ -1214,6 +1258,7 @@ function updateScoreDisplay() {
 
 function nextWord() {
   currentSession.current++;
+  saveSessionState();
   if (currentSession.current >= currentSession.words.length) { endSession(); }
   else { showCurrentWord(); }
 }
@@ -1258,6 +1303,9 @@ function endSession() {
 
   // Save session to history
   saveSessionHistory(s, pct, unique);
+  
+  currentSession = null;
+  saveSessionState();
 }
 
 function saveSessionHistory(s, pct, wrongWords) {
@@ -1290,6 +1338,8 @@ function showStartScreen() {
   document.getElementById('start-screen').classList.remove('hidden');
   document.getElementById('quiz-screen').classList.add('hidden');
   document.getElementById('end-screen').classList.add('hidden');
+  currentSession = null;
+  saveSessionState();
   updateStatsPanel();
 }
 
@@ -1412,6 +1462,8 @@ function resetProgress() {
   if (confirm('Really delete all progress and history?')) {
     progress = {}; saveProgress();
     localStorage.removeItem('spelling_bee_history');
+    currentSession = null;
+    saveSessionState();
     updateStatsPanel();
   }
 }
@@ -1456,7 +1508,9 @@ document.querySelectorAll('#mode-selector .sel-btn').forEach(btn => {
   });
 });
 
-updateStatsPanel();
+if (!loadSessionState()) {
+  updateStatsPanel();
+}
 </script>
 </body>
 </html>
