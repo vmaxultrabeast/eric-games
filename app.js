@@ -88,7 +88,7 @@ const GAMES_REGISTRY = [
         cover: 'games/pokemon-collector/cover.png',
         controls: 'Click on tiles to search. Click the hidden Pokeball before 30 seconds run out. Open Pokeballs to collect Pokemon. Manage your collection and trades.',
         addedDate: '2026-07-02',
-        updatedDate: '2026-07-02'
+        updatedDate: '2026-07-05'
     },
     {
         id: 'spelling_app',
