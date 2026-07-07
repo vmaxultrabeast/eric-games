@@ -134,6 +134,17 @@ const GAMES_REGISTRY = [
         controls: 'Space / Up Arrow or click/tap the screen to jump. Equip skins from the shop panel.',
         addedDate: '2026-07-06',
         updatedDate: '2026-07-06'
+    },
+    {
+        id: 'dino-dna',
+        title: 'Dino DNA',
+        category: 'arcade',
+        description: 'An idle card-collecting game! Run the DNA factory to stack DNA packages over time. Collect them to spawn face-down cards and flip them to discover 67 unique dinosaurs across 6 rarity tiers!',
+        folder: 'games/dino-dna',
+        cover: 'games/dino-dna/cover.png',
+        controls: 'Run the factory to generate DNA. Click the Collect button to get cards, then click on cards to flip them. Discover all 67 dinos!',
+        addedDate: '2026-07-07',
+        updatedDate: '2026-07-07'
     }
     // New games can be easily appended here in the future
 ];

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dino DNA</title>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="arcade-background">
+        <div class="glow-orb" id="orb-1"></div>
+        <div class="glow-orb" id="orb-2"></div>
+    </div>
+
+    <div class="game-container">
+        <!-- HEADER -->
+        <header class="game-header">
+            <a href="../../" class="back-btn">
+                <i class="fa-solid fa-arrow-left"></i> ARCADE
+            </a>
+            <div class="header-main">
+                <h1 class="game-title">DINO DNA</h1>
+                <p class="game-subtitle">Run the factory, collect ancient fossil DNA, and clone 67 dinosaur species</p>
+            </div>
+            <div class="header-right">
+                <!-- Cheat Form -->
+                <div class="cheat-box">
+                    <input type="text" id="cheatInput" placeholder="ENTER CODE" maxlength="6">
+                    <button id="cheatBtn" class="action-btn">APPLY</button>
+                </div>
+                <div id="cheatFeedback" class="cheat-feedback"></div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD -->
+        <div class="stats-dashboard">
+            <div class="stat-card">
+                <span class="stat-label"><i class="fa-solid fa-dna text-cyan"></i> DNA UNLOCKED</span>
+                <span class="stat-value" id="dinosDiscovered">0 / 67</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label"><i class="fa-solid fa-clone text-purple"></i> CARDS FLIPPED</span>
+                <span class="stat-value" id="cardsFlipped">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label"><i class="fa-solid fa-industry text-yellow"></i> FACTORY TIME</span>
+                <span class="stat-value" id="factoryTime">00:00:00 / 01:00:00</span>
+                <div class="progress-bar" style="width: 100%; margin-top: 6px;">
+                    <div class="progress-fill fill-yellow" id="factoryProgress" style="width: 0%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN LAYOUT -->
+        <div class="main-layout">
+            <!-- LEFT PANEL: FACTORY CONTROL & DECK -->
+            <div class="side-panel flex-col">
+                <!-- DNA Factory Control -->
+                <div class="glass-panel factory-panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-industry"></i> CLONING FACTORY</h2>
+                    </div>
+                    <div class="factory-status-box">
+                        <div class="status-row">
+                            <span>Production Rate:</span>
+                            <span id="productionRate">1 DNA / hour</span>
+                        </div>
+                        <div class="status-row">
+                            <span>Stacked DNA:</span>
+                            <span class="text-cyan font-bold" id="stackedCount">0 DNA Packages</span>
+                        </div>
+                    </div>
+                    <div class="factory-actions">
+                        <button class="btn btn-action w-100" id="collectBtn" disabled>
+                            <i class="fa-solid fa-box-open"></i> COLLECT STACKED DNA (0)
+                        </button>
+                        <div class="btn-group">
+                            <button class="btn btn-secondary" id="synthesizeBtn">
+                                <i class="fa-solid fa-flask"></i> MANUAL SYNTHESIS (5s)
+                            </button>
+                            <div class="toggle-container">
+                                <label class="switch">
+                                    <input type="checkbox" id="fastModeToggle">
+                                    <span class="slider round"></span>
+                                </label>
+                                <span class="toggle-label">Fast Mode (5s)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unopened Cards Section -->
+                <div class="glass-panel cards-panel flex-grow">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-rectangle-list"></i> PENDING DNA PACKAGES</h2>
+                        <span class="badge" id="pendingCount">0</span>
+                    </div>
+                    <div class="pending-cards-scroll">
+                        <div class="pending-cards-grid" id="pendingCardsGrid">
+                            <!-- Cards appear face down here -->
+                            <div class="empty-deck-message" id="emptyDeckMsg">
+                                <i class="fa-solid fa-box-archive"></i>
+                                <p>No pending DNA packages. Wait for the factory or manually synthesize DNA to get cards to flip!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: 67 DINOS COLLECTION -->
+            <div class="glass-panel collection-panel">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-images"></i> DINOSAUR DNA ARCHIVES</h2>
+                    <div class="filter-controls">
+                        <input type="text" id="dinoSearch" placeholder="Search archives..." style="outline:none;">
+                        <select id="rarityFilter">
+                            <option value="all">All Rarities</option>
+                            <option value="common">Common (23)</option>
+                            <option value="uncommon">Uncommon (18)</option>
+                            <option value="rare">Rare (15)</option>
+                            <option value="epic">Epic (7)</option>
+                            <option value="legendary">Legendary (3)</option>
+                            <option value="og">OG (1)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="collection-scroll">
+                    <div class="dino-grid" id="dinoGrid">
+                        <!-- 67 items dynamically populated -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER / RESET -->
+        <footer class="game-footer">
+            <button class="clear-btn" id="resetDataBtn">
+                <i class="fa-solid fa-trash-can"></i> RESET ALL ARCHIVES
+            </button>
+        </footer>
+    </div>
+
+    <!-- MODAL FOR DETAILED REVEAL / ZOOMS -->
+    <div class="overlay" id="detailOverlay">
+        <div class="modal card-spotlight" id="detailCard">
+            <div class="modal-header">
+                <h2 id="detailTitle">TRICERATOPS</h2>
+                <button class="close-btn" id="detailCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="detail-visual-box">
+                    <canvas id="detailCanvas" width="200" height="150"></canvas>
+                </div>
+                <div id="detailRarityBadge" class="rarity-badge tier-common">COMMON</div>
+                <div class="detail-stats-box">
+                    <div class="detail-row">
+                        <span>DNA Level:</span>
+                        <span id="detailCount" class="text-cyan font-bold">x0</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Era:</span>
+                        <span id="detailEra">Late Cretaceous</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Diet:</span>
+                        <span id="detailDiet">Herbivore</span>
+                    </div>
+                </div>
+                <p id="detailDesc" class="detail-desc">A large herbivorous dinosaur that had a massive frill and three horns on its head.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
