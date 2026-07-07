@@ -125,9 +125,9 @@ function loadSave() {
         try {
             const parsed = JSON.parse(data);
             gameState.dinos = parsed.dinos || {};
-            gameState.lastCollectTime = parsed.lastCollectTime || Date.now();
-            gameState.stackedDNA = parsed.stackedDNA || 0;
-            gameState.cardsFlipped = parsed.cardsFlipped || 0;
+            gameState.lastCollectTime = Number(parsed.lastCollectTime) || Date.now();
+            gameState.stackedDNA = Number(parsed.stackedDNA) || 0;
+            gameState.cardsFlipped = Number(parsed.cardsFlipped) || 0;
             gameState.pendingCards = parsed.pendingCards || [];
         } catch (e) {
             console.error("Save load error", e);
@@ -142,6 +142,13 @@ function saveData() {
 // Calculate stacked offline DNA
 function updateOfflineAccumulation() {
     const now = Date.now();
+    
+    // Safety check for clock desyncs/future saved timestamps
+    if (gameState.lastCollectTime > now || isNaN(gameState.lastCollectTime)) {
+        gameState.lastCollectTime = now;
+        saveData();
+    }
+    
     const elapsed = now - gameState.lastCollectTime;
     const rate = TIME_PER_DNA;
     const newlyStacked = Math.floor(elapsed / rate);
@@ -695,10 +702,19 @@ function applyCheat() {
     
     if (input === "2011") {
         feedback.style.color = RARITY_CONFIG.common.color;
-        feedback.textContent = "CHEAT ACTIVE: +10 DNA STACKED!";
+        feedback.textContent = "CHEAT ACTIVE: +10 DNA CARDS!";
         
-        gameState.stackedDNA += 10;
+        for (let i = 0; i < 10; i++) {
+            const dino = rollDinosaur();
+            gameState.pendingCards.push({
+                id: Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+                dinoId: dino.id,
+                flipped: false
+            });
+        }
+        
         saveData();
+        spawnPendingCards();
         updateUIElements();
         
         setTimeout(() => {
