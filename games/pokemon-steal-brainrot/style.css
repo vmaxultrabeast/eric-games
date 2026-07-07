@@ -1,0 +1,898 @@
+/* ==========================================================================
+   Design Tokens & CSS Variables
+   ========================================================================== */
+:root {
+    --color-bg: #0a0b10;
+    --color-panel: rgba(18, 20, 32, 0.65);
+    --color-panel-border: rgba(255, 255, 255, 0.08);
+    --color-card: rgba(30, 34, 54, 0.45);
+    
+    --color-text: #f0f3f8;
+    --color-text-muted: #8e9bb0;
+    
+    /* Neon accents */
+    --color-cyan: #00f0ff;
+    --color-green: #39ff14;
+    --color-red: #ff073a;
+    --color-yellow: #ffcc00;
+    --color-purple: #bd00ff;
+    
+    /* Fonts */
+    --font-main: 'Outfit', sans-serif;
+    --font-display: 'Orbitron', sans-serif;
+}
+
+/* ==========================================================================
+   Reset & Core Styles
+   ========================================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Background animation */
+.arcade-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    overflow: hidden;
+}
+
+.glow-orb {
+    position: absolute;
+    width: 40vw;
+    height: 40vw;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.12;
+    pointer-events: none;
+    animation: pulseOrbs 12s ease-in-out infinite alternate;
+}
+
+#orb-1 {
+    top: -10%;
+    left: -10%;
+    background-color: var(--color-cyan);
+}
+
+#orb-2 {
+    bottom: -10%;
+    right: -10%;
+    background-color: var(--color-purple);
+    animation-delay: 6s;
+}
+
+@keyframes pulseOrbs {
+    0% { transform: scale(1) translate(0, 0); }
+    100% { transform: scale(1.15) translate(40px, 30px); }
+}
+
+/* ==========================================================================
+   Layout Containers
+   ========================================================================== */
+.game-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 100vh;
+}
+
+/* ==========================================================================
+   Header Elements
+   ========================================================================== */
+.game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    border-bottom: 1px solid var(--color-panel-border);
+    padding-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.back-btn {
+    text-decoration: none;
+    color: var(--color-text-muted);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border: 1px solid var(--color-panel-border);
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.03);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.back-btn:hover {
+    color: var(--color-text);
+    border-color: var(--color-cyan);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+
+.header-main {
+    flex-grow: 1;
+}
+
+.game-title {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--color-cyan), var(--color-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(189, 0, 255, 0.1);
+}
+
+.game-subtitle {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+.stats-hub {
+    display: flex;
+    gap: 15px;
+}
+
+.stat-card {
+    background-color: rgba(18, 20, 32, 0.8);
+    border: 1px solid var(--color-panel-border);
+    border-radius: 12px;
+    padding: 10px 20px;
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.stat-value {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-cyan);
+    margin-top: 4px;
+}
+
+#passiveIncome {
+    color: var(--color-purple);
+}
+
+/* ==========================================================================
+   Main Grid Layout
+   ========================================================================== */
+.game-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1.2fr 1fr;
+    gap: 20px;
+    flex-grow: 1;
+}
+
+@media (max-width: 1024px) {
+    .game-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.flex-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ==========================================================================
+   Glass Panels
+   ========================================================================== */
+.glass-panel {
+    background-color: var(--color-panel);
+    border: 1px solid var(--color-panel-border);
+    border-radius: 16px;
+    padding: 20px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 10px;
+}
+
+.panel-header h2 {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.badge {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    background-color: rgba(255, 255, 255, 0.08);
+    padding: 3px 8px;
+    border-radius: 20px;
+    color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   Raiders List & Shop
+   ========================================================================== */
+.raiders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.raiders-list::-webkit-scrollbar,
+.deploy-options::-webkit-scrollbar,
+.collection-list::-webkit-scrollbar {
+    width: 6px;
+}
+.raiders-list::-webkit-scrollbar-thumb,
+.deploy-options::-webkit-scrollbar-thumb,
+.collection-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.raider-card {
+    background-color: var(--color-card);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.raider-card:hover {
+    transform: translateX(4px);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.raider-img-box {
+    width: 48px;
+    height: 48px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.raider-img-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.raider-info {
+    flex-grow: 1;
+}
+
+.raider-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.raider-status-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.raider-status {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-idle { color: var(--color-cyan); }
+.status-raiding { color: var(--color-green); }
+.status-jailed { color: var(--color-red); }
+
+.raider-timer-wrap {
+    width: 70px;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-align: right;
+}
+
+.bailout-btn {
+    padding: 4px 10px;
+    background-color: rgba(255, 7, 58, 0.15);
+    border: 1px solid var(--color-red);
+    color: var(--color-red);
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bailout-btn:hover {
+    background-color: var(--color-red);
+    color: white;
+    box-shadow: 0 0 10px rgba(255, 7, 58, 0.4);
+}
+
+/* Shop entries */
+.recruit-shop {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.shop-card {
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.shop-card:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+    transform: translateY(-2px);
+    border-color: var(--color-purple);
+}
+
+.shop-card img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+.shop-card h4 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.shop-price {
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-yellow);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.empty-shop-slot {
+    background-color: rgba(255, 255, 255, 0.01);
+    border: 1px dashed rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 110px;
+    color: rgba(255, 255, 255, 0.1);
+    font-size: 1.5rem;
+}
+
+/* ==========================================================================
+   Zone Cards
+   ========================================================================== */
+.zones-panel {
+    flex-grow: 1;
+}
+
+.zones-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex-grow: 1;
+    justify-content: space-around;
+}
+
+.zone-card {
+    background: linear-gradient(135deg, rgba(30, 34, 54, 0.6) 0%, rgba(18, 20, 32, 0.8) 100%);
+    border: 1px solid var(--color-panel-border);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    transition: all 0.3s ease;
+}
+
+.zone-card:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.zone-info {
+    flex-grow: 1;
+    max-width: 40%;
+}
+
+.zone-tag {
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    font-weight: 900;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+}
+
+.difficulty-easy { background-color: rgba(57, 255, 20, 0.15); color: var(--color-green); }
+.difficulty-medium { background-color: rgba(255, 204, 0, 0.15); color: var(--color-yellow); }
+.difficulty-hard { background-color: rgba(255, 7, 58, 0.15); color: var(--color-red); }
+
+.zone-info h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-top: 6px;
+}
+
+.zone-info p {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-top: 2px;
+}
+
+.zone-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 140px;
+    font-size: 0.85rem;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.detail-row span:first-child {
+    color: var(--color-text-muted);
+}
+
+.detail-row span:last-child {
+    font-weight: 600;
+}
+
+.btn {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-action {
+    padding: 12px 20px;
+    background-color: var(--color-cyan);
+    color: var(--color-bg);
+}
+
+.btn-action:hover {
+    background-color: white;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
+}
+
+.btn-action:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* ==========================================================================
+   Defense Systems
+   ========================================================================== */
+.alert-box {
+    background-color: rgba(255, 204, 0, 0.04);
+    border: 1px solid rgba(255, 204, 0, 0.15);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.alert-header {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+}
+
+.text-yellow { color: var(--color-yellow); }
+.text-red { color: var(--color-red); animation: blinkRed 1s infinite alternate; }
+
+@keyframes blinkRed {
+    0% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s linear;
+}
+
+.fill-yellow { background-color: var(--color-yellow); }
+.fill-red { background-color: var(--color-red); }
+
+.alert-desc {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.defenses-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.defense-card {
+    background-color: var(--color-card);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.def-info h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.def-info p {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-top: 2px;
+}
+
+.def-action {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.def-stat {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+}
+
+.small-btn {
+    padding: 6px 12px;
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--color-panel-border);
+    color: var(--color-text);
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.small-btn:hover {
+    border-color: var(--color-purple);
+    background-color: rgba(189, 0, 255, 0.1);
+    box-shadow: 0 0 10px rgba(189, 0, 255, 0.3);
+}
+
+/* ==========================================================================
+   Stolen Brainrots Vault
+   ========================================================================== */
+.collection-panel {
+    flex-grow: 1;
+}
+
+.collection-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.item-card {
+    background-color: rgba(255, 255, 255, 0.01);
+    border: 1px dashed rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.item-card.unlocked {
+    background-color: var(--color-card);
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.04);
+}
+
+.item-icon {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.1);
+}
+
+.unlocked .item-icon {
+    color: var(--color-purple);
+}
+
+.item-details h4 {
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.item-details p {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   Modals & Overlays
+   ========================================================================== */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(5, 5, 8, 0.85);
+    z-index: 100;
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal {
+    background-color: #121420;
+    border: 1px solid var(--color-panel-border);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 460px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.overlay.active .modal {
+    transform: scale(1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 12px;
+}
+
+.modal-header h2 {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-cyan);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+    color: var(--color-red);
+}
+
+.modal-body p {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+}
+
+.deploy-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 15px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.deploy-option-card {
+    background-color: var(--color-card);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.deploy-option-card:hover {
+    border-color: var(--color-cyan);
+    background-color: rgba(0, 240, 255, 0.05);
+}
+
+.option-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.option-left img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.option-name {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+/* Spotlight layout for result modals */
+.card-spotlight {
+    position: relative;
+}
+
+.card-spotlight::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.03));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.text-center { text-align: center; }
+
+.result-icon-box {
+    font-size: 3rem;
+    margin: 10px 0;
+}
+
+.success-theme { color: var(--color-green); }
+.failed-theme { color: var(--color-red); }
+
+#resultModalCard.success-card {
+    border-color: var(--color-green);
+    box-shadow: 0 0 30px rgba(57, 255, 20, 0.2);
+}
+
+#resultModalCard.failed-card {
+    border-color: var(--color-red);
+    box-shadow: 0 0 30px rgba(255, 7, 58, 0.2);
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+.game-footer {
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid var(--color-panel-border);
+    padding-top: 15px;
+}
+
+.clear-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.clear-btn:hover {
+    color: var(--color-red);
+}

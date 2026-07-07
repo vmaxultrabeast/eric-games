@@ -112,6 +112,17 @@ const GAMES_REGISTRY = [
         controls: 'Click on request action buttons (Feed, Drink, Play) to care for your Pokemon. Enter cheat code: helper to get an assistant, or level to boost a random Pokemon by 10 levels.',
         addedDate: '2026-07-06',
         updatedDate: '2026-07-06'
+    },
+    {
+        id: 'pokemon-steal-brainrot',
+        title: 'Pokémon: Steal a Brainrot',
+        category: 'arcade',
+        description: 'A heist-style Pokémon idle game! Deploy your Pokémon to steal viral Brainrot items from other bases to earn coins and passive income. Buy base defense locks and traps to fend off incoming AI thief raids!',
+        folder: 'games/pokemon-steal-brainrot',
+        cover: 'games/pokemon-steal-brainrot/cover.png',
+        controls: 'Buy and deploy Pokémon to raid zones. Buy defenses to lower AI raid success rate. Bail out jailed Pokémon using coins.',
+        addedDate: '2026-07-06',
+        updatedDate: '2026-07-06'
     }
     // New games can be easily appended here in the future
 ];

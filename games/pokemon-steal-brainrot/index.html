@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon: Steal a Brainrot</title>
+    <!-- CSS libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="arcade-background">
+        <div class="glow-orb" id="orb-1"></div>
+        <div class="glow-orb" id="orb-2"></div>
+    </div>
+
+    <div class="game-container">
+        <!-- HEADER -->
+        <header class="game-header">
+            <a href="../../" class="back-btn">
+                <i class="fa-solid fa-arrow-left"></i> ARCADE
+            </a>
+            <div class="header-main">
+                <h1 class="game-title">POKEMON: STEAL A BRAINROT</h1>
+                <p class="game-subtitle">Deploy heists, collect memes, defend your vault</p>
+            </div>
+            <div class="stats-hub">
+                <div class="stat-card">
+                    <span class="stat-label"><i class="fa-solid fa-coins"></i> VAULT COINS</span>
+                    <span class="stat-value" id="vaultCoins">100</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label"><i class="fa-solid fa-chart-line"></i> PASSIVE INCOME</span>
+                    <span class="stat-value" id="passiveIncome">+0/s</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN GRID LAYOUT -->
+        <main class="game-grid">
+            
+            <!-- COLUMN 1: RAIDERS -->
+            <section class="grid-col flex-col">
+                <div class="glass-panel raiders-panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-user-ninja"></i> YOUR RAIDERS</h2>
+                        <span class="badge" id="raidersCount">0 / 6</span>
+                    </div>
+                    <div class="raiders-list" id="raidersList">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <div class="glass-panel recruit-panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-store"></i> RECRUIT SHOP</h2>
+                        <button class="small-btn" id="refreshShopBtn"><i class="fa-solid fa-rotate"></i> 25c</button>
+                    </div>
+                    <div class="recruit-shop" id="recruitShop">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUMN 2: OPERATIONS & ZONE RAIDS -->
+            <section class="grid-col flex-col">
+                <div class="glass-panel zones-panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-map-location-dot"></i> TARGET ZONES</h2>
+                    </div>
+                    <div class="zones-list">
+                        <!-- EASY ZONE -->
+                        <div class="zone-card" id="zone-easy">
+                            <div class="zone-info">
+                                <span class="zone-tag difficulty-easy">EASY</span>
+                                <h3>Viridian Forest</h3>
+                                <p>High success rate, low rewards</p>
+                            </div>
+                            <div class="zone-details">
+                                <div class="detail-row"><span>Success:</span><span>80%</span></div>
+                                <div class="detail-row"><span>Payout:</span><span>10 - 30 Coins</span></div>
+                                <div class="detail-row"><span>Time:</span><span>10s</span></div>
+                            </div>
+                            <button class="btn btn-action" onclick="openDeployModal('easy')">
+                                <i class="fa-solid fa-paper-plane"></i> DEPLOY RAID
+                            </button>
+                        </div>
+
+                        <!-- MEDIUM ZONE -->
+                        <div class="zone-card" id="zone-medium">
+                            <div class="zone-info">
+                                <span class="zone-tag difficulty-medium">MEDIUM</span>
+                                <h3>Cerulean Cave</h3>
+                                <p>Riskier vault heist, moderate rewards</p>
+                            </div>
+                            <div class="zone-details">
+                                <div class="detail-row"><span>Success:</span><span>60%</span></div>
+                                <div class="detail-row"><span>Payout:</span><span>40 - 100 Coins</span></div>
+                                <div class="detail-row"><span>Time:</span><span>20s</span></div>
+                            </div>
+                            <button class="btn btn-action" onclick="openDeployModal('medium')">
+                                <i class="fa-solid fa-paper-plane"></i> DEPLOY RAID
+                            </button>
+                        </div>
+
+                        <!-- HARD ZONE -->
+                        <div class="zone-card" id="zone-hard">
+                            <div class="zone-info">
+                                <span class="zone-tag difficulty-hard">HARD</span>
+                                <h3>Victory Road</h3>
+                                <p>Strict security, extreme payouts</p>
+                            </div>
+                            <div class="zone-details">
+                                <div class="detail-row"><span>Success:</span><span>40%</span></div>
+                                <div class="detail-row"><span>Payout:</span><span>150 - 450 Coins</span></div>
+                                <div class="detail-row"><span>Time:</span><span>30s</span></div>
+                            </div>
+                            <button class="btn btn-action" onclick="openDeployModal('hard')">
+                                <i class="fa-solid fa-paper-plane"></i> DEPLOY RAID
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUMN 3: VAULT SECURITY & VAULT DEFENES -->
+            <section class="grid-col flex-col">
+                <div class="glass-panel defense-panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-shield-halved"></i> VAULT SECURITY</h2>
+                    </div>
+                    
+                    <div class="alert-box" id="securityAlert">
+                        <div class="alert-header">
+                            <span><i class="fa-solid fa-circle-exclamation text-yellow"></i> STATUS: SECURE</span>
+                            <span id="incomingTimer">60s</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill fill-yellow" id="incomingProgress" style="width: 100%;"></div>
+                        </div>
+                        <p class="alert-desc" id="securityDesc">AI thieves are mapping coordinates. Defenses will auto-roll survival checks.</p>
+                    </div>
+
+                    <div class="defenses-list">
+                        <!-- DEFENSE 1: LOCKS -->
+                        <div class="defense-card">
+                            <div class="def-info">
+                                <h3>Pokedex Lock</h3>
+                                <p>Reduces theft success rate by 20%</p>
+                            </div>
+                            <div class="def-action">
+                                <span class="def-stat" id="lockLevel">Level 0</span>
+                                <button class="small-btn" id="upgradeLockBtn">
+                                    <i class="fa-solid fa-up-long"></i> <span id="lockCost">200c</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- DEFENSE 2: TRAPS -->
+                        <div class="defense-card">
+                            <div class="def-info">
+                                <h3>Electric Trap</h3>
+                                <p>Reduces theft success rate by 30%</p>
+                            </div>
+                            <div class="def-action">
+                                <span class="def-stat" id="trapLevel">Level 0</span>
+                                <button class="small-btn" id="upgradeTrapBtn">
+                                    <i class="fa-solid fa-up-long"></i> <span id="trapCost">450c</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- DEFENSE 3: GUARD -->
+                        <div class="defense-card">
+                            <div class="def-info">
+                                <h3>Braivery Guard</h3>
+                                <p>Reduces theft success rate by 50%</p>
+                            </div>
+                            <div class="def-action">
+                                <span class="def-stat" id="guardLevel">Level 0</span>
+                                <button class="small-btn" id="upgradeGuardBtn">
+                                    <i class="fa-solid fa-up-long"></i> <span id="guardCost">1000c</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel collection-panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-vault"></i> STOLEN BRAINROTS</h2>
+                    </div>
+                    <div class="collection-list" id="collectionList">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <!-- FOOTER -->
+        <footer class="game-footer">
+            <button class="clear-btn" id="resetProgressBtn"><i class="fa-solid fa-trash-can"></i> RESET PROGRESS</button>
+        </footer>
+    </div>
+
+    <!-- OVERLAY MODAL: DEPLOY SELECT -->
+    <div class="overlay" id="deployOverlay">
+        <div class="modal card-spotlight">
+            <div class="modal-header">
+                <h2>SELECT A RAIDER</h2>
+                <button class="close-btn" onclick="closeDeployModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Choose an idle Pokémon to deploy to <span id="deployZoneName">Zone</span>.</p>
+                <div class="deploy-options" id="deployOptionsList">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OVERLAY MODAL: RESULT SHOW -->
+    <div class="overlay" id="resultOverlay">
+        <div class="modal card-spotlight" id="resultModalCard">
+            <div class="modal-header">
+                <h2 id="resultTitle">HEIST SUCCESS!</h2>
+                <button class="close-btn" onclick="closeResultModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="result-icon-box" id="resultIcon">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <h3 id="resultSub">Gained +50 Coins</h3>
+                <p id="resultText">Charmander successfully bypassed security locks!</p>
+                <button class="btn btn-action" style="margin-top: 15px;" onclick="closeResultModal()">
+                    <i class="fa-solid fa-check"></i> CONTINUING OPERATIONS
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
