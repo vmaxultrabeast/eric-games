@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doggy Run</title>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="arcade-background">
+        <div class="glow-orb" id="orb-1"></div>
+        <div class="glow-orb" id="orb-2"></div>
+    </div>
+
+    <div class="game-container">
+        <!-- HEADER -->
+        <header class="game-header">
+            <a href="../../" class="back-btn">
+                <i class="fa-solid fa-arrow-left"></i> ARCADE
+            </a>
+            <div class="header-main">
+                <h1 class="game-title">DOGGY RUN</h1>
+                <p class="game-subtitle">Jump over obstacles, collect coins, and unlock premium dog skins</p>
+            </div>
+        </header>
+
+        <!-- STATS DASHBOARD -->
+        <div class="stats-dashboard">
+            <div class="stat-card">
+                <span class="stat-label"><i class="fa-solid fa-trophy text-yellow"></i> HIGH SCORE</span>
+                <span class="stat-value" id="highScore">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label"><i class="fa-solid fa-person-running text-cyan"></i> SCORE</span>
+                <span class="stat-value" id="currentScore">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label"><i class="fa-solid fa-coins text-yellow"></i> COINS</span>
+                <span class="stat-value" id="coinCount">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label"><i class="fa-solid fa-signature text-purple"></i> DOG NAME</span>
+                <input type="text" id="dogNameInput" value="Doggy" maxlength="12" style="background:none; border:none; border-bottom:1px dashed rgba(255,255,255,0.3); color:#fff; font-family:var(--font-display); font-size:1.1rem; font-weight:700; text-align:center; width:130px; outline:none; margin-top:4px;">
+            </div>
+        </div>
+
+        <!-- MAIN LAYOUT -->
+        <div class="main-layout">
+            <!-- LEFT: GAME CANVAS VIEWPORT -->
+            <div class="glass-panel canvas-panel">
+                <div class="canvas-container" id="canvasContainer">
+                    <canvas id="gameCanvas" width="800" height="400"></canvas>
+                    
+                    <!-- START SCREEN OVERLAY -->
+                    <div class="canvas-overlay" id="startScreen">
+                        <div class="overlay-content text-center">
+                            <i class="fa-solid fa-circle-play start-icon"></i>
+                            <h2>READY TO RUN?</h2>
+                            <p>Press SPACE or Tap the Screen to Jump & Avoid Obstacles!</p>
+                            <button class="btn btn-action" id="startBtn">
+                                <i class="fa-solid fa-play"></i> START RUN
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- GAME OVER OVERLAY -->
+                    <div class="canvas-overlay hidden" id="gameOverScreen">
+                        <div class="overlay-content text-center">
+                            <i class="fa-solid fa-skull-crossbones death-icon"></i>
+                            <h2 class="text-red">RUN OVER!</h2>
+                            <div class="final-stats">
+                                <p>Score: <span id="finalScore" class="text-cyan">0</span></p>
+                                <p>Coins Collected: <span id="finalCoins" class="text-yellow">0</span></p>
+                            </div>
+                            <button class="btn btn-action" id="retryBtn">
+                                <i class="fa-solid fa-rotate-left"></i> RUN AGAIN
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: SKINS SHOP -->
+            <div class="glass-panel shop-panel">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-store"></i> DOG SKINS SHOP</h2>
+                </div>
+                <div class="shop-grid" id="shopGrid">
+                    <!-- Dynamically populated skins -->
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER / RESET -->
+        <footer class="game-footer">
+            <button class="clear-btn" id="resetDataBtn">
+                <i class="fa-solid fa-trash-can"></i> RESET ALL RECORDS
+            </button>
+        </footer>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

@@ -123,6 +123,17 @@ const GAMES_REGISTRY = [
         controls: 'Buy and deploy Pokémon to raid zones. Buy defenses to lower AI raid success rate. Bail out jailed Pokémon using coins.',
         addedDate: '2026-07-06',
         updatedDate: '2026-07-06'
+    },
+    {
+        id: 'doggy-run',
+        title: 'Doggy Run',
+        category: 'arcade',
+        description: 'A 2D side-scrolling endless runner! Guide your dog through obstacles and jump to collect floating coins. Use your coins in the shop to purchase and equip premium dog skins like Husky, Robo-Dog, or Cosmic Shiba!',
+        folder: 'games/doggy-run',
+        cover: 'games/doggy-run/cover.png',
+        controls: 'Space / Up Arrow or click/tap the screen to jump. Equip skins from the shop panel.',
+        addedDate: '2026-07-06',
+        updatedDate: '2026-07-06'
     }
     // New games can be easily appended here in the future
 ];

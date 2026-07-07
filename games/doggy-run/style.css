@@ -1,0 +1,518 @@
+/* ==========================================================================
+   Design Tokens & CSS Variables
+   ========================================================================== */
+:root {
+    --color-bg: #0a0b10;
+    --color-panel: rgba(18, 20, 32, 0.7);
+    --color-panel-border: rgba(255, 255, 255, 0.08);
+    --color-card: rgba(30, 34, 54, 0.5);
+    
+    --color-text: #f0f3f8;
+    --color-text-muted: #8e9bb0;
+    
+    /* Neon accents */
+    --color-cyan: #00f0ff;
+    --color-green: #39ff14;
+    --color-red: #ff073a;
+    --color-yellow: #ffcc00;
+    --color-purple: #bd00ff;
+    
+    /* Fonts */
+    --font-main: 'Outfit', sans-serif;
+    --font-display: 'Orbitron', sans-serif;
+}
+
+/* ==========================================================================
+   Reset & Core Styles
+   ========================================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Background animation */
+.arcade-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    overflow: hidden;
+}
+
+.glow-orb {
+    position: absolute;
+    width: 45vw;
+    height: 45vw;
+    border-radius: 50%;
+    filter: blur(140px);
+    opacity: 0.1;
+    pointer-events: none;
+    animation: pulseOrbs 15s ease-in-out infinite alternate;
+}
+
+#orb-1 {
+    top: -10%;
+    left: -10%;
+    background-color: var(--color-cyan);
+}
+
+#orb-2 {
+    bottom: -10%;
+    right: -10%;
+    background-color: var(--color-purple);
+    animation-delay: 7s;
+}
+
+@keyframes pulseOrbs {
+    0% { transform: scale(1) translate(0, 0); }
+    100% { transform: scale(1.15) translate(40px, 30px); }
+}
+
+/* ==========================================================================
+   Layout Containers
+   ========================================================================== */
+.game-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 100vh;
+}
+
+/* ==========================================================================
+   Header Elements
+   ========================================================================== */
+.game-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    border-bottom: 1px solid var(--color-panel-border);
+    padding-bottom: 15px;
+}
+
+.back-btn {
+    text-decoration: none;
+    color: var(--color-text-muted);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border: 1px solid var(--color-panel-border);
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.03);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.back-btn:hover {
+    color: var(--color-text);
+    border-color: var(--color-cyan);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+
+.header-main {
+    flex-grow: 1;
+}
+
+.game-title {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--color-cyan), var(--color-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(189, 0, 255, 0.1);
+}
+
+.game-subtitle {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+/* ==========================================================================
+   Stats Dashboard
+   ========================================================================== */
+.stats-dashboard {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.stat-card {
+    background-color: var(--color-panel);
+    border: 1px solid var(--color-panel-border);
+    border-radius: 14px;
+    padding: 12px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    backdrop-filter: blur(10px);
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 1px;
+}
+
+.stat-value {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 4px;
+}
+
+.text-yellow { color: var(--color-yellow); }
+.text-cyan { color: var(--color-cyan); }
+.text-red { color: var(--color-red); }
+.text-purple { color: var(--color-purple); }
+
+/* ==========================================================================
+   Main Grid Layout
+   ========================================================================== */
+.main-layout {
+    display: grid;
+    grid-template-columns: 1.8fr 1.2fr;
+    gap: 20px;
+    flex-grow: 1;
+}
+
+@media (max-width: 900px) {
+    .main-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.glass-panel {
+    background-color: var(--color-panel);
+    border: 1px solid var(--color-panel-border);
+    border-radius: 16px;
+    padding: 20px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* ==========================================================================
+   Canvas Panels
+   ========================================================================== */
+.canvas-panel {
+    padding: 15px;
+    justify-content: center;
+}
+
+.canvas-container {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background-color: #0d0e14;
+    aspect-ratio: 2 / 1;
+    width: 100%;
+}
+
+#gameCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.canvas-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(10, 11, 16, 0.85);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+}
+
+.canvas-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.overlay-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+}
+
+.start-icon {
+    font-size: 3.5rem;
+    color: var(--color-cyan);
+    animation: floatIcon 3s ease-in-out infinite alternate;
+}
+
+.death-icon {
+    font-size: 3.5rem;
+    color: var(--color-red);
+    animation: shakeIcon 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes floatIcon {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-10px); }
+}
+
+@keyframes shakeIcon {
+    0% { transform: rotate(-5deg); }
+    100% { transform: rotate(5deg); }
+}
+
+.overlay-content h2 {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.overlay-content p {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+}
+
+.final-stats {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 10px 24px;
+    display: flex;
+    gap: 20px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    margin: 5px 0;
+}
+
+.btn {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-action {
+    padding: 12px 24px;
+    background-color: var(--color-cyan);
+    color: var(--color-bg);
+}
+
+.btn-action:hover {
+    background-color: white;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   Skins Shop
+   ========================================================================== */
+.shop-panel {
+    max-height: 480px;
+}
+
+.panel-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 10px;
+}
+
+.panel-header h2 {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.shop-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    padding-right: 5px;
+    flex-grow: 1;
+}
+
+.shop-grid::-webkit-scrollbar {
+    width: 6px;
+}
+.shop-grid::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.skin-card {
+    background-color: var(--color-card);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+}
+
+.skin-card:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.skin-card.active {
+    border-color: var(--color-cyan);
+    background: rgba(0, 240, 255, 0.02);
+}
+
+.skin-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.skin-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.skin-details h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.skin-details p {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-top: 2px;
+}
+
+.skin-action {
+    display: flex;
+    align-items: center;
+}
+
+.buy-btn {
+    padding: 6px 14px;
+    background-color: rgba(255, 204, 0, 0.1);
+    border: 1px solid var(--color-yellow);
+    color: var(--color-yellow);
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.buy-btn:hover {
+    background-color: var(--color-yellow);
+    color: var(--color-bg);
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.4);
+}
+
+.equip-btn {
+    padding: 6px 14px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--color-text);
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.equip-btn:hover {
+    border-color: var(--color-cyan);
+    background-color: rgba(0, 240, 255, 0.05);
+}
+
+.active-tag {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-cyan);
+    border: 1px solid var(--color-cyan);
+    padding: 4px 10px;
+    border-radius: 6px;
+    background-color: rgba(0, 240, 255, 0.05);
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+.game-footer {
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid var(--color-panel-border);
+    padding-top: 15px;
+    margin-top: 10px;
+}
+
+.clear-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.clear-btn:hover {
+    color: var(--color-red);
+}
+
+.text-center { text-align: center; }
