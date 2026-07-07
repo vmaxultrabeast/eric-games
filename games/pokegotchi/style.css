@@ -1,0 +1,840 @@
+/* ==========================================================================
+   Design System & Colors (Premium Dark Glassmorphism)
+   ========================================================================== */
+:root {
+    --bg-gradient: linear-gradient(135deg, #080710 0%, #0f172a 100%);
+    --panel-bg: rgba(255, 255, 255, 0.03);
+    --panel-border: rgba(255, 255, 255, 0.07);
+    --panel-border-glow: rgba(0, 240, 255, 0.1);
+    
+    --color-cyan: #00f0ff;
+    --color-purple: #9d4edd;
+    --color-pink: #ff007f;
+    --color-red: #ff3333;
+    --color-green: #33ff99;
+    --color-yellow: #ffcc00;
+    --color-orange: #ff9933;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    
+    --font-display: 'Orbitron', sans-serif;
+    --font-body: 'Outfit', sans-serif;
+    
+    /* Rarity Specific Colors */
+    --rarity-legendary: #ffaa00;
+    --rarity-no-evolve: #ff00ff;
+    --rarity-evolution3: #00ffcc;
+    --rarity-evolution2: #3399ff;
+    --rarity-basic: #a0aec0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg-gradient);
+    font-family: var(--font-body);
+    color: var(--text-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ==========================================================================
+   Layout Wrapper
+   ========================================================================== */
+.game-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* ==========================================================================
+   Dashboard Header
+   ========================================================================== */
+.game-dashboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: 20px 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.brand h1 {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+
+.cyan-text {
+    color: var(--color-cyan);
+    text-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+}
+
+.logo-glow {
+    font-size: 2.2rem;
+    color: var(--color-cyan);
+    filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.8));
+    animation: pulseGlow 3s infinite alternate;
+}
+
+.stats-panel {
+    display: flex;
+    gap: 25px;
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 10px 20px;
+    border-radius: 12px;
+    min-width: 120px;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.text-cyan {
+    color: var(--color-cyan);
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+}
+
+.text-purple {
+    color: var(--color-purple);
+    text-shadow: 0 0 10px rgba(157, 78, 221, 0.4);
+}
+
+/* ==========================================================================
+   Cheat Codes Panel
+   ========================================================================== */
+.cheat-container {
+    display: flex;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--panel-border);
+    border-radius: 30px;
+    padding: 4px;
+    width: 250px;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.cheat-container:focus-within {
+    border-color: var(--color-cyan);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+}
+
+.cheat-container input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-main);
+    padding: 8px 16px;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    width: 100%;
+    letter-spacing: 1px;
+}
+
+.cheat-container input::placeholder {
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.action-btn {
+    background: linear-gradient(135deg, var(--color-cyan), var(--color-purple));
+    border: none;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 240, 255, 0.3);
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 240, 255, 0.5);
+}
+
+.cheat-feedback {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    text-align: right;
+    margin-top: 6px;
+    min-height: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* ==========================================================================
+   Helper Widget
+   ========================================================================== */
+.helper-widget {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: rgba(157, 78, 221, 0.05);
+    border: 1px solid rgba(157, 78, 221, 0.3);
+    border-radius: 16px;
+    padding: 15px 25px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(12px);
+    animation: glowBorderPurple 4s infinite alternate;
+}
+
+.helper-widget.hidden {
+    display: none;
+}
+
+.helper-avatar {
+    font-size: 2rem;
+    color: var(--color-purple);
+    filter: drop-shadow(0 0 8px rgba(157, 78, 221, 0.6));
+}
+
+.helper-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.helper-title {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-purple);
+    text-shadow: 0 0 10px rgba(157, 78, 221, 0.3);
+}
+
+.helper-status {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.helper-progress-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+    width: 100%;
+}
+
+.helper-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--color-purple);
+    box-shadow: 0 0 10px var(--color-purple);
+    transition: width 1s linear;
+}
+
+.helper-timer {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-purple);
+    align-self: flex-end;
+}
+
+/* ==========================================================================
+   Main Display Area
+   ========================================================================== */
+.main-display {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    backdrop-filter: blur(16px);
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.pet-grid-header {
+    margin-bottom: 25px;
+}
+
+.pet-grid-header h2 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.pet-grid-header p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* ==========================================================================
+   Pokemon Roster Grid
+   ========================================================================== */
+.pet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+}
+
+/* ==========================================================================
+   Pet Card Styling
+   ========================================================================== */
+.pet-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--panel-border);
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.pet-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+/* Card Glows based on Rarity */
+.pet-card.tier-legendary { border-color: rgba(255, 170, 0, 0.3); box-shadow: 0 5px 15px rgba(255, 170, 0, 0.05); }
+.pet-card.tier-legendary:hover { border-color: rgba(255, 170, 0, 0.7); box-shadow: 0 8px 30px rgba(255, 170, 0, 0.2); }
+.pet-card.tier-no-evolve { border-color: rgba(255, 0, 255, 0.3); }
+.pet-card.tier-no-evolve:hover { border-color: rgba(255, 0, 255, 0.7); }
+.pet-card.tier-evolution3 { border-color: rgba(0, 255, 204, 0.3); }
+.pet-card.tier-evolution3:hover { border-color: rgba(0, 255, 204, 0.7); }
+.pet-card.tier-evolution2 { border-color: rgba(51, 153, 255, 0.3); }
+.pet-card.tier-evolution2:hover { border-color: rgba(51, 153, 255, 0.7); }
+.pet-card.tier-basic { border-color: rgba(160, 174, 192, 0.3); }
+.pet-card.tier-basic:hover { border-color: rgba(160, 174, 192, 0.7); }
+
+/* Rarity Tag Badge */
+.rarity-tag {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 0.6rem;
+    font-family: var(--font-display);
+    font-weight: 900;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    background: rgba(255, 255, 255, 0.05);
+}
+.tier-legendary .rarity-tag { color: var(--rarity-legendary); border: 1px solid var(--rarity-legendary); }
+.tier-no-evolve .rarity-tag { color: var(--rarity-no-evolve); border: 1px solid var(--rarity-no-evolve); }
+.tier-evolution3 .rarity-tag { color: var(--rarity-evolution3); border: 1px solid var(--rarity-evolution3); }
+.tier-evolution2 .rarity-tag { color: var(--rarity-evolution2); border: 1px solid var(--rarity-evolution2); }
+.tier-basic .rarity-tag { color: var(--rarity-basic); border: 1px solid var(--rarity-basic); }
+
+/* Header Info */
+.pet-header {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pet-name {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+.pet-level {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Image Visual Box */
+.pet-visual-box {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    height: 150px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.pet-visual-box img {
+    height: 110px;
+    object-fit: contain;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+}
+
+.pet-card:hover .pet-visual-box img {
+    transform: scale(1.08) translateY(-3px);
+}
+
+/* Glow spotlight inside card */
+.card-spotlight {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: var(--color-cyan);
+    opacity: 0.05;
+    filter: blur(40px);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+.tier-legendary .card-spotlight { background: var(--rarity-legendary); opacity: 0.08; }
+.tier-no-evolve .card-spotlight { background: var(--rarity-no-evolve); opacity: 0.08; }
+.tier-evolution3 .card-spotlight { background: var(--rarity-evolution3); opacity: 0.08; }
+
+/* Level/XP Progression */
+.xp-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.xp-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.xp-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.xp-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--color-cyan), var(--color-purple));
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+    transition: width 0.3s ease;
+}
+
+/* Needs bars */
+.needs-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(0,0,0,0.1);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.02);
+}
+
+.need-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.need-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    width: 45px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.need-label i {
+    font-size: 0.8rem;
+    width: 12px;
+}
+
+.need-bar {
+    flex-grow: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.need-fill {
+    height: 100%;
+    width: 100%;
+    background: var(--color-green);
+    transition: width 0.5s ease, background-color 0.5s ease;
+}
+
+/* Action request indicator panel */
+.request-banner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(255, 0, 127, 0.03);
+    border: 1px dashed rgba(255, 0, 127, 0.2);
+    border-radius: 12px;
+    text-align: center;
+    min-height: 75px;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.request-banner.active {
+    background: rgba(0, 240, 255, 0.04);
+    border-color: var(--color-cyan);
+    animation: flashBorders 2s infinite alternate;
+}
+
+.request-text {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.request-banner.active .request-text {
+    color: var(--color-cyan);
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.action-buttons button {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    color: var(--text-main);
+    padding: 8px 0;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+}
+
+.action-buttons button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
+}
+
+.action-buttons button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Neon buttons for when they are specifically active */
+.action-buttons button.highlight-feed {
+    background: rgba(51, 255, 153, 0.1);
+    border-color: var(--color-green);
+    color: var(--color-green);
+    box-shadow: 0 0 10px rgba(51, 255, 153, 0.2);
+}
+.action-buttons button.highlight-feed:hover {
+    background: var(--color-green);
+    color: #000;
+    box-shadow: 0 0 15px var(--color-green);
+}
+
+.action-buttons button.highlight-drink {
+    background: rgba(0, 240, 255, 0.1);
+    border-color: var(--color-cyan);
+    color: var(--color-cyan);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+.action-buttons button.highlight-drink:hover {
+    background: var(--color-cyan);
+    color: #000;
+    box-shadow: 0 0 15px var(--color-cyan);
+}
+
+.action-buttons button.highlight-play {
+    background: rgba(157, 78, 221, 0.1);
+    border-color: var(--color-purple);
+    color: var(--color-purple);
+    box-shadow: 0 0 10px rgba(157, 78, 221, 0.2);
+}
+.action-buttons button.highlight-play:hover {
+    background: var(--color-purple);
+    color: #fff;
+    box-shadow: 0 0 15px var(--color-purple);
+}
+
+/* Request shake effect */
+.pet-card.demanding {
+    animation: gentleShake 0.5s ease-in-out infinite alternate;
+    border-color: var(--color-pink);
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.15);
+}
+
+/* ==========================================================================
+   Overlay Layout (Modal systems)
+   ========================================================================== */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(20px);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Evolution Modal Card */
+.evolution-card {
+    background: rgba(15, 15, 25, 0.8);
+    border: 1px solid rgba(0, 240, 255, 0.2);
+    box-shadow: 0 20px 60px rgba(0, 240, 255, 0.2);
+    width: 480px;
+    border-radius: 28px;
+    padding: 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transform: scale(0.9);
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.overlay.active .evolution-card {
+    transform: scale(1);
+}
+
+.evo-header h2 {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--color-cyan);
+    letter-spacing: 3px;
+    text-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+    margin-bottom: 25px;
+}
+
+.evo-visuals {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.evo-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 140px;
+}
+
+.evo-stage img {
+    height: 100px;
+    object-fit: contain;
+    filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.4));
+}
+
+.evo-stage span {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.evo-arrow {
+    font-size: 2rem;
+    color: var(--color-cyan);
+    animation: arrowFloat 1.5s infinite alternate ease-in-out;
+}
+
+.evo-text {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 30px;
+}
+
+.glow-btn {
+    background: linear-gradient(135deg, var(--color-cyan) 0%, var(--color-purple) 100%);
+    border: none;
+    outline: none;
+    color: white;
+    padding: 14px 40px;
+    border-radius: 25px;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(0, 240, 255, 0.3);
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.glow-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(0, 240, 255, 0.5);
+}
+
+/* Burst Background Light */
+.burst-light {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(0, 240, 255, 0.15) 0%, rgba(0,0,0,0) 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+    pointer-events: none;
+    animation: rotateBurst 20s infinite linear;
+}
+
+/* New Pokemon Card modal */
+.new-pokemon-card {
+    background: rgba(15, 15, 25, 0.8);
+    border: 1px solid rgba(157, 78, 221, 0.2);
+    box-shadow: 0 20px 60px rgba(157, 78, 221, 0.2);
+    width: 400px;
+    border-radius: 28px;
+    padding: 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transform: scale(0.9);
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.overlay.active .new-pokemon-card {
+    transform: scale(1);
+}
+
+.rarity-badge {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+.new-pokemon-card.tier-legendary { border-color: var(--rarity-legendary); box-shadow: 0 20px 60px rgba(255, 170, 0, 0.25); }
+.new-pokemon-card.tier-legendary .rarity-badge { background: rgba(255, 170, 0, 0.1); border: 1px solid var(--rarity-legendary); color: var(--rarity-legendary); }
+.new-pokemon-card.tier-no-evolve .rarity-badge { background: rgba(255, 0, 255, 0.1); border: 1px solid var(--rarity-no-evolve); color: var(--rarity-no-evolve); }
+.new-pokemon-card.tier-evolution3 .rarity-badge { background: rgba(0, 255, 204, 0.1); border: 1px solid var(--rarity-evolution3); color: var(--rarity-evolution3); }
+.new-pokemon-card.tier-evolution2 .rarity-badge { background: rgba(51, 153, 255, 0.1); border: 1px solid var(--rarity-evolution2); color: var(--rarity-evolution2); }
+.new-pokemon-card.tier-basic .rarity-badge { background: rgba(160, 174, 192, 0.1); border: 1px solid var(--rarity-basic); color: var(--rarity-basic); }
+
+.new-image-wrap {
+    height: 160px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.new-image-wrap img {
+    height: 140px;
+    object-fit: contain;
+    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+}
+
+.new-name {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 900;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.new-text {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 30px;
+    line-height: 1.4;
+}
+
+/* ==========================================================================
+   Animations CSS
+   ========================================================================== */
+@keyframes pulseGlow {
+    0% { filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.5)); }
+    100% { filter: drop-shadow(0 0 15px rgba(0, 240, 255, 1)); }
+}
+
+@keyframes glowBorderPurple {
+    0% { border-color: rgba(157, 78, 221, 0.2); box-shadow: 0 0 10px rgba(157, 78, 221, 0.05); }
+    100% { border-color: rgba(157, 78, 221, 0.6); box-shadow: 0 0 20px rgba(157, 78, 221, 0.2); }
+}
+
+@keyframes flashBorders {
+    0% { border-color: rgba(0, 240, 255, 0.2); }
+    100% { border-color: rgba(0, 240, 255, 0.7); }
+}
+
+@keyframes gentleShake {
+    0% { transform: rotate(-0.5deg) translateY(0); }
+    100% { transform: rotate(0.5deg) translateY(-2px); }
+}
+
+@keyframes arrowFloat {
+    0% { transform: translateX(-4px); }
+    100% { transform: translateX(4px); }
+}
+
+@keyframes rotateBurst {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}

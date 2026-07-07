@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokegotchi</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-wrapper">
+        <!-- Game Header / Stats Dashboard -->
+        <header class="game-dashboard">
+            <div class="dash-left">
+                <div class="brand">
+                    <i class="fa-solid fa-egg logo-glow"></i>
+                    <h1>POKE<span class="cyan-text">GOTCHI</span></h1>
+                </div>
+            </div>
+            
+            <div class="dash-center">
+                <div class="stats-panel">
+                    <div class="stat-box">
+                        <span class="stat-label">ACTIVE PETS</span>
+                        <span id="activeCount" class="stat-value text-cyan">1</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">LEVEL 100s</span>
+                        <span id="level100Count" class="stat-value text-purple">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-right">
+                <!-- Cheat Code Section -->
+                <div class="cheat-container">
+                    <input type="text" id="cheatInput" placeholder="ENTER CODE" maxlength="10">
+                    <button id="cheatBtn" class="action-btn">APPLY</button>
+                </div>
+                <div id="cheatFeedback" class="cheat-feedback"></div>
+            </div>
+        </header>
+
+        <!-- Main Display Content Area -->
+        <main class="main-display">
+            <!-- Active Helper Card (Nurse Joy / Autopilot) -->
+            <div id="helperWidget" class="helper-widget hidden">
+                <div class="helper-avatar">
+                    <i class="fa-solid fa-user-nurse"></i>
+                </div>
+                <div class="helper-info">
+                    <div class="helper-title">Nanny Joy Active</div>
+                    <div class="helper-status">Resolving next request in:</div>
+                    <div class="helper-progress-bar">
+                        <div id="helperProgressBarFill" class="helper-progress-fill"></div>
+                    </div>
+                    <div id="helperTimer" class="helper-timer">30s</div>
+                </div>
+            </div>
+
+            <div class="pet-grid-header">
+                <h2>Cared Pokemon</h2>
+                <p>Keep your Pokemon happy and healthy. Level up to 100 to evolve them, or get new ones!</p>
+            </div>
+
+            <!-- grid container of active pokemons -->
+            <div class="pet-grid" id="pokemonGrid">
+                <!-- Dynamically populated cards -->
+            </div>
+        </main>
+    </div>
+
+    <!-- EVOLUTION OVERLAY -->
+    <div id="evolutionOverlay" class="overlay">
+        <div class="evolution-card">
+            <div class="burst-light"></div>
+            <div class="evo-header">
+                <h2>EVOLUTION!</h2>
+            </div>
+            <div class="evo-visuals">
+                <div class="evo-stage before">
+                    <img id="evoBeforeImg" src="" alt="Before">
+                    <span id="evoBeforeName">Pikachu</span>
+                </div>
+                <div class="evo-arrow">
+                    <i class="fa-solid fa-circle-chevron-right"></i>
+                </div>
+                <div class="evo-stage after">
+                    <img id="evoAfterImg" src="" alt="After">
+                    <span id="evoAfterName">Raichu</span>
+                </div>
+            </div>
+            <p class="evo-text">Your Pokemon evolved into a stronger form!</p>
+            <button id="evolutionCloseBtn" class="glow-btn">CONTINUE</button>
+        </div>
+    </div>
+
+    <!-- NEW POKEMON UNLOCKED OVERLAY -->
+    <div id="newPokemonOverlay" class="overlay">
+        <div class="new-pokemon-card" id="newPokemonCard">
+            <div class="burst-light"></div>
+            <h2 id="newRarity" class="rarity-badge">LEGENDARY</h2>
+            <div class="new-image-wrap">
+                <img id="newImg" src="" alt="New Pokemon">
+            </div>
+            <div class="new-name" id="newName">Mewtwo</div>
+            <p class="new-text">A new friend joined your family since Raichu reached level 100!</p>
+            <button id="newCloseBtn" class="glow-btn">WELCOME HOME</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

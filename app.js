@@ -101,6 +101,17 @@ const GAMES_REGISTRY = [
         addedDate: '2026-07-04',
         updatedDate: '2026-07-04',
         hidden: true
+    },
+    {
+        id: 'pokegotchi',
+        title: 'Pokegotchi',
+        category: 'arcade',
+        description: 'Raise your own pocket monsters in a Tamagotchi-style game. Play with, feed, and water your Pokemon to gain XP and level them up. Evolve at level 100 or raise a growing family of active pets!',
+        folder: 'games/pokegotchi',
+        cover: 'games/pokegotchi/cover.png',
+        controls: 'Click on request action buttons (Feed, Drink, Play) to care for your Pokemon. Enter cheat code: helper to get an assistant.',
+        addedDate: '2026-07-06',
+        updatedDate: '2026-07-06'
     }
     // New games can be easily appended here in the future
 ];
