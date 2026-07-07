@@ -7257,13 +7257,14 @@ function applyCheat() {
         const randIdx = Math.floor(Math.random() * gameState.activePokemon.length);
         const p = gameState.activePokemon[randIdx];
         
-        p.level = Math.min(100, p.level + 10);
+        p.level += 10;
         p.xpNeeded = 100 + (p.level - 1) * 10;
         
         feedback.textContent = `${p.name} GAINED +10 LEVELS!`;
         feedback.style.color = "var(--color-green)";
         
-        if (p.level >= 100) {
+        if (p.level >= 100 && !p.hasTriggeredLevel100) {
+            p.hasTriggeredLevel100 = true;
             triggerLevel100Events(randIdx);
         }
         
@@ -7399,7 +7400,8 @@ window.solveRequest = function(index, type, isHelper = false) {
     }
 
     // Check Evolution or New Friend Unlock at Level 100
-    if (p.level >= 100) {
+    if (p.level >= 100 && !p.hasTriggeredLevel100) {
+        p.hasTriggeredLevel100 = true;
         triggerLevel100Events(index);
     }
 
@@ -7445,15 +7447,14 @@ function triggerLevel100Events(index) {
             p.needs = { food: 100, drink: 100, play: 100 };
             p.activeRequest = null;
             p.lastRequestTime = Date.now();
+            p.hasTriggeredLevel100 = false;
             
             const afterImg = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${p.id}.png`;
             
             showEvolutionScreen(beforeName, beforeImg, p.name, afterImg);
         }
     } else {
-        // No evolution: stays at L100, spawn a new companion!
-        p.level = 100;
-        p.xp = 0;
+        // No evolution: stays, no level cap, spawn a new companion!
         p.activeRequest = null;
         gameState.totalLevel100s++;
         
@@ -7472,7 +7473,8 @@ function triggerLevel100Events(index) {
                 xpNeeded: 100,
                 needs: { food: 100, drink: 100, play: 100 },
                 activeRequest: null,
-                lastRequestTime: Date.now()
+                lastRequestTime: Date.now(),
+                hasTriggeredLevel100: false
             });
             
             showNewPokemonScreen(rolledData.name, rolledData.id, rolledData.rarity);
@@ -7605,7 +7607,7 @@ function renderAll() {
             <div class="rarity-tag">${p.rarity.toUpperCase()}</div>
             <div class="pet-header">
                 <div class="pet-name">${p.name}</div>
-                <div class="pet-level">LEVEL ${p.level} / 100</div>
+                <div class="pet-level">${p.level < 100 ? 'LEVEL ' + p.level + ' / 100' : 'LEVEL ' + p.level}</div>
             </div>
             
             <div class="pet-visual-box">
