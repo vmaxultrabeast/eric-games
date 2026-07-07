@@ -7248,6 +7248,27 @@ function applyCheat() {
         saveState();
         feedback.textContent = "HELPER ACTIVATED!";
         feedback.style.color = "var(--color-green)";
+    } else if (code === "level") {
+        if (gameState.activePokemon.length === 0) {
+            feedback.textContent = "NO ACTIVE POKEMON!";
+            feedback.style.color = "var(--color-red)";
+            return;
+        }
+        const randIdx = Math.floor(Math.random() * gameState.activePokemon.length);
+        const p = gameState.activePokemon[randIdx];
+        
+        p.level = Math.min(100, p.level + 10);
+        p.xpNeeded = 100 + (p.level - 1) * 10;
+        
+        feedback.textContent = `${p.name} GAINED +10 LEVELS!`;
+        feedback.style.color = "var(--color-green)";
+        
+        if (p.level >= 100) {
+            triggerLevel100Events(randIdx);
+        }
+        
+        saveState();
+        renderAll();
     } else {
         feedback.textContent = "INVALID CHEAT CODE";
         feedback.style.color = "var(--color-red)";
