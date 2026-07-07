@@ -5,10 +5,10 @@ const SKINS_DATABASE = {
     default: {
         id: "default",
         name: "Golden Retriever",
-        cost: 0,
+        cost: 150,
         color: "#ffb03a",
         subColor: "#ffe5b4",
-        accentColor: "#ff4500", // Red collar
+        accentColor: "#ff4500",
         description: "Your faithful starting golden companion.",
         iconClass: "fa-dog",
         iconColor: "#ffb03a"
@@ -19,7 +19,7 @@ const SKINS_DATABASE = {
         cost: 100,
         color: "#8a95a5",
         subColor: "#ffffff",
-        accentColor: "#00f0ff", // Neon cyan collar
+        accentColor: "#00f0ff",
         description: "Unlocks glowing cyan eyes and cool gray coat.",
         iconClass: "fa-dog",
         iconColor: "#8a95a5"
@@ -30,7 +30,7 @@ const SKINS_DATABASE = {
         cost: 250,
         color: "#505562",
         subColor: "#8e94a2",
-        accentColor: "#ff073a", // Neon red visor
+        accentColor: "#ff073a",
         description: "Unlocks cybernetic plating and red laser visors.",
         iconClass: "fa-robot",
         iconColor: "#505562"
@@ -41,7 +41,7 @@ const SKINS_DATABASE = {
         cost: 500,
         color: "#c68a4c",
         subColor: "#ffffff",
-        accentColor: "#bd00ff", // Purple cape
+        accentColor: "#bd00ff",
         description: "Unlocks a flapping purple superhero cape.",
         iconClass: "fa-shield-dog",
         iconColor: "#c68a4c"
@@ -52,7 +52,7 @@ const SKINS_DATABASE = {
         cost: 1000,
         color: "#e1a15c",
         subColor: "#f4f4f6",
-        accentColor: "#39ff14", // Neon green space collar
+        accentColor: "#39ff14",
         description: "Unlocks space-suit helmet and star particle trail.",
         iconClass: "fa-user-astronaut",
         iconColor: "#e1a15c"
@@ -60,13 +60,310 @@ const SKINS_DATABASE = {
     goldendoodle: {
         id: "goldendoodle",
         name: "Golden Doodle",
-        cost: 150,
+        cost: 0,
         color: "#ffd37a",
         subColor: "#ffffff",
-        accentColor: "#ffaa00", // Gold collar
+        accentColor: "#ffaa00",
         description: "Fluffy golden doodle companion (Quincy super code).",
         iconClass: "fa-dog",
         iconColor: "#ffd37a"
+    },
+    bulldog: {
+        id: "bulldog",
+        name: "English Bulldog",
+        cost: 80,
+        color: "#d2b48c",
+        subColor: "#f5f5dc",
+        accentColor: "#8b4513",
+        description: "A sturdy English Bulldog with a leather collar.",
+        iconClass: "fa-dog",
+        iconColor: "#d2b48c"
+    },
+    poodle: {
+        id: "poodle",
+        name: "Fancy Poodle",
+        cost: 120,
+        color: "#f5f5f5",
+        subColor: "#ffffff",
+        accentColor: "#ff69b4",
+        description: "Elegant white poodle with a pink designer collar.",
+        iconClass: "fa-dog",
+        iconColor: "#f5f5f5"
+    },
+    pug: {
+        id: "pug",
+        name: "Chubby Pug",
+        cost: 90,
+        color: "#e6c280",
+        subColor: "#fdf5e6",
+        accentColor: "#1a1a1a",
+        description: "An adorable, wrinkly pug with a dark face mask.",
+        iconClass: "fa-dog",
+        iconColor: "#e6c280"
+    },
+    dalmatian: {
+        id: "dalmatian",
+        name: "Dalmatian",
+        cost: 130,
+        color: "#ffffff",
+        subColor: "#e6e6e6",
+        accentColor: "#ff3333",
+        description: "Classic spotted coat with a bright red collar.",
+        iconClass: "fa-dog",
+        iconColor: "#ffffff"
+    },
+    german_shepherd: {
+        id: "german_shepherd",
+        name: "German Shepherd",
+        cost: 160,
+        color: "#a0522d",
+        subColor: "#2f1f17",
+        accentColor: "#008000",
+        description: "Alert guardian with tan and black markings.",
+        iconClass: "fa-shield-dog",
+        iconColor: "#a0522d"
+    },
+    beagle: {
+        id: "beagle",
+        name: "Friendly Beagle",
+        cost: 95,
+        color: "#cd853f",
+        subColor: "#ffffff",
+        accentColor: "#4b5320",
+        description: "Merry tri-color hound with active tracking senses.",
+        iconClass: "fa-dog",
+        iconColor: "#cd853f"
+    },
+    boxer: {
+        id: "boxer",
+        name: "Energetic Boxer",
+        cost: 110,
+        color: "#d2691e",
+        subColor: "#faf0e6",
+        accentColor: "#ff4500",
+        description: "Playful boxer with a strong, athletic frame.",
+        iconClass: "fa-dog",
+        iconColor: "#d2691e"
+    },
+    chihuahua: {
+        id: "chihuahua",
+        name: "Tiny Chihuahua",
+        cost: 70,
+        color: "#f5f5dc",
+        subColor: "#ffffff",
+        accentColor: "#ff00ff",
+        description: "Feisty little companion with giant alert ears.",
+        iconClass: "fa-dog",
+        iconColor: "#f5f5dc"
+    },
+    great_dane: {
+        id: "great_dane",
+        name: "Great Dane",
+        cost: 200,
+        color: "#708090",
+        subColor: "#cfd8dc",
+        accentColor: "#3a3d40",
+        description: "A gentle giant with a majestic slate-gray coat.",
+        iconClass: "fa-dog",
+        iconColor: "#708090"
+    },
+    rottweiler: {
+        id: "rottweiler",
+        name: "Guard Rottweiler",
+        cost: 180,
+        color: "#2a2b2e",
+        subColor: "#8b5a2b",
+        accentColor: "#ff5722",
+        description: "Robust guardian breed with tan accent points.",
+        iconClass: "fa-shield-dog",
+        iconColor: "#2a2b2e"
+    },
+    doberman: {
+        id: "doberman",
+        name: "Sleek Doberman",
+        cost: 190,
+        color: "#1c1c1e",
+        subColor: "#b07d62",
+        accentColor: "#d50000",
+        description: "Sleek, elegant, and fast runner with a red collar.",
+        iconClass: "fa-dog",
+        iconColor: "#1c1c1e"
+    },
+    shiba: {
+        id: "shiba",
+        name: "Classic Shiba",
+        cost: 140,
+        color: "#f4a460",
+        subColor: "#fff8dc",
+        accentColor: "#ff7f50",
+        description: "The viral internet legend with curved curly tail.",
+        iconClass: "fa-dog",
+        iconColor: "#f4a460"
+    },
+    pitbull: {
+        id: "pitbull",
+        name: "Strong Pitbull",
+        cost: 150,
+        color: "#a9a9a9",
+        subColor: "#e8e8e8",
+        accentColor: "#8b0000",
+        description: "Loyal runner with a muscular solid silver coat.",
+        iconClass: "fa-dog",
+        iconColor: "#a9a9a9"
+    },
+    border_collie: {
+        id: "border_collie",
+        name: "Border Collie",
+        cost: 175,
+        color: "#3e3e42",
+        subColor: "#ffffff",
+        accentColor: "#008080",
+        description: "Ultra-intelligent helper with a sleek tuxedo coat.",
+        iconClass: "fa-dog",
+        iconColor: "#3e3e42"
+    },
+    cocker_spaniel: {
+        id: "cocker_spaniel",
+        name: "Cocker Spaniel",
+        cost: 115,
+        color: "#e3a857",
+        subColor: "#fff3e0",
+        accentColor: "#ff9800",
+        description: "Beautiful silky coat and floppy long ears.",
+        iconClass: "fa-dog",
+        iconColor: "#e3a857"
+    },
+    dachshund: {
+        id: "dachshund",
+        name: "Dachshund",
+        cost: 85,
+        color: "#8b5a2b",
+        subColor: "#c68a4c",
+        accentColor: "#4caf50",
+        description: "A long sausage dog built close to the ground.",
+        iconClass: "fa-dog",
+        iconColor: "#8b5a2b"
+    },
+    st_bernard: {
+        id: "st_bernard",
+        name: "Saint Bernard",
+        cost: 220,
+        color: "#cd853f",
+        subColor: "#ffffff",
+        accentColor: "#2196f3",
+        description: "Alpine rescue legend with a thick winter coat.",
+        iconClass: "fa-shield-dog",
+        iconColor: "#cd853f"
+    },
+    chow_chow: {
+        id: "chow_chow",
+        name: "Fluffy Chow Chow",
+        cost: 210,
+        color: "#d2691e",
+        subColor: "#f4a460",
+        accentColor: "#3f51b5",
+        description: "Fluffy lion-like dog with a blue collar.",
+        iconClass: "fa-dog",
+        iconColor: "#d2691e"
+    },
+    pomeranian: {
+        id: "pomeranian",
+        name: "Pomeranian",
+        cost: 135,
+        color: "#ffa500",
+        subColor: "#ffcc80",
+        accentColor: "#e91e63",
+        description: "A tiny ball of pure orange energy fluff.",
+        iconClass: "fa-dog",
+        iconColor: "#ffa500"
+    },
+    akita: {
+        id: "akita",
+        name: "Regal Akita",
+        cost: 230,
+        color: "#ffebcd",
+        subColor: "#ffffff",
+        accentColor: "#ff5722",
+        description: "Regal and powerful breed from northern Japan.",
+        iconClass: "fa-dog",
+        iconColor: "#ffebcd"
+    },
+    maltese: {
+        id: "maltese",
+        name: "Snowy Maltese",
+        cost: 145,
+        color: "#fafafa",
+        subColor: "#ffffff",
+        accentColor: "#ff80ab",
+        description: "Silky pure-white coat with a pink ribbon collar.",
+        iconClass: "fa-dog",
+        iconColor: "#fafafa"
+    },
+    samoyed: {
+        id: "samoyed",
+        name: "Fluffy Samoyed",
+        cost: 260,
+        color: "#ffffff",
+        subColor: "#eceff1",
+        accentColor: "#00e5ff",
+        description: "Stunning smiling sled dog with a snow white coat.",
+        iconClass: "fa-dog",
+        iconColor: "#ffffff"
+    },
+    basset_hound: {
+        id: "basset_hound",
+        name: "Basset Hound",
+        cost: 105,
+        color: "#b08d6c",
+        subColor: "#ffffff",
+        accentColor: "#7e57c2",
+        description: "Charming long ears, short legs, and sad eyes.",
+        iconClass: "fa-dog",
+        iconColor: "#b08d6c"
+    },
+    boston_terrier: {
+        id: "boston_terrier",
+        name: "Boston Terrier",
+        cost: 125,
+        color: "#303030",
+        subColor: "#ffffff",
+        accentColor: "#76ff03",
+        description: "Dapper little gentleman wearing a natural tuxedo.",
+        iconClass: "fa-dog",
+        iconColor: "#303030"
+    },
+    bloodhound: {
+        id: "bloodhound",
+        name: "Detective Hound",
+        cost: 240,
+        color: "#966f50",
+        subColor: "#5d3c26",
+        accentColor: "#ff9800",
+        description: "Unrivaled scent tracker with loose, wrinkled skin.",
+        iconClass: "fa-dog",
+        iconColor: "#966f50"
+    },
+    sheepdog: {
+        id: "sheepdog",
+        name: "Old Sheepdog",
+        cost: 270,
+        color: "#b0bec5",
+        subColor: "#ffffff",
+        accentColor: "#673ab7",
+        description: "Shaggy herding dog with long fur covering its eyes.",
+        iconClass: "fa-dog",
+        iconColor: "#b0bec5"
+    },
+    newfoundland: {
+        id: "newfoundland",
+        name: "Newfoundland",
+        cost: 280,
+        color: "#263238",
+        subColor: "#37474f",
+        accentColor: "#00e676",
+        description: "Massive helper water dog with thick heavy coat.",
+        iconClass: "fa-shield-dog",
+        iconColor: "#263238"
     }
 };
 
@@ -76,8 +373,8 @@ const SKINS_DATABASE = {
 let gameState = {
     highScore: 0,
     coins: 0,
-    activeSkin: "default",
-    purchasedSkins: ["default"],
+    activeSkin: "goldendoodle",
+    purchasedSkins: ["goldendoodle"],
     dogName: "Doggy"
 };
 
@@ -940,8 +1237,8 @@ function resetAllData() {
         gameState = {
             highScore: 0,
             coins: 0,
-            activeSkin: "default",
-            purchasedSkins: ["default"],
+            activeSkin: "goldendoodle",
+            purchasedSkins: ["goldendoodle"],
             dogName: "Doggy"
         };
         saveData();
