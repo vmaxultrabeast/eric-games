@@ -7117,7 +7117,7 @@ let categorisedPokemon = {
 
 // Constants
 const DECAY_INTERVAL = 1000; // Tick needs decay every second
-const REQUEST_COOLDOWN = 60000; // 1 minute in ms
+const REQUEST_COOLDOWN = 35000; // 35 seconds in ms
 const HELPER_COOLDOWN = 30000; // 30 seconds in ms
 const XP_PER_REQUEST = 25;
 
