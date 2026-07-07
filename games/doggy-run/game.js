@@ -56,6 +56,17 @@ const SKINS_DATABASE = {
         description: "Unlocks space-suit helmet and star particle trail.",
         iconClass: "fa-user-astronaut",
         iconColor: "#e1a15c"
+    },
+    goldendoodle: {
+        id: "goldendoodle",
+        name: "Golden Doodle",
+        cost: 150,
+        color: "#ffd37a",
+        subColor: "#ffffff",
+        accentColor: "#ffaa00", // Gold collar
+        description: "Fluffy golden doodle companion (Quincy super code).",
+        iconClass: "fa-dog",
+        iconColor: "#ffd37a"
     }
 };
 
@@ -111,6 +122,68 @@ const GROUND_Y = 320;
 // Input tracking
 let spacePressed = false;
 
+// Rush Super Ability State
+let rushState = {
+    active: false,
+    cooldown: false,
+    startTime: 0,
+    cooldownStartTime: 0
+};
+
+// Dog Immortality flag
+dog.isImmortal = false;
+
+function activateRush() {
+    rushState.active = true;
+    rushState.cooldown = false;
+    rushState.startTime = Date.now();
+    dog.isImmortal = true;
+    
+    // Add golden flash particles
+    for (let i = 0; i < 15; i++) {
+        particles.push({
+            x: dog.x + 30,
+            y: dog.y + 20,
+            vx: (Math.random() - 0.5) * 8,
+            vy: (Math.random() - 0.5) * 8,
+            size: Math.random() * 5 + 4,
+            color: "rgba(255, 204, 0, 0.9)",
+            alpha: 1
+        });
+    }
+}
+
+function endRush() {
+    rushState.active = false;
+    rushState.cooldown = true;
+    rushState.cooldownStartTime = Date.now();
+    dog.isImmortal = false;
+    
+    const btn = document.getElementById("rushBtn");
+    if (btn) {
+        btn.disabled = true;
+    }
+}
+
+function readyRush() {
+    rushState.active = false;
+    rushState.cooldown = false;
+    
+    const btn = document.getElementById("rushBtn");
+    if (btn) {
+        btn.innerHTML = `<i class="fa-solid fa-bolt fa-beat"></i> RUSH READY`;
+        btn.style.background = "linear-gradient(45deg, var(--color-yellow), #ffaa00)";
+        btn.disabled = false;
+    }
+}
+
+function resetRush() {
+    rushState.active = false;
+    rushState.cooldown = false;
+    dog.isImmortal = false;
+    readyRush();
+}
+
 // ==========================================================================
 // Document Initialization
 // ==========================================================================
@@ -142,6 +215,15 @@ document.addEventListener("DOMContentLoaded", () => {
         saveData();
     });
 
+    // Rush button click listener
+    document.getElementById("rushBtn").addEventListener("click", () => {
+        const isQuincy = gameState.dogName.toLowerCase() === "quincy";
+        const isDoodle = gameState.activeSkin === "goldendoodle";
+        if (isQuincy && isDoodle && gameRunning && !rushState.active && !rushState.cooldown) {
+            activateRush();
+        }
+    });
+
     // Initial canvas paint (drawn static)
     drawStaticMenu();
 });
@@ -154,6 +236,13 @@ function handleKeyDown(e) {
         e.preventDefault();
         spacePressed = true;
         triggerJump();
+    }
+    if (e.code === "ShiftLeft" || e.code === "ShiftRight" || e.code === "KeyR") {
+        const isQuincy = gameState.dogName.toLowerCase() === "quincy";
+        const isDoodle = gameState.activeSkin === "goldendoodle";
+        if (isQuincy && isDoodle && gameRunning && !rushState.active && !rushState.cooldown) {
+            activateRush();
+        }
     }
 }
 
@@ -198,6 +287,8 @@ function startGame() {
     dog.isJumping = false;
     dog.runFrame = 0;
     dog.runTimer = 0;
+    
+    resetRush();
 
     // Start loop
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
@@ -216,6 +307,8 @@ function gameOver() {
     saveData();
     renderStats();
     setupShop(); // Refresh shop buttons with new coin count
+    
+    resetRush();
 
     // Update screen text
     document.getElementById("finalScore").textContent = Math.floor(score);
@@ -236,13 +329,60 @@ function gameLoop(timestamp) {
 // Physics Update
 // ==========================================================================
 function updatePhysics() {
-    // 1. Tick score
+    // 1. Quincy + Golden Doodle cheat check
+    const isQuincy = gameState.dogName.toLowerCase() === "quincy";
+    const isDoodle = gameState.activeSkin === "goldendoodle";
+    const btn = document.getElementById("rushBtn");
+    
+    if (isQuincy && isDoodle && gameRunning) {
+        btn.classList.remove("hidden");
+    } else {
+        btn.classList.add("hidden");
+        if (rushState.active) endRush();
+    }
+
+    // 2. Tick Rush state active/cooldown timers
+    if (rushState.active) {
+        const elapsed = (Date.now() - rushState.startTime) / 1000;
+        const left = Math.ceil(30 - elapsed);
+        if (left <= 0) {
+            endRush();
+        } else {
+            if (btn) {
+                btn.innerHTML = `<i class="fa-solid fa-shield-dog fa-bounce"></i> ACTIVE (${left}s)`;
+                btn.style.background = "linear-gradient(45deg, var(--color-green), #2db30f)";
+            }
+        }
+        // Spawns gold particles behind the dog when active!
+        particles.push({
+            x: dog.x + 10,
+            y: dog.y + dog.height / 2 + Math.random() * 10 - 5,
+            vx: -2 - Math.random() * 2,
+            vy: Math.random() * 2 - 1,
+            size: Math.random() * 3 + 2,
+            color: "rgba(255, 204, 0, 0.7)",
+            alpha: 1
+        });
+    } else if (rushState.cooldown) {
+        const elapsed = (Date.now() - rushState.cooldownStartTime) / 1000;
+        const left = Math.ceil(10 - elapsed);
+        if (left <= 0) {
+            readyRush();
+        } else {
+            if (btn) {
+                btn.innerHTML = `<i class="fa-solid fa-rotate fa-spin"></i> RELOADING (${left}s)`;
+                btn.style.background = "linear-gradient(45deg, var(--color-red), #b3052b)";
+            }
+        }
+    }
+
+    // 3. Tick score
     score += 0.15;
     
-    // 2. Increase speed gradually
+    // 4. Increase speed gradually
     gameSpeed = 5.5 + (score * 0.001);
 
-    // 3. Dog physics
+    // 5. Dog physics
     dog.vy += dog.gravity;
     dog.y += dog.vy;
 
@@ -268,27 +408,43 @@ function updatePhysics() {
         }
     }
 
-    // 4. Parallax Background scroll
+    // 6. Parallax Background scroll
     bgOffsetCity -= gameSpeed * 0.15;
     bgOffsetFloor -= gameSpeed;
 
     if (bgOffsetCity <= -800) bgOffsetCity = 0;
     if (bgOffsetFloor <= -40) bgOffsetFloor = 0;
 
-    // 5. Spawn obstacles & coins
+    // 7. Spawn obstacles & coins
     spawnTimer--;
     if (spawnTimer <= 0) {
         spawnEntities();
         spawnTimer = Math.floor(Math.random() * 50 + 60); // frame delays
     }
 
-    // 6. Update obstacles
+    // 8. Update obstacles
     obstacles.forEach((obs, idx) => {
         obs.x -= gameSpeed;
         
         // Collide checking
         if (checkCollision(dog, obs)) {
-            gameOver();
+            if (!dog.isImmortal) {
+                gameOver();
+            } else {
+                // Flash and shatter obstacle!
+                for (let i = 0; i < 6; i++) {
+                    particles.push({
+                        x: obs.x + obs.width/2,
+                        y: obs.y + obs.height/2,
+                        vx: Math.random() * 4 + 2,
+                        vy: (Math.random() - 0.5) * 6,
+                        size: Math.random() * 3 + 2,
+                        color: "rgba(255, 204, 0, 0.8)",
+                        alpha: 1
+                    });
+                }
+                obstacles.splice(idx, 1);
+            }
         }
     });
 
@@ -523,6 +679,18 @@ function drawDogEntity() {
     ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
     ctx.textAlign = "center";
     ctx.fillText(gameState.dogName.toUpperCase(), 30, -10 + (dog.vy * 0.1));
+
+    // Draw golden glow shield if Rush super is active
+    if (rushState.active) {
+        ctx.strokeStyle = "rgba(255, 204, 0, 0.7)";
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#ffcc00";
+        ctx.beginPath();
+        ctx.arc(30, 20, 32, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0; // reset
+    }
 
     // Frame-based running offsets
     let runOffset = 0;
