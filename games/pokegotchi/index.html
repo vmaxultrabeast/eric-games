@@ -33,6 +33,9 @@
                         <span class="stat-label">LEVEL 100s</span>
                         <span id="level100Count" class="stat-value text-purple">0</span>
                     </div>
+                    <button id="pokedexBtn" class="action-btn" style="height:100%; font-family:var(--font-display); font-weight:700; padding: 0 15px; margin-left:15px; border-radius:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; cursor:pointer; transition:all 0.2s;">
+                        <i class="fa-solid fa-book"></i> POKEDEX
+                    </button>
                 </div>
             </div>
 
@@ -111,6 +114,29 @@
             <div class="new-name" id="newName">Mewtwo</div>
             <p class="new-text">A new friend joined your family since Raichu reached level 100!</p>
             <button id="newCloseBtn" class="glow-btn">WELCOME HOME</button>
+        </div>
+    </div>
+
+    <!-- POKEDEX OVERLAY -->
+    <div id="pokedexOverlay" class="overlay">
+        <div class="pokedex-card" id="pokedexCard" style="background:rgba(18, 20, 32, 0.95); border:2px solid rgba(255,255,255,0.08); border-radius:24px; padding:30px; width:90%; max-width:800px; display:flex; flex-direction:column; gap:20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); max-height:85vh; overflow:hidden;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:15px;">
+                <h2 style="font-family:var(--font-display); font-size:1.5rem; font-weight:900; background:linear-gradient(90deg, var(--color-cyan), var(--color-purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; display:flex; align-items:center; gap:10px;">
+                    <i class="fa-solid fa-book"></i> POKEDEX
+                </h2>
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <span id="pokedexProgress" style="font-family:var(--font-display); font-size:0.9rem; font-weight:700; color:var(--color-cyan);">0 / 1025 CAUGHT</span>
+                    <button id="pokedexCloseBtn" style="background:none; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer; transition:color 0.2s;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="pokedexSearch" placeholder="Search caught Pokemon..." style="flex-grow:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px 15px; color:white; font-family:var(--font-main); font-size:0.95rem; outline:none; transition:border-color 0.2s;">
+            </div>
+
+            <div id="pokedexGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:12px; overflow-y:auto; padding-right:5px; flex-grow:1; max-height:55vh;">
+                <!-- Dynamically populated discovered Pokemon -->
+            </div>
         </div>
     </div>
 

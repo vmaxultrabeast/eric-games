@@ -7103,7 +7103,8 @@ let gameState = {
     activePokemon: [], // Array of active pet objects
     totalLevel100s: 0,
     helperActive: false,
-    lastHelperTick: 0
+    lastHelperTick: 0,
+    pokedex: [] // Species caught
 };
 
 // Converted categorised arrays for luck rolls
@@ -7138,6 +7139,10 @@ document.addEventListener("DOMContentLoaded", () => {
         spawnInitialPikachu();
     }
     
+    // Auto discover all active pets in Pokedex
+    if (!gameState.pokedex) gameState.pokedex = [];
+    gameState.activePokemon.forEach(p => discoverPokemon(p.species));
+    
     setupCheatForm();
     renderAll();
     
@@ -7152,6 +7157,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("newCloseBtn").addEventListener("click", () => {
         document.getElementById("newPokemonOverlay").classList.remove("active");
     });
+    
+    // Setup Pokedex click handlers
+    document.getElementById("pokedexBtn").addEventListener("click", openPokedex);
+    document.getElementById("pokedexCloseBtn").addEventListener("click", closePokedex);
+    document.getElementById("pokedexSearch").addEventListener("input", filterPokedex);
 });
 
 // Build search lists for rolls
@@ -7181,6 +7191,15 @@ function spawnInitialPikachu() {
             activeRequest: null,
             lastRequestTime: Date.now()
         });
+        discoverPokemon("pikachu");
+        saveState();
+    }
+}
+
+function discoverPokemon(species) {
+    if (!gameState.pokedex) gameState.pokedex = [];
+    if (!gameState.pokedex.includes(species)) {
+        gameState.pokedex.push(species);
         saveState();
     }
 }
@@ -7201,6 +7220,7 @@ function loadState() {
             gameState.totalLevel100s = parsed.totalLevel100s || 0;
             gameState.helperActive = parsed.helperActive || false;
             gameState.lastHelperTick = parsed.lastHelperTick || 0;
+            gameState.pokedex = parsed.pokedex || [];
             
             if (gameState.helperActive) {
                 document.getElementById("helperWidget").classList.remove("hidden");
@@ -7210,6 +7230,64 @@ function loadState() {
             console.error("Failed to parse state", err);
         }
     }
+}
+
+// ==========================================================================
+// Pokedex UI Logic
+// ==========================================================================
+function openPokedex() {
+    document.getElementById("pokedexOverlay").classList.add("active");
+    renderPokedexGrid();
+}
+
+function closePokedex() {
+    document.getElementById("pokedexOverlay").classList.remove("active");
+}
+
+function renderPokedexGrid() {
+    const grid = document.getElementById("pokedexGrid");
+    const prog = document.getElementById("pokedexProgress");
+    if (!grid || !prog) return;
+
+    if (!gameState.pokedex) gameState.pokedex = [];
+    prog.textContent = `${gameState.pokedex.length} / 1025 CAUGHT`;
+    grid.innerHTML = "";
+
+    const searchVal = document.getElementById("pokedexSearch").value.toLowerCase().trim();
+
+    for (const [key, p] of Object.entries(POKEMON_EVO_DB)) {
+        const isCaught = gameState.pokedex.includes(key);
+        
+        if (searchVal) {
+            if (isCaught) {
+                if (!p.name.toLowerCase().includes(searchVal)) continue;
+            } else {
+                continue;
+            }
+        }
+
+        const nameStr = isCaught ? p.name : "???";
+        const imgFilter = isCaught ? "" : "filter: brightness(0); opacity: 0.25;";
+        const artUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${p.id}.png`;
+
+        const slot = document.createElement("div");
+        slot.style.cssText = "background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:10px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:5px;";
+        if (isCaught) {
+            slot.style.borderColor = "var(--color-purple)";
+            slot.style.background = "rgba(189, 0, 255, 0.03)";
+        }
+        
+        slot.innerHTML = `
+            <img src="${artUrl}" alt="${nameStr}" style="width:64px; height:64px; object-fit:contain; ${imgFilter}">
+            <div style="font-size:0.8rem; font-weight:700; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:${isCaught ? '#fff' : 'var(--text-muted)'}">${nameStr}</div>
+            <div style="font-size:0.65rem; color:var(--text-muted); font-family:var(--font-display);">#${p.id}</div>
+        `;
+        grid.appendChild(slot);
+    }
+}
+
+function filterPokedex() {
+    renderPokedexGrid();
 }
 
 // ==========================================================================
@@ -7448,6 +7526,7 @@ function triggerLevel100Events(index) {
             p.activeRequest = null;
             p.lastRequestTime = Date.now();
             p.hasTriggeredLevel100 = false;
+            discoverPokemon(nextSpecies);
             
             const afterImg = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${p.id}.png`;
             
@@ -7476,6 +7555,7 @@ function triggerLevel100Events(index) {
                 lastRequestTime: Date.now(),
                 hasTriggeredLevel100: false
             });
+            discoverPokemon(rolledSpecies);
             
             showNewPokemonScreen(rolledData.name, rolledData.id, rolledData.rarity);
         }
@@ -7503,30 +7583,11 @@ function showNewPokemonScreen(name, id, rarity) {
     document.getElementById("newPokemonOverlay").classList.add("active");
 }
 
-// Roll Pokémon based on luck chart
 function rollNewPokemon() {
-    const rand = Math.random();
-    let category = "basic"; // fallback
-    
-    // Luck boundaries
-    if (rand <= 0.005) {
-        category = "legendary";
-    } else if (rand <= 0.10) {
-        category = "no-evolve";
-    } else if (rand <= 0.30) {
-        category = "evolution3";
-    } else if (rand <= 0.60) {
-        category = "evolution2";
-    } else {
-        category = "basic";
-    }
-    
-    const pool = categorisedPokemon[category];
+    const pool = categorisedPokemon["basic"];
     if (!pool || pool.length === 0) {
-        // Fallback if empty pool
         return "bulbasaur";
     }
-    
     return pool[Math.floor(Math.random() * pool.length)];
 }
 
