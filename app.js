@@ -112,6 +112,17 @@ const GAMES_REGISTRY = [
         controls: 'Click on request action buttons (Feed, Drink, Play) to care for your Pokemon. Enter cheat code: helper to get an assistant.',
         addedDate: '2026-07-06',
         updatedDate: '2026-07-06'
+    },
+    {
+        id: 'super-smasher-bros',
+        title: 'Super Smasher Bros',
+        category: 'action',
+        description: 'A massive 2D platform battle arena game. Fight solo, in PvP, or Co-op mode against AI or friends. Features quick attacks, specials, ultimates, and ultra moves. Choose from all 1025 Pokemon!',
+        folder: 'games/super-smasher-bros',
+        cover: 'games/super-smasher-bros/cover.png',
+        controls: 'P1: WASD to move, J/K/L/U to attack, Space to dodge. P2: Arrow keys to move, 7/8/9/0 to attack, Enter to dodge.',
+        addedDate: '2026-07-06',
+        updatedDate: '2026-07-06'
     }
     // New games can be easily appended here in the future
 ];
