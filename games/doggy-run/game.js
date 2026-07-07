@@ -393,8 +393,8 @@ let dog = {
     width: 60,
     height: 45,
     vy: 0,
-    jumpForce: -12,
-    gravity: 0.6,
+    jumpForce: -13.5,
+    gravity: 0.75,
     isJumping: false,
     runFrame: 0,
     runTimer: 0
@@ -410,7 +410,7 @@ let bgOffsetFloor = 0;
 
 let score = 0;
 let coinsCollectedThisRun = 0;
-let gameSpeed = 5.5;
+let gameSpeed = 7.0;
 let spawnTimer = 0;
 
 // Ground coordinates
@@ -573,7 +573,7 @@ function startGame() {
     gameRunning = true;
     score = 0;
     coinsCollectedThisRun = 0;
-    gameSpeed = 5.5;
+    gameSpeed = 7.0;
     obstacles = [];
     coins = [];
     particles = [];
@@ -677,7 +677,7 @@ function updatePhysics() {
     score += 0.15;
     
     // 4. Increase speed gradually
-    gameSpeed = 5.5 + (score * 0.001);
+    gameSpeed = 7.0 + (score * 0.003);
 
     // 5. Dog physics
     dog.vy += dog.gravity;
@@ -712,11 +712,10 @@ function updatePhysics() {
     if (bgOffsetCity <= -800) bgOffsetCity = 0;
     if (bgOffsetFloor <= -40) bgOffsetFloor = 0;
 
-    // 7. Spawn obstacles & coins
     spawnTimer--;
     if (spawnTimer <= 0) {
         spawnEntities();
-        spawnTimer = Math.floor(Math.random() * 50 + 60); // frame delays
+        spawnTimer = Math.floor(Math.random() * 30 + 40); // frame delays
     }
 
     // 8. Update obstacles
