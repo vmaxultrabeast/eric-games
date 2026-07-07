@@ -2,6 +2,17 @@
 // Dog Skins Data
 // ==========================================================================
 const SKINS_DATABASE = {
+    goldendoodle: {
+        id: "goldendoodle",
+        name: "Golden Doodle",
+        cost: 0,
+        color: "#ffd37a",
+        subColor: "#ffffff",
+        accentColor: "#ffaa00",
+        description: "Fluffy golden doodle companion (Quincy super code).",
+        iconClass: "fa-dog",
+        iconColor: "#ffd37a"
+    },
     default: {
         id: "default",
         name: "Golden Retriever",
@@ -56,17 +67,6 @@ const SKINS_DATABASE = {
         description: "Unlocks space-suit helmet and star particle trail.",
         iconClass: "fa-user-astronaut",
         iconColor: "#e1a15c"
-    },
-    goldendoodle: {
-        id: "goldendoodle",
-        name: "Golden Doodle",
-        cost: 0,
-        color: "#ffd37a",
-        subColor: "#ffffff",
-        accentColor: "#ffaa00",
-        description: "Fluffy golden doodle companion (Quincy super code).",
-        iconClass: "fa-dog",
-        iconColor: "#ffd37a"
     },
     bulldog: {
         id: "bulldog",
@@ -364,6 +364,336 @@ const SKINS_DATABASE = {
         description: "Massive helper water dog with thick heavy coat.",
         iconClass: "fa-shield-dog",
         iconColor: "#263238"
+    },
+    labrador: {
+        id: "labrador",
+        name: "Friendly Labrador",
+        cost: 75,
+        color: "#e5c185",
+        subColor: "#ffffff",
+        accentColor: "#ff0000",
+        description: "Playful yellow lab with a red leather collar.",
+        iconClass: "fa-dog",
+        iconColor: "#e5c185"
+    },
+    bernese: {
+        id: "bernese",
+        name: "Bernese Mountain Dog",
+        cost: 215,
+        color: "#1c1c1c",
+        subColor: "#ffffff",
+        accentColor: "#d2691e",
+        description: "Large, beautiful Swiss mountain dog.",
+        iconClass: "fa-shield-dog",
+        iconColor: "#1c1c1c"
+    },
+    maltipoo: {
+        id: "maltipoo",
+        name: "Sweet Maltipoo",
+        cost: 130,
+        color: "#ffd89b",
+        subColor: "#ffffff",
+        accentColor: "#ff69b4",
+        description: "An incredibly sweet and fluffy poodle cross.",
+        iconClass: "fa-dog",
+        iconColor: "#ffd89b"
+    },
+    cavalier: {
+        id: "cavalier",
+        name: "Cavalier Spaniel",
+        cost: 165,
+        color: "#8b5a2b",
+        subColor: "#ffffff",
+        accentColor: "#bd00ff",
+        description: "Graceful toy spaniel with large melting eyes.",
+        iconClass: "fa-dog",
+        iconColor: "#8b5a2b"
+    },
+    french_bulldog: {
+        id: "french_bulldog",
+        name: "French Bulldog",
+        cost: 140,
+        color: "#d2b48c",
+        subColor: "#ffffff",
+        accentColor: "#00f0ff",
+        description: "A compact bulldog with large bat-like ears.",
+        iconClass: "fa-dog",
+        iconColor: "#d2b48c"
+    },
+    vizsla: {
+        id: "vizsla",
+        name: "Golden Vizsla",
+        cost: 180,
+        color: "#c68a4c",
+        subColor: "#ffd8a6",
+        accentColor: "#ff5722",
+        description: "A sleek pointer with a golden rust coat.",
+        iconClass: "fa-dog",
+        iconColor: "#c68a4c"
+    },
+    weimaraner: {
+        id: "weimaraner",
+        name: "Silver Ghost",
+        cost: 195,
+        color: "#a6a6a6",
+        subColor: "#c0c0c0",
+        accentColor: "#00e5ff",
+        description: "A sleek silver pointer with amber-colored eyes.",
+        iconClass: "fa-dog",
+        iconColor: "#a6a6a6"
+    },
+    whippet: {
+        id: "whippet",
+        name: "Lightning Whippet",
+        cost: 170,
+        color: "#cd853f",
+        subColor: "#ffffff",
+        accentColor: "#ffeb3b",
+        description: "A fast and slender runner built for speed.",
+        iconClass: "fa-dog",
+        iconColor: "#cd853f"
+    },
+    greyhound: {
+        id: "greyhound",
+        name: "Racing Greyhound",
+        cost: 250,
+        color: "#7f7f7f",
+        subColor: "#d3d3d3",
+        accentColor: "#39ff14",
+        description: "The ultimate racing speedster with long legs.",
+        iconClass: "fa-dog",
+        iconColor: "#7f7f7f"
+    },
+    mastiff: {
+        id: "mastiff",
+        name: "Giant Mastiff",
+        cost: 290,
+        color: "#d2b48c",
+        subColor: "#8b4513",
+        accentColor: "#ff3333",
+        description: "A heavy, massive mastiff with a dark muzzle.",
+        iconClass: "fa-shield-dog",
+        iconColor: "#d2b48c"
+    },
+    cane_corso: {
+        id: "cane_corso",
+        name: "Cane Corso",
+        cost: 310,
+        color: "#1a1a1a",
+        subColor: "#404040",
+        accentColor: "#ff1493",
+        description: "A powerful Italian guardian with a glossy black coat.",
+        iconClass: "fa-shield-dog",
+        iconColor: "#1a1a1a"
+    },
+    bullmastiff: {
+        id: "bullmastiff",
+        name: "Bullmastiff",
+        cost: 300,
+        color: "#cd853f",
+        subColor: "#8b5a2b",
+        accentColor: "#ffcc00",
+        description: "A giant protective dog with high stamina.",
+        iconClass: "fa-shield-dog",
+        iconColor: "#cd853f"
+    },
+    shetland: {
+        id: "shetland",
+        name: "Shetland Sheepdog",
+        cost: 220,
+        color: "#d2691e",
+        subColor: "#ffffff",
+        accentColor: "#9c27b0",
+        description: "A small, beautiful collie-like sheepdog.",
+        iconClass: "fa-dog",
+        iconColor: "#d2691e"
+    },
+    australian_shepherd: {
+        id: "australian_shepherd",
+        name: "Aussie Shepherd",
+        cost: 235,
+        color: "#a6a6a6",
+        subColor: "#ffffff",
+        accentColor: "#03a9f4",
+        description: "An active herding breed with blue merle patches.",
+        iconClass: "fa-dog",
+        iconColor: "#a6a6a6"
+    },
+    malamute: {
+        id: "malamute",
+        name: "Alaskan Malamute",
+        cost: 245,
+        color: "#5e6166",
+        subColor: "#ffffff",
+        accentColor: "#e91e63",
+        description: "Heavy Arctic freighting dog with thick fur.",
+        iconClass: "fa-dog",
+        iconColor: "#5e6166"
+    },
+    shih_tzu: {
+        id: "shih_tzu",
+        name: "Shih Tzu",
+        cost: 110,
+        color: "#d2b48c",
+        subColor: "#ffffff",
+        accentColor: "#ff8f00",
+        description: "A small, imperial dog with long flowing hair.",
+        iconClass: "fa-dog",
+        iconColor: "#d2b48c"
+    },
+    papillon: {
+        id: "papillon",
+        name: "Papillon",
+        cost: 125,
+        color: "#ffcc80",
+        subColor: "#ffffff",
+        accentColor: "#e91e63",
+        description: "A tiny toy dog with fringed butterfly ears.",
+        iconClass: "fa-dog",
+        iconColor: "#ffcc80"
+    },
+    havanese: {
+        id: "havanese",
+        name: "Havanese",
+        cost: 115,
+        color: "#ffd54f",
+        subColor: "#ffffff",
+        accentColor: "#00bcd4",
+        description: "National dog of Cuba, friendly and outgoing.",
+        iconClass: "fa-dog",
+        iconColor: "#ffd54f"
+    },
+    bichon: {
+        id: "bichon",
+        name: "Bichon Frise",
+        cost: 155,
+        color: "#ffffff",
+        subColor: "#eceff1",
+        accentColor: "#e040fb",
+        description: "A tiny fluffy white dog like a cotton ball.",
+        iconClass: "fa-dog",
+        iconColor: "#ffffff"
+    },
+    tibetan_mastiff: {
+        id: "tibetan_mastiff",
+        name: "Tibetan Mastiff",
+        cost: 350,
+        color: "#212121",
+        subColor: "#8d6e63",
+        accentColor: "#ff3d00",
+        description: "An ancient, massive guardian from the Himalayas.",
+        iconClass: "fa-shield-dog",
+        iconColor: "#212121"
+    },
+    saluki: {
+        id: "saluki",
+        name: "Royal Saluki",
+        cost: 260,
+        color: "#ffe0b2",
+        subColor: "#ffffff",
+        accentColor: "#ff8f00",
+        description: "Slender gazelle hound with long feathered ears.",
+        iconClass: "fa-dog",
+        iconColor: "#ffe0b2"
+    },
+    afghan_hound: {
+        id: "afghan_hound",
+        name: "Afghan Hound",
+        cost: 275,
+        color: "#ffd54f",
+        subColor: "#ffffff",
+        accentColor: "#ab47bc",
+        description: "Dignified and aloof with a silky flowing coat.",
+        iconClass: "fa-dog",
+        iconColor: "#ffd54f"
+    },
+    pharaoh_hound: {
+        id: "pharaoh_hound",
+        name: "Pharaoh Hound",
+        cost: 280,
+        color: "#d84315",
+        subColor: "#ff8a65",
+        accentColor: "#00e676",
+        description: "An elegant, hunting dog from ancient Egypt.",
+        iconClass: "fa-dog",
+        iconColor: "#d84315"
+    },
+    rhodesian: {
+        id: "rhodesian",
+        name: "Rhodesian Ridgeback",
+        cost: 225,
+        color: "#bf360c",
+        subColor: "#ff7043",
+        accentColor: "#ffeb3b",
+        description: "Famous African lion dog with a ridge on its back.",
+        iconClass: "fa-shield-dog",
+        iconColor: "#bf360c"
+    },
+    schipperke: {
+        id: "schipperke",
+        name: "Schipperke",
+        cost: 135,
+        color: "#212121",
+        subColor: "#424242",
+        accentColor: "#ff1744",
+        description: "A small black Belgian barge dog.",
+        iconClass: "fa-dog",
+        iconColor: "#212121"
+    },
+    basenji: {
+        id: "basenji",
+        name: "Basenji",
+        cost: 145,
+        color: "#e65100",
+        subColor: "#ffffff",
+        accentColor: "#00e5ff",
+        description: "The barkless dog from Central Africa.",
+        iconClass: "fa-dog",
+        iconColor: "#e65100"
+    },
+    lhasa_apso: {
+        id: "lhasa_apso",
+        name: "Lhasa Apso",
+        cost: 120,
+        color: "#ffe082",
+        subColor: "#ffffff",
+        accentColor: "#ea80fc",
+        description: "Tibetan temple sentinel with long heavy coat.",
+        iconClass: "fa-dog",
+        iconColor: "#ffe082"
+    },
+    pekingese: {
+        id: "pekingese",
+        name: "Pekingese Lion",
+        cost: 105,
+        color: "#ffe082",
+        subColor: "#ffffff",
+        accentColor: "#bf360c",
+        description: "An ancient toy breed resembling a tiny lion.",
+        iconClass: "fa-dog",
+        iconColor: "#ffe082"
+    },
+    schnauzer: {
+        id: "schnauzer",
+        name: "Giant Schnauzer",
+        cost: 240,
+        color: "#37474f",
+        subColor: "#78909c",
+        accentColor: "#ffea00",
+        description: "Strong, bearded defender with a double coat.",
+        iconClass: "fa-shield-dog",
+        iconColor: "#37474f"
+    },
+    brussels_griffon: {
+        id: "brussels_griffon",
+        name: "Brussels Griffon",
+        cost: 150,
+        color: "#8d6e63",
+        subColor: "#d7ccc8",
+        accentColor: "#d500f9",
+        description: "A small smart dog with a human-like face expression.",
+        iconClass: "fa-dog",
+        iconColor: "#8d6e63"
     }
 };
 
