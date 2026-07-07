@@ -7386,6 +7386,20 @@ window.solveRequest = function(index, type, isHelper = false) {
     renderAll();
 };
 
+window.interactPet = function(index, type) {
+    const p = gameState.activePokemon[index];
+    if (!p) return;
+
+    if (p.activeRequest === type) {
+        solveRequest(index, type);
+    } else if (!p.activeRequest) {
+        // Peaceful interaction: increases the need bar by a 10th (10 points)
+        p.needs[type] = Math.min(100, p.needs[type] + 10);
+        saveState();
+        renderAll();
+    }
+};
+
 // Handle evolution or spawning
 function triggerLevel100Events(index) {
     const p = gameState.activePokemon[index];
@@ -7545,13 +7559,13 @@ function renderAll() {
                     <span class="request-text">${label}</span>
                 </div>
                 <div class="action-buttons">
-                    <button class="${p.activeRequest === 'food' ? btnClass : ''}" ${p.activeRequest !== 'food' ? 'disabled' : ''} onclick="solveRequest(${idx}, 'food')">
+                    <button class="${p.activeRequest === 'food' ? btnClass : ''}" ${p.activeRequest !== 'food' ? 'disabled' : ''} onclick="interactPet(${idx}, 'food')">
                         <i class="fa-solid fa-cookie-bite"></i> FEED
                     </button>
-                    <button class="${p.activeRequest === 'drink' ? btnClass : ''}" ${p.activeRequest !== 'drink' ? 'disabled' : ''} onclick="solveRequest(${idx}, 'drink')">
+                    <button class="${p.activeRequest === 'drink' ? btnClass : ''}" ${p.activeRequest !== 'drink' ? 'disabled' : ''} onclick="interactPet(${idx}, 'drink')">
                         <i class="fa-solid fa-droplet"></i> WATER
                     </button>
-                    <button class="${p.activeRequest === 'play' ? btnClass : ''}" ${p.activeRequest !== 'play' ? 'disabled' : ''} onclick="solveRequest(${idx}, 'play')">
+                    <button class="${p.activeRequest === 'play' ? btnClass : ''}" ${p.activeRequest !== 'play' ? 'disabled' : ''} onclick="interactPet(${idx}, 'play')">
                         <i class="fa-solid fa-gamepad"></i> PLAY
                     </button>
                 </div>
@@ -7559,9 +7573,9 @@ function renderAll() {
         } else {
             requestHTML += `
                 <div class="action-buttons">
-                    <button disabled><i class="fa-solid fa-cookie-bite"></i> FEED</button>
-                    <button disabled><i class="fa-solid fa-droplet"></i> WATER</button>
-                    <button disabled><i class="fa-solid fa-gamepad"></i> PLAY</button>
+                    <button onclick="interactPet(${idx}, 'food')"><i class="fa-solid fa-cookie-bite"></i> FEED</button>
+                    <button onclick="interactPet(${idx}, 'drink')"><i class="fa-solid fa-droplet"></i> WATER</button>
+                    <button onclick="interactPet(${idx}, 'play')"><i class="fa-solid fa-gamepad"></i> PLAY</button>
                 </div>
             `;
         }
