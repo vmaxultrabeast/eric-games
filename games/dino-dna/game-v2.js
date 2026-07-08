@@ -97,7 +97,6 @@ const RARITY_CONFIG = {
 // ==========================================================================
 // Time Constant & Mode
 var TIME_PER_DNA = 600000; // 10 minutes in ms
-var fastMode = false;
 
 let gameState = {
     dinos: {}, // dinoId -> quantity
@@ -666,7 +665,7 @@ function updateUIElements() {
     collectBtn.disabled = count <= 0;
     document.getElementById("stackedCount").textContent = `${count} DNA Package${count === 1 ? '' : 's'}`;
     
-    document.getElementById("productionRate").textContent = fastMode ? "1 DNA / 5 seconds" : "1 DNA / 10 minutes";
+    document.getElementById("productionRate").textContent = "1 DNA / 10 minutes";
 }
 
 // Tick loop for factory progress bar
@@ -688,17 +687,6 @@ function gameTick() {
     updateUIElements();
 }
 
-// Toggle Fast Mode
-function toggleFastMode(e) {
-    fastMode = e.target.checked;
-    TIME_PER_DNA = fastMode ? 5000 : 600000;
-    
-    // Adjust lastCollectTime so progress bar doesn't jump weirdly
-    gameState.lastCollectTime = Date.now();
-    saveData();
-    
-    updateUIElements();
-}
 
 // Apply cheat code
 function applyCheat() {
@@ -765,7 +753,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Bind listeners
     document.getElementById("collectBtn").addEventListener("click", collectDNA);
     document.getElementById("synthesizeBtn").addEventListener("click", startManualSynthesis);
-    document.getElementById("fastModeToggle").addEventListener("change", toggleFastMode);
     document.getElementById("cheatBtn").addEventListener("click", applyCheat);
     document.getElementById("resetDataBtn").addEventListener("click", resetArchives);
     
