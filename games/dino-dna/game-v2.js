@@ -95,6 +95,10 @@ const RARITY_CONFIG = {
 // ==========================================================================
 // Game State Management
 // ==========================================================================
+// Time Constant & Mode
+var TIME_PER_DNA = 600000; // 10 minutes in ms
+var fastMode = false;
+
 let gameState = {
     dinos: {}, // dinoId -> quantity
     lastCollectTime: Date.now(),
@@ -114,9 +118,6 @@ DINOSAURS_DATABASE.forEach(d => {
     totalWeight += RARITY_CONFIG[d.rarity].weight;
 });
 
-// Time Constant
-let TIME_PER_DNA = 3600000; // 1 hour in ms (default)
-let fastMode = false;
 
 // Save / Load data
 function loadSave() {
@@ -498,16 +499,20 @@ function closeDetailModal() {
 // Generate physical face-down flippable card items
 function spawnPendingCards() {
     const grid = document.getElementById("pendingCardsGrid");
-    
-    // Clear old card DOMs but keep un-flipped ones in state
-    grid.innerHTML = "";
+    if (!grid) return;
     
     if (gameState.pendingCards.length === 0) {
-        document.getElementById("emptyDeckMsg").style.display = "flex";
+        grid.innerHTML = `
+            <div class="empty-deck-message" id="emptyDeckMsg">
+                <i class="fa-solid fa-box-archive"></i>
+                <p>No pending DNA packages. Wait for the factory or manually synthesize DNA to get cards to flip!</p>
+            </div>
+        `;
+        document.getElementById("pendingCount").textContent = "0";
         return;
     }
     
-    document.getElementById("emptyDeckMsg").style.display = "none";
+    grid.innerHTML = "";
     document.getElementById("pendingCount").textContent = gameState.pendingCards.length;
     
     gameState.pendingCards.forEach((c) => {
@@ -661,7 +666,7 @@ function updateUIElements() {
     collectBtn.disabled = count <= 0;
     document.getElementById("stackedCount").textContent = `${count} DNA Package${count === 1 ? '' : 's'}`;
     
-    document.getElementById("productionRate").textContent = fastMode ? "1 DNA / 5 seconds" : "1 DNA / hour";
+    document.getElementById("productionRate").textContent = fastMode ? "1 DNA / 5 seconds" : "1 DNA / 10 minutes";
 }
 
 // Tick loop for factory progress bar
@@ -686,7 +691,7 @@ function gameTick() {
 // Toggle Fast Mode
 function toggleFastMode(e) {
     fastMode = e.target.checked;
-    TIME_PER_DNA = fastMode ? 5000 : 3600000;
+    TIME_PER_DNA = fastMode ? 5000 : 600000;
     
     // Adjust lastCollectTime so progress bar doesn't jump weirdly
     gameState.lastCollectTime = Date.now();
