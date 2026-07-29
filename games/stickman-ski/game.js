@@ -26,6 +26,10 @@ const LAND_SNAP_DIST = 40;    // px — how close to slope before landing
 
 // ── State ─────────────────────────────────────
 let gear          = 'ski';
+// Player colours
+let colorBody     = '#ffffff';
+let colorHelmet   = '#ffd700';
+let colorGear     = 'auto';   // 'auto' = original gradient, else hex
 let slopePts      = [];       // raw drawn points
 let smoothPts     = [];       // smoothed & even-sampled
 let slopeArcLen   = [];       // cumulative arc lengths for smoothPts
@@ -77,6 +81,27 @@ function selectGear(g) {
   gear = g;
   document.getElementById('btn-ski').classList.toggle('active', g === 'ski');
   document.getElementById('btn-board').classList.toggle('active', g === 'board');
+}
+
+// ── Colour customisation ──────────────────────
+function setColor(type, value, btn) {
+  if (type === 'body')   colorBody   = value;
+  if (type === 'helmet') colorHelmet = value;
+  if (type === 'gear')   colorGear   = value;
+
+  // Update swatch active state
+  const row = document.getElementById('swatches-' + type);
+  if (row) row.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function setColorCustom(type, value) {
+  if (type === 'body')   colorBody   = value;
+  if (type === 'helmet') colorHelmet = value;
+  if (type === 'gear')   colorGear   = value;
+  // Deselect preset swatches so the custom picker is visually 'active'
+  const row = document.getElementById('swatches-' + type);
+  if (row) row.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
 }
 
 // ── Drawing ───────────────────────────────────
@@ -545,159 +570,138 @@ function drawStickman(pos, slopeAngle, spinDeg) {
   ctx.save();
   ctx.translate(pos.x, pos.y);
 
-  // When airborne: stickman stays upright + spin; when on slope: tilts
   const tiltAngle = airborne ? 0 : slopeAngle;
   ctx.rotate(tiltAngle + (spinDeg * Math.PI / 180));
 
   const t   = Date.now() / 1000;
-  // Exaggerated leg tuck while airborne
-  const bob = airborne
-    ? Math.sin(t * 6) * 6 - 4   // knees tucked up
-    : Math.sin(t * 8) * 2;
+  const bob = airborne ? Math.sin(t * 6) * 6 - 4 : Math.sin(t * 8) * 2;
 
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
 
-  // ── HEAD ──
+  // Helper: resolve gear colour (solid or gradient)
+  function gearStroke(x1, x2, y, fallback1, fallback2) {
+    if (colorGear !== 'auto') return colorGear;
+    const g = ctx.createLinearGradient(x1, y, x2, y);
+    g.addColorStop(0, fallback1); g.addColorStop(1, fallback2);
+    return g;
+  }
+
+  // ── HEAD / HELMET ──
   const headY = -55;
   ctx.beginPath();
   ctx.arc(0, headY, 10, 0, Math.PI*2);
-  ctx.fillStyle = gear === 'ski' ? '#ffd700' : '#ff4466';
+  ctx.fillStyle = colorHelmet;
   ctx.fill();
-  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.strokeStyle = colorBody; ctx.lineWidth = 2; ctx.stroke();
 
-  // helmet visor
+  // visor dark stripe
   ctx.beginPath();
   ctx.arc(0, headY + 2, 10, Math.PI*0.1, Math.PI*0.9);
-  ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 3; ctx.stroke();
+  ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 3; ctx.stroke();
 
   // ── BODY ──
-  ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(0, headY + 10);
-  ctx.lineTo(0, -22);
-  ctx.stroke();
+  ctx.strokeStyle = colorBody; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(0, headY + 10); ctx.lineTo(0, -22); ctx.stroke();
 
   // ── ARMS ──
-  const armSwing = airborne
-    ? Math.sin(t * 4) * 25   // flailing arms in air!
-    : Math.sin(t * 8) * 12;
+  const armSwing = airborne ? Math.sin(t * 4) * 25 : Math.sin(t * 8) * 12;
 
   if (gear === 'ski') {
-    // poles (held up while airborne)
     const poleY = airborne ? -48 : -42;
-    ctx.beginPath();
-    ctx.moveTo(0, poleY);
-    ctx.lineTo(-20 + armSwing, -28);
+    ctx.beginPath(); ctx.moveTo(0, poleY); ctx.lineTo(-20 + armSwing, -28);
     if (!airborne) ctx.lineTo(-22 + armSwing, -10);
     ctx.strokeStyle = '#aaa'; ctx.lineWidth = 2; ctx.stroke();
 
-    ctx.beginPath();
-    ctx.moveTo(0, poleY);
-    ctx.lineTo(20 - armSwing, -28);
+    ctx.beginPath(); ctx.moveTo(0, poleY); ctx.lineTo(20 - armSwing, -28);
     if (!airborne) ctx.lineTo(22 - armSwing, -10);
     ctx.strokeStyle = '#aaa'; ctx.lineWidth = 2; ctx.stroke();
 
     ctx.beginPath(); ctx.arc(-20 + armSwing, -28, 3, 0, Math.PI*2);
-    ctx.fillStyle = '#fff'; ctx.fill();
-    ctx.beginPath(); ctx.arc(20 - armSwing, -28, 3, 0, Math.PI*2);
-    ctx.fill();
+    ctx.fillStyle = colorBody; ctx.fill();
+    ctx.beginPath(); ctx.arc(20 - armSwing, -28, 3, 0, Math.PI*2); ctx.fill();
   } else {
-    ctx.beginPath();
-    ctx.moveTo(0, -42);
-    ctx.lineTo(-28 + armSwing, -32 + armSwing*0.3);
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(0, -42);
-    ctx.lineTo(28 - armSwing, -32 - armSwing*0.3);
-    ctx.stroke();
+    ctx.strokeStyle = colorBody; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(0, -42); ctx.lineTo(-28 + armSwing, -32 + armSwing*0.3); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, -42); ctx.lineTo(28 - armSwing, -32 - armSwing*0.3); ctx.stroke();
   }
 
-  // ── LEGS & GEAR ──
+  // ── LEGS ──
+  ctx.strokeStyle = colorBody; ctx.lineWidth = 3;
   if (gear === 'ski') {
-    const legBend = airborne ? 14 : 8; // knees up while airborne
-
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(0, -22);
-    ctx.lineTo(-legBend, -8 + bob);
-    ctx.lineTo(-10, 0 + bob);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(0, -22);
-    ctx.lineTo(legBend, -8 - bob);
-    ctx.lineTo(10, 0 - bob);
-    ctx.stroke();
-
-    // SKI PLANKS — angled forward during jump
-    const skiTip = airborne ? -12 : 2;
-    const skiGrad1 = ctx.createLinearGradient(-30, 0, 20, 0);
-    skiGrad1.addColorStop(0, '#00d4ff'); skiGrad1.addColorStop(1, '#fff');
-    ctx.beginPath();
-    ctx.moveTo(-28, skiTip + bob); ctx.lineTo(18, skiTip + bob);
-    ctx.strokeStyle = skiGrad1; ctx.lineWidth = 4; ctx.stroke();
-
-    const skiGrad2 = ctx.createLinearGradient(-30, 0, 20, 0);
-    skiGrad2.addColorStop(0, '#ff4466'); skiGrad2.addColorStop(1, '#fff');
-    ctx.beginPath();
-    ctx.moveTo(-28, skiTip - bob); ctx.lineTo(18, skiTip - bob);
-    ctx.strokeStyle = skiGrad2; ctx.lineWidth = 4; ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(14, skiTip + bob); ctx.quadraticCurveTo(22, skiTip-5+bob, 20, skiTip+bob);
-    ctx.strokeStyle = '#00d4ff'; ctx.lineWidth = 3; ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(14, skiTip - bob); ctx.quadraticCurveTo(22, skiTip-5-bob, 20, skiTip-bob);
-    ctx.strokeStyle = '#ff4466'; ctx.lineWidth = 3; ctx.stroke();
-
+    const legBend = airborne ? 14 : 8;
+    ctx.beginPath(); ctx.moveTo(0,-22); ctx.lineTo(-legBend,-8+bob); ctx.lineTo(-10,0+bob); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,-22); ctx.lineTo(legBend,-8-bob);  ctx.lineTo(10,0-bob);  ctx.stroke();
   } else {
     const legBend = airborne ? 18 : 14;
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(0, -22);
-    ctx.lineTo(-legBend, -6 + bob);
-    ctx.lineTo(-16, 0 + bob);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(0, -22);
-    ctx.lineTo(legBend, -6 - bob);
-    ctx.lineTo(16, 0 - bob);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,-22); ctx.lineTo(-legBend,-6+bob); ctx.lineTo(-16,0+bob); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,-22); ctx.lineTo(legBend,-6-bob);  ctx.lineTo(16,0-bob);  ctx.stroke();
+  }
 
+  // ── GEAR ──
+  if (gear === 'ski') {
+    const skiTip = airborne ? -12 : 2;
+    // Ski 1
+    ctx.beginPath(); ctx.moveTo(-28, skiTip+bob); ctx.lineTo(18, skiTip+bob);
+    ctx.strokeStyle = gearStroke(-30, 20, 0, '#00d4ff', colorBody);
+    ctx.lineWidth = 4; ctx.stroke();
+    // Ski 2
+    ctx.beginPath(); ctx.moveTo(-28, skiTip-bob); ctx.lineTo(18, skiTip-bob);
+    ctx.strokeStyle = gearStroke(-30, 20, 0, colorGear === 'auto' ? '#ff4466' : colorGear, colorBody);
+    ctx.lineWidth = 4; ctx.stroke();
+    // Tips
+    const tip1 = colorGear === 'auto' ? '#00d4ff' : colorGear;
+    const tip2 = colorGear === 'auto' ? '#ff4466' : colorGear;
+    ctx.beginPath(); ctx.moveTo(14,skiTip+bob); ctx.quadraticCurveTo(22,skiTip-5+bob,20,skiTip+bob);
+    ctx.strokeStyle = tip1; ctx.lineWidth = 3; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(14,skiTip-bob); ctx.quadraticCurveTo(22,skiTip-5-bob,20,skiTip-bob);
+    ctx.strokeStyle = tip2; ctx.lineWidth = 3; ctx.stroke();
+  } else {
     const boardY = airborne ? -8 : 1;
-    const boardGrad = ctx.createLinearGradient(-26, 0, 26, 0);
-    boardGrad.addColorStop(0,   '#ff4466');
-    boardGrad.addColorStop(0.3, '#ff8800');
-    boardGrad.addColorStop(0.7, '#ffd700');
-    boardGrad.addColorStop(1,   '#00ff99');
-    ctx.beginPath();
-    ctx.moveTo(-26, boardY); ctx.lineTo(26, boardY);
-    ctx.strokeStyle = boardGrad; ctx.lineWidth = 7; ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(22, boardY); ctx.quadraticCurveTo(30, boardY-6, 27, boardY);
-    ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 4; ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(-22, boardY); ctx.quadraticCurveTo(-30, boardY-6, -27, boardY);
-    ctx.strokeStyle = '#ff4466'; ctx.lineWidth = 4; ctx.stroke();
-
+    // Board body
+    let boardPaint;
+    if (colorGear === 'auto') {
+      boardPaint = ctx.createLinearGradient(-26, 0, 26, 0);
+      boardPaint.addColorStop(0,   '#ff4466');
+      boardPaint.addColorStop(0.3, '#ff8800');
+      boardPaint.addColorStop(0.7, '#ffd700');
+      boardPaint.addColorStop(1,   '#00ff99');
+    } else {
+      boardPaint = colorGear;
+    }
+    ctx.beginPath(); ctx.moveTo(-26, boardY); ctx.lineTo(26, boardY);
+    ctx.strokeStyle = boardPaint; ctx.lineWidth = 7; ctx.stroke();
+    // Tips — slightly lighter shade of chosen colour
+    const tipC = colorGear === 'auto' ? '#ffd700' : colorGear;
+    ctx.beginPath(); ctx.moveTo(22,boardY); ctx.quadraticCurveTo(30,boardY-6,27,boardY);
+    ctx.strokeStyle = tipC; ctx.lineWidth = 4; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-22,boardY); ctx.quadraticCurveTo(-30,boardY-6,-27,boardY);
+    ctx.strokeStyle = tipC; ctx.lineWidth = 4; ctx.stroke();
+    // Bindings
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.fillRect(-18, boardY-3, 6, 3);
     ctx.fillRect(12, boardY-3, 6, 3);
   }
 
-  // ── AIRBORNE INDICATOR ── glowing aura
+  // ── AIRBORNE AURA ──
   if (airborne) {
-    const glow = ctx.createRadialGradient(0, -28, 5, 0, -28, 55);
-    glow.addColorStop(0,   'rgba(0,212,255,0.18)');
-    glow.addColorStop(0.5, 'rgba(0,212,255,0.06)');
-    glow.addColorStop(1,   'rgba(0,212,255,0)');
-    ctx.beginPath();
-    ctx.arc(0, -28, 55, 0, Math.PI*2);
-    ctx.fillStyle = glow;
-    ctx.fill();
+    const auraC = colorBody === '#ffffff' ? '0,212,255' : hexToRgb(colorBody);
+    const glow = ctx.createRadialGradient(0,-28,5,0,-28,55);
+    glow.addColorStop(0,   `rgba(${auraC},0.20)`);
+    glow.addColorStop(0.5, `rgba(${auraC},0.07)`);
+    glow.addColorStop(1,   `rgba(${auraC},0)`);
+    ctx.beginPath(); ctx.arc(0,-28,55,0,Math.PI*2);
+    ctx.fillStyle = glow; ctx.fill();
   }
 
   ctx.restore();
+}
+
+/** Convert #rrggbb to "r,g,b" string for rgba() usage */
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
 }
 
 // ── TRICKS (on-slope spin) ────────────────────

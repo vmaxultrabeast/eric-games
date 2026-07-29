@@ -47,12 +47,71 @@
                 <span class="gear-desc">Smooth &amp; stylish</span>
             </button>
         </div>
-        <p class="hint-text"><i class="fa-solid fa-pen"></i> Draw your slope on the canvas, then hit <strong>Ride!</strong> — Press <strong>Space</strong> or <strong>↑</strong> to jump!</p>
+
+        <!-- COLOR CUSTOMIZER -->
+        <div class="color-section">
+            <div class="color-row">
+                <div class="color-group">
+                    <span class="color-label"><i class="fa-solid fa-person"></i> Body</span>
+                    <div class="swatch-row" id="swatches-body">
+                        <button class="swatch active" style="background:#ffffff" onclick="setColor('body','#ffffff',this)" title="White"></button>
+                        <button class="swatch" style="background:#ff6b6b" onclick="setColor('body','#ff6b6b',this)" title="Red"></button>
+                        <button class="swatch" style="background:#4ecdc4" onclick="setColor('body','#4ecdc4',this)" title="Teal"></button>
+                        <button class="swatch" style="background:#ffe66d" onclick="setColor('body','#ffe66d',this)" title="Yellow"></button>
+                        <button class="swatch" style="background:#a29bfe" onclick="setColor('body','#a29bfe',this)" title="Purple"></button>
+                        <button class="swatch" style="background:#fd79a8" onclick="setColor('body','#fd79a8',this)" title="Pink"></button>
+                        <button class="swatch" style="background:#00cec9" onclick="setColor('body','#00cec9',this)" title="Cyan"></button>
+                        <label class="swatch swatch-custom" title="Custom colour">
+                            <i class="fa-solid fa-plus"></i>
+                            <input type="color" id="pick-body" value="#ffffff" oninput="setColorCustom('body',this.value)">
+                        </label>
+                    </div>
+                </div>
+                <div class="color-group">
+                    <span class="color-label"><i class="fa-solid fa-helmet-safety"></i> Helmet</span>
+                    <div class="swatch-row" id="swatches-helmet">
+                        <button class="swatch active" style="background:#ffd700" onclick="setColor('helmet','#ffd700',this)" title="Gold"></button>
+                        <button class="swatch" style="background:#ff4466" onclick="setColor('helmet','#ff4466',this)" title="Red"></button>
+                        <button class="swatch" style="background:#00ff99" onclick="setColor('helmet','#00ff99',this)" title="Green"></button>
+                        <button class="swatch" style="background:#74b9ff" onclick="setColor('helmet','#74b9ff',this)" title="Blue"></button>
+                        <button class="swatch" style="background:#e17055" onclick="setColor('helmet','#e17055',this)" title="Orange"></button>
+                        <button class="swatch" style="background:#dfe6e9" onclick="setColor('helmet','#dfe6e9',this)" title="Silver"></button>
+                        <button class="swatch" style="background:#2d3436" onclick="setColor('helmet','#2d3436',this)" title="Black"></button>
+                        <label class="swatch swatch-custom" title="Custom colour">
+                            <i class="fa-solid fa-plus"></i>
+                            <input type="color" id="pick-helmet" value="#ffd700" oninput="setColorCustom('helmet',this.value)">
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="color-row">
+                <div class="color-group" style="flex:1">
+                    <span class="color-label"><i class="fa-solid fa-snowflake"></i> Gear (Ski / Board)</span>
+                    <div class="swatch-row" id="swatches-gear">
+                        <button class="swatch active" style="background:linear-gradient(135deg,#00d4ff,#ff4466)" onclick="setColor('gear','auto',this)" title="Rainbow (default)"><span style="font-size:0.6rem">AUTO</span></button>
+                        <button class="swatch" style="background:#00d4ff" onclick="setColor('gear','#00d4ff',this)" title="Cyan"></button>
+                        <button class="swatch" style="background:#ff4466" onclick="setColor('gear','#ff4466',this)" title="Red"></button>
+                        <button class="swatch" style="background:#ffd700" onclick="setColor('gear','#ffd700',this)" title="Gold"></button>
+                        <button class="swatch" style="background:#00ff99" onclick="setColor('gear','#00ff99',this)" title="Lime"></button>
+                        <button class="swatch" style="background:#a29bfe" onclick="setColor('gear','#a29bfe',this)" title="Purple"></button>
+                        <button class="swatch" style="background:#fd79a8" onclick="setColor('gear','#fd79a8',this)" title="Pink"></button>
+                        <button class="swatch" style="background:#2d3436" onclick="setColor('gear','#2d3436',this)" title="Black"></button>
+                        <label class="swatch swatch-custom" title="Custom colour">
+                            <i class="fa-solid fa-plus"></i>
+                            <input type="color" id="pick-gear" value="#00d4ff" oninput="setColorCustom('gear',this.value)">
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="hint-text"><i class="fa-solid fa-pen"></i> Draw your slope on the canvas, then hit <strong>Ride!</strong> &mdash; Press <strong>Space</strong> or <strong>&#x2191;</strong> to jump!</p>
         <div class="btn-row">
             <button class="action-btn clear-btn" onclick="clearSlope()"><i class="fa-solid fa-trash"></i> Clear</button>
             <button class="action-btn ride-btn" onclick="startRide()"><i class="fa-solid fa-play"></i> Ride!</button>
         </div>
     </div>
+
 
     <!-- GAME OVER -->
     <div class="panel hidden" id="panel-gameover">
