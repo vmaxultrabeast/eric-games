@@ -328,6 +328,43 @@ html, body {
   100% { opacity: 0; transform: translate(-50%,-75%) scale(0.9); }
 }
 
+/* high score chip */
+.stat-hi {
+  border-color: var(--gold) !important;
+  color: var(--gold);
+}
+.stat-hi i { color: var(--gold) !important; }
+.stat-hi.new-best {
+  background: rgba(255,215,0,0.2) !important;
+  box-shadow: 0 0 16px rgba(255,215,0,0.5);
+  animation: hiPulse .5s ease 3;
+}
+@keyframes hiPulse {
+  0%,100% { box-shadow: 0 0 12px rgba(255,215,0,0.4); }
+  50%      { box-shadow: 0 0 28px rgba(255,215,0,0.9); }
+}
+
+/* NEW RECORD banner on game-over panel */
+.new-record {
+  text-align: center;
+  font-family: var(--font2);
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(255,215,0,0.8), 0 0 40px orange;
+  margin-bottom: 10px;
+  animation: recordShine 1.2s ease infinite alternate;
+}
+.new-record.hidden { display: none; }
+@keyframes recordShine {
+  from { text-shadow: 0 0 10px rgba(255,215,0,0.6); transform: scale(1); }
+  to   { text-shadow: 0 0 30px rgba(255,215,0,1), 0 0 60px orange; transform: scale(1.04); }
+}
+
+/* best-ever value highlighted gold */
+.go-val-hi { color: var(--gold) !important; }
+
 /* ── SPEED FLASH on top bar ── */
 .stat-chip.boosting {
   background: rgba(0,212,255,0.25);

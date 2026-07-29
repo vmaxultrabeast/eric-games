@@ -29,6 +29,7 @@
             <div class="stat-chip" id="stat-speed"><i class="fa-solid fa-gauge-high"></i> <span id="val-speed">0</span> km/h</div>
             <div class="stat-chip" id="stat-score"><i class="fa-solid fa-star"></i> <span id="val-score">0</span></div>
             <div class="stat-chip" id="stat-dist"><i class="fa-solid fa-road"></i> <span id="val-dist">0</span> m</div>
+            <div class="stat-chip stat-hi" id="stat-hi"><i class="fa-solid fa-trophy"></i> BEST: <span id="val-hi">0</span></div>
         </div>
     </header>
 
@@ -116,10 +117,12 @@
     <!-- GAME OVER -->
     <div class="panel hidden" id="panel-gameover">
         <h2 class="panel-title" id="go-title">&#x1F3BF; Wipeout!</h2>
+        <div class="new-record hidden" id="new-record">&#x1F3C6; NEW HIGH SCORE!</div>
         <div class="go-stats">
             <div class="go-stat"><span class="go-label">Distance</span><span class="go-val" id="go-dist">0 m</span></div>
             <div class="go-stat"><span class="go-label">Top Speed</span><span class="go-val" id="go-spd">0 km/h</span></div>
             <div class="go-stat"><span class="go-label">Score</span><span class="go-val" id="go-score">0</span></div>
+            <div class="go-stat"><span class="go-label">&#x1F3C6; Best Ever</span><span class="go-val go-val-hi" id="go-hi">0</span></div>
         </div>
         <div class="btn-row">
             <button class="action-btn clear-btn" onclick="resetGame()"><i class="fa-solid fa-rotate-left"></i> Redraw</button>

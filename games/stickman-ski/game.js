@@ -30,6 +30,14 @@ let gear          = 'ski';
 let colorBody     = '#ffffff';
 let colorHelmet   = '#ffd700';
 let colorGear     = 'auto';   // 'auto' = original gradient, else hex
+
+// ── High score (persisted) ────────────────────
+const HS_KEY  = 'stickman-ski-hiscore';
+let highScore = parseInt(localStorage.getItem(HS_KEY) || '0', 10);
+
+function updateHiDisplay() {
+  document.getElementById('val-hi').textContent = Math.round(highScore);
+}
 let slopePts      = [];       // raw drawn points
 let smoothPts     = [];       // smoothed & even-sampled
 let slopeArcLen   = [];       // cumulative arc lengths for smoothPts
@@ -727,12 +735,34 @@ function showTrickFlash(text) {
 function showGameOver(finished) {
   stopLoop();
   riding = false; airborne = false;
+
+  const finalScore = Math.round(score);
+  const isNewBest  = finalScore > highScore;
+
+  // Save new high score
+  if (isNewBest) {
+    highScore = finalScore;
+    localStorage.setItem(HS_KEY, highScore);
+    updateHiDisplay();
+    // Flash the HUD chip gold
+    const chip = document.getElementById('stat-hi');
+    chip.classList.remove('new-best');
+    void chip.offsetWidth; // reflow to restart animation
+    chip.classList.add('new-best');
+    setTimeout(() => chip.classList.remove('new-best'), 1600);
+  }
+
   document.getElementById('panel-gameover').classList.remove('hidden');
   document.getElementById('ride-controls').classList.add('hidden');
-  document.getElementById('go-title').textContent = finished ? '🏆 Great Run!' : '💥 Wipeout!';
-  document.getElementById('go-dist').textContent  = Math.round(distance)           + ' m';
-  document.getElementById('go-spd').textContent   = Math.round(topSpeed * 0.036)   + ' km/h';
-  document.getElementById('go-score').textContent = Math.round(score);
+  document.getElementById('go-title').textContent     = finished ? '🏆 Great Run!' : '💥 Wipeout!';
+  document.getElementById('go-dist').textContent      = Math.round(distance)         + ' m';
+  document.getElementById('go-spd').textContent       = Math.round(topSpeed * 0.036) + ' km/h';
+  document.getElementById('go-score').textContent     = finalScore;
+  document.getElementById('go-hi').textContent        = Math.round(highScore);
+
+  // NEW RECORD banner
+  const rec = document.getElementById('new-record');
+  rec.classList.toggle('hidden', !isNewBest);
 }
 
 // ── HINT FLASH ────────────────────────────────
@@ -759,4 +789,5 @@ window.addEventListener('keydown', e => {
 });
 
 // ── Initial draw ──────────────────────────────
+updateHiDisplay();
 redrawCanvas();
