@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stickman Ski – Draw Your Slope!</title>
+    <meta name="description" content="Draw your own ski slope and watch your stickman shred it! Switch between skis and snowboard for a wild ride.">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="bg-scene">
+    <div class="mountain mountain-1"></div>
+    <div class="mountain mountain-2"></div>
+    <div class="mountain mountain-3"></div>
+    <div class="snowflakes" id="snowflakes"></div>
+</div>
+
+<div class="ui-overlay">
+    <header class="top-bar">
+        <a href="../../" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Arcade</a>
+        <div class="title-block">
+            <h1 class="game-title">&#x26F7;&#xFE0F; STICKMAN SKI</h1>
+            <p class="game-sub">Draw your slope &mdash; then ride it!</p>
+        </div>
+        <div class="stats-row">
+            <div class="stat-chip" id="stat-speed"><i class="fa-solid fa-gauge-high"></i> <span id="val-speed">0</span> km/h</div>
+            <div class="stat-chip" id="stat-score"><i class="fa-solid fa-star"></i> <span id="val-score">0</span></div>
+            <div class="stat-chip" id="stat-dist"><i class="fa-solid fa-road"></i> <span id="val-dist">0</span> m</div>
+        </div>
+    </header>
+
+    <!-- MODE SELECTOR -->
+    <div class="panel" id="panel-mode">
+        <h2 class="panel-title">Choose Your Gear</h2>
+        <div class="gear-row">
+            <button class="gear-btn active" id="btn-ski" onclick="selectGear('ski')">
+                <span class="gear-icon">&#x26F7;&#xFE0F;</span>
+                <span class="gear-label">Skis</span>
+                <span class="gear-desc">Fast &amp; sharp carves</span>
+            </button>
+            <button class="gear-btn" id="btn-board" onclick="selectGear('board')">
+                <span class="gear-icon">&#x1F3C2;</span>
+                <span class="gear-label">Snowboard</span>
+                <span class="gear-desc">Smooth &amp; stylish</span>
+            </button>
+        </div>
+        <p class="hint-text"><i class="fa-solid fa-pen"></i> Draw your slope on the canvas, then hit <strong>Ride!</strong> — Press <strong>Space</strong> or <strong>↑</strong> to jump!</p>
+        <div class="btn-row">
+            <button class="action-btn clear-btn" onclick="clearSlope()"><i class="fa-solid fa-trash"></i> Clear</button>
+            <button class="action-btn ride-btn" onclick="startRide()"><i class="fa-solid fa-play"></i> Ride!</button>
+        </div>
+    </div>
+
+    <!-- GAME OVER -->
+    <div class="panel hidden" id="panel-gameover">
+        <h2 class="panel-title" id="go-title">&#x1F3BF; Wipeout!</h2>
+        <div class="go-stats">
+            <div class="go-stat"><span class="go-label">Distance</span><span class="go-val" id="go-dist">0 m</span></div>
+            <div class="go-stat"><span class="go-label">Top Speed</span><span class="go-val" id="go-spd">0 km/h</span></div>
+            <div class="go-stat"><span class="go-label">Score</span><span class="go-val" id="go-score">0</span></div>
+        </div>
+        <div class="btn-row">
+            <button class="action-btn clear-btn" onclick="resetGame()"><i class="fa-solid fa-rotate-left"></i> Redraw</button>
+            <button class="action-btn ride-btn" onclick="replayRide()"><i class="fa-solid fa-play"></i> Replay!</button>
+        </div>
+    </div>
+
+    <!-- IN-RIDE HUD CONTROLS -->
+    <div class="ride-controls hidden" id="ride-controls">
+        <button class="hud-btn hud-jump" id="btn-jump" onclick="doJump()"><i class="fa-solid fa-arrow-up"></i> Jump! <span class="key-hint">Space</span></button>
+        <button class="hud-btn" id="btn-trick" onclick="doTrick()"><i class="fa-solid fa-person-skiing"></i> Trick!</button>
+        <button class="hud-btn hud-stop" onclick="stopRide()"><i class="fa-solid fa-stop"></i> Stop</button>
+    </div>
+</div>
+
+<!-- CANVAS -->
+<canvas id="game-canvas"></canvas>
+
+<script src="game.js"></script>
+</body>
+</html>
