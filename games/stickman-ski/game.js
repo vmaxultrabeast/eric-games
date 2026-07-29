@@ -436,6 +436,7 @@ function loop(ts) {
     const airSpd = Math.round(Math.sqrt(airVX*airVX + airVY*airVY) * 0.036);
     document.getElementById('val-speed').textContent = airSpd;
     document.getElementById('val-score').textContent = Math.round(score);
+    document.getElementById('val-hi').textContent    = Math.max(Math.round(highScore), Math.round(score));
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
@@ -473,6 +474,7 @@ function loop(ts) {
     document.getElementById('val-speed').textContent = kmh;
     document.getElementById('val-score').textContent = Math.round(score);
     document.getElementById('val-dist').textContent  = Math.round(distance);
+    document.getElementById('val-hi').textContent    = Math.max(Math.round(highScore), Math.round(score));
     document.getElementById('stat-speed').classList.toggle('boosting', kmh > 80);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -739,30 +741,33 @@ function showGameOver(finished) {
   const finalScore = Math.round(score);
   const isNewBest  = finalScore > highScore;
 
-  // Save new high score
+  // Always save if beaten (robust: also try/catch localStorage)
   if (isNewBest) {
     highScore = finalScore;
-    localStorage.setItem(HS_KEY, highScore);
-    updateHiDisplay();
+    try { localStorage.setItem(HS_KEY, String(highScore)); } catch(e) {}
     // Flash the HUD chip gold
     const chip = document.getElementById('stat-hi');
-    chip.classList.remove('new-best');
-    void chip.offsetWidth; // reflow to restart animation
-    chip.classList.add('new-best');
-    setTimeout(() => chip.classList.remove('new-best'), 1600);
+    if (chip) {
+      chip.classList.remove('new-best');
+      void chip.offsetWidth;
+      chip.classList.add('new-best');
+      setTimeout(() => chip.classList.remove('new-best'), 1600);
+    }
   }
+
+  // Always update both displays with the definitive values
+  updateHiDisplay();
 
   document.getElementById('panel-gameover').classList.remove('hidden');
   document.getElementById('ride-controls').classList.add('hidden');
-  document.getElementById('go-title').textContent     = finished ? '🏆 Great Run!' : '💥 Wipeout!';
-  document.getElementById('go-dist').textContent      = Math.round(distance)         + ' m';
-  document.getElementById('go-spd').textContent       = Math.round(topSpeed * 0.036) + ' km/h';
-  document.getElementById('go-score').textContent     = finalScore;
-  document.getElementById('go-hi').textContent        = Math.round(highScore);
+  document.getElementById('go-title').textContent = finished ? '🏆 Great Run!' : '💥 Wipeout!';
+  document.getElementById('go-dist').textContent  = Math.round(distance)         + ' m';
+  document.getElementById('go-spd').textContent   = Math.round(topSpeed * 0.036) + ' km/h';
+  document.getElementById('go-score').textContent = finalScore;
+  document.getElementById('go-hi').textContent    = Math.round(highScore);
 
   // NEW RECORD banner
-  const rec = document.getElementById('new-record');
-  rec.classList.toggle('hidden', !isNewBest);
+  document.getElementById('new-record').classList.toggle('hidden', !isNewBest);
 }
 
 // ── HINT FLASH ────────────────────────────────
