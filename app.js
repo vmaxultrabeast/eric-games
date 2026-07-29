@@ -145,6 +145,17 @@ const GAMES_REGISTRY = [
         controls: 'Run the factory to generate DNA. Click the Collect button to get cards, then click on cards to flip them. Discover all 67 dinos!',
         addedDate: '2026-07-07',
         updatedDate: '2026-07-07'
+    },
+    {
+        id: 'stickman-ski',
+        title: 'Stickman Ski',
+        category: 'arcade',
+        description: 'Draw your own ski slope then watch your stickman shred it! Choose skis or a snowboard, hit massive jumps, pull off tricks mid-air, and score big based on air time and height!',
+        folder: 'games/stickman-ski',
+        cover: 'games/stickman-ski/cover.png',
+        controls: 'Draw a slope on the canvas, then click Ride! Space / ↑ Arrow to jump. T to spin trick. Esc to stop.',
+        addedDate: '2026-07-29',
+        updatedDate: '2026-07-29'
     }
     // New games can be easily appended here in the future
 ];
