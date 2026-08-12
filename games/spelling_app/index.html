@@ -586,6 +586,7 @@
     <button class="nav-btn active" id="nav-practice" onclick="showTab('practice')">🎮 Practice</button>
     <button class="nav-btn" id="nav-shop" onclick="showTab('shop')">🛒 DNA Shop</button>
     <button class="nav-btn" id="nav-inventory" onclick="showTab('inventory')">🎒 Inventory (<span id="inventory-count">0</span>)</button>
+    <button class="nav-btn" id="nav-eggs" onclick="showTab('eggs')">🥚 Mystery Eggs</button>
     <button class="nav-btn" id="nav-lab" onclick="showTab('lab')">🔬 Hybrid Lab</button>
     <button class="nav-btn" id="nav-stable" onclick="showTab('stable')">🦕 Stable (<span id="stable-count">0</span>)</button>
   </nav>
@@ -736,6 +737,71 @@
       <button class="shop-filter-btn" onclick="filterInventory('aura', this)">⚡ Mutation</button>
     </div>
     <div class="shop-grid" id="inventory-grid"></div>
+  </div>
+
+  <!-- MYSTERY FOSSIL EGGS SCREEN -->
+  <div id="eggs-screen" class="hidden screen">
+    <div class="emoji-big">🥚</div>
+    <h2>Mystery Fossil Eggs</h2>
+    <p>Hatch prehistoric mystery eggs to unbox rare DNA parts, rare mutations, and coin jackpots!</p>
+
+    <!-- Egg Shop Grid -->
+    <div class="shop-grid" style="margin-top:20px;">
+      <!-- Common Egg Card -->
+      <div class="shop-card" style="border:1.5px solid #5dab7c;background:linear-gradient(135deg, #102418, #183323);">
+        <div>
+          <div class="shop-card-header">
+            <span class="rarity-badge rarity-common">Common</span>
+            <span style="font-size:0.75rem;color:#5dab7c;font-weight:700;">500 COINS</span>
+          </div>
+          <div class="shop-card-icon" style="font-size:3rem;margin:12px 0;">🟢🥚</div>
+          <div class="shop-card-title">Ancient Fossil Egg</div>
+          <div class="shop-card-desc">Guarantees a 1st Gen DNA part (Common or Rare) + chance for a coin bonus!</div>
+        </div>
+        <button class="buy-btn" onclick="buyEgg('common')" style="background:linear-gradient(135deg, #2e7d32, #4caf50);margin-top:14px;">
+          🟢 Hatch for 500 Coins
+        </button>
+      </div>
+
+      <!-- Rare Egg Card -->
+      <div class="shop-card" style="border:1.5px solid #60a5fa;background:linear-gradient(135deg, #0f1e36, #162b4d);">
+        <div>
+          <div class="shop-card-header">
+            <span class="rarity-badge rarity-rare">Rare / Epic</span>
+            <span style="font-size:0.75rem;color:#60a5fa;font-weight:700;">2,500 COINS</span>
+          </div>
+          <div class="shop-card-icon" style="font-size:3rem;margin:12px 0;">🔵🥚</div>
+          <div class="shop-card-title">Prime Bio-Luminous Egg</div>
+          <div class="shop-card-desc">High chance of Epic or Legendary genetics + 5,000 Coin Jackpot chance!</div>
+        </div>
+        <button class="buy-btn" onclick="buyEgg('rare')" style="background:linear-gradient(135deg, #1d4ed8, #3b82f6);margin-top:14px;">
+          🔵 Hatch for 2,500 Coins
+        </button>
+      </div>
+
+      <!-- Mythic Egg Card -->
+      <div class="shop-card" style="border:1.5px solid #f472b6;background:linear-gradient(135deg, #2e1022, #451733);box-shadow:0 0 20px rgba(244,114,184,0.3);">
+        <div>
+          <div class="shop-card-header">
+            <span class="rarity-badge rarity-mythic">Mythic Apex</span>
+            <span style="font-size:0.75rem;color:#f472b6;font-weight:700;">10,000 COINS</span>
+          </div>
+          <div class="shop-card-icon" style="font-size:3rem;margin:12px 0;">🟣🥚</div>
+          <div class="shop-card-title">Starlight Quantum Egg</div>
+          <div class="shop-card-desc">Guarantees Legendary or Mythic parts + 25,000 COIN GRAND JACKPOT!</div>
+        </div>
+        <button class="buy-btn" onclick="buyEgg('mythic')" style="background:linear-gradient(135deg, #c026d3, #ec4899);margin-top:14px;">
+          🟣 Hatch for 10,000 Coins
+        </button>
+      </div>
+    </div>
+
+    <!-- Hatching Animation Modal / Stage -->
+    <div id="egg-hatch-stage" class="hidden" style="margin-top:24px;padding:30px;background:var(--card-light);border-radius:20px;border:2px solid var(--primary);animation:fadeIn 0.4s;">
+      <div id="hatch-egg-icon" style="font-size:5rem;cursor:pointer;animation:shake 0.5s infinite alternate;" onclick="stepHatchEgg()">🥚</div>
+      <div id="hatch-status-text" style="font-size:1.2rem;font-weight:900;color:#fbbf24;margin-top:14px;">Click the egg to crack it!</div>
+      <div id="hatch-result-card" class="hidden" style="margin-top:16px;"></div>
+    </div>
   </div>
 
   <!-- HYBRID LAB SCREEN -->
@@ -2529,7 +2595,7 @@ function updateStableBadge() {
 
 // Nav Tab Switcher
 function showTab(tab) {
-  ['practice', 'shop', 'inventory', 'lab', 'stable'].forEach(t => {
+  ['practice', 'shop', 'inventory', 'eggs', 'lab', 'stable'].forEach(t => {
     const btn = document.getElementById(`nav-${t}`);
     if (btn) btn.classList.toggle('active', t === tab);
   });
@@ -2553,6 +2619,7 @@ function showTab(tab) {
 
   document.getElementById('shop-screen').classList.toggle('hidden', tab !== 'shop');
   document.getElementById('inventory-screen').classList.toggle('hidden', tab !== 'inventory');
+  document.getElementById('eggs-screen').classList.toggle('hidden', tab !== 'eggs');
   document.getElementById('lab-screen').classList.toggle('hidden', tab !== 'lab');
   document.getElementById('stable-screen').classList.toggle('hidden', tab !== 'stable');
 
@@ -2626,6 +2693,123 @@ function renderInventory() {
       </div>
     </div>`;
   }).join('');
+}
+
+// MYSTERY FOSSIL EGG LOGIC
+let currentEggType = null;
+let hatchStep = 0;
+let pendingRewardPart = null;
+let pendingCoinBonus = 0;
+
+function buyEgg(type) {
+  const prices = { common: 500, rare: 2500, mythic: 10000 };
+  const cost = prices[type];
+  const coins = loadCoins();
+
+  if (coins < cost) {
+    alert(`🪙 You need ${cost.toLocaleString()} coins to hatch this egg! Practice more to earn coins!`);
+    return;
+  }
+
+  addCoins(-cost);
+  currentEggType = type;
+  hatchStep = 0;
+
+  // Determine Reward Part
+  let candidatePool = [];
+  if (type === 'common') {
+    candidatePool = DINO_PARTS.filter(p => p.price > 0 && (p.rarity === 'common' || p.rarity === 'rare'));
+    pendingCoinBonus = Math.random() < 0.3 ? Math.floor(Math.random() * 400) + 100 : 0;
+  } else if (type === 'rare') {
+    candidatePool = DINO_PARTS.filter(p => p.price > 0 && (p.rarity === 'rare' || p.rarity === 'epic' || p.rarity === 'legendary'));
+    pendingCoinBonus = Math.random() < 0.25 ? Math.floor(Math.random() * 3000) + 1000 : 0;
+  } else {
+    candidatePool = DINO_PARTS.filter(p => p.price > 0 && (p.rarity === 'epic' || p.rarity === 'legendary' || p.rarity === 'mythic'));
+    pendingCoinBonus = Math.random() < 0.2 ? 25000 : Math.floor(Math.random() * 8000) + 2000;
+  }
+
+  pendingRewardPart = candidatePool[Math.floor(Math.random() * candidatePool.length)];
+
+  // Show Hatch Stage
+  const stage = document.getElementById('egg-hatch-stage');
+  const eggIcon = document.getElementById('hatch-egg-icon');
+  const statusText = document.getElementById('hatch-status-text');
+  const resultCard = document.getElementById('hatch-result-card');
+
+  stage.classList.remove('hidden');
+  resultCard.classList.add('hidden');
+  eggIcon.textContent = type === 'common' ? '🟢🥚' : type === 'rare' ? '🔵🥚' : '🟣🥚';
+  eggIcon.style.animation = 'shake 0.5s infinite alternate';
+  statusText.textContent = 'Tap/Click the egg to crack it open! 🐣';
+
+  stage.scrollIntoView({ behavior: 'smooth' });
+}
+
+function stepHatchEgg() {
+  if (!currentEggType || hatchStep >= 3) return;
+  hatchStep++;
+
+  const eggIcon = document.getElementById('hatch-egg-icon');
+  const statusText = document.getElementById('hatch-status-text');
+
+  if (hatchStep === 1) {
+    eggIcon.textContent = '🐣';
+    statusText.textContent = 'Cracking... Tap again! 💥';
+  } else if (hatchStep === 2) {
+    eggIcon.textContent = '💥🦖';
+    statusText.textContent = 'HATCHED! Revealing specimen... 🌟';
+    setTimeout(() => {
+      hatchStep = 3;
+      revealEggReward();
+    }, 600);
+  }
+}
+
+function revealEggReward() {
+  const eggIcon = document.getElementById('hatch-egg-icon');
+  const statusText = document.getElementById('hatch-status-text');
+  const resultCard = document.getElementById('hatch-result-card');
+
+  eggIcon.style.animation = 'none';
+  eggIcon.textContent = '🎉';
+  statusText.textContent = 'Specimen DNA Unlocked!';
+
+  // Add reward part to owned inventory
+  if (pendingRewardPart) {
+    const owned = loadOwnedParts();
+    owned.push(pendingRewardPart.id);
+    saveOwnedParts(owned);
+  }
+
+  if (pendingCoinBonus > 0) {
+    addCoins(pendingCoinBonus);
+  }
+
+  spawnConfetti(35);
+
+  const bonusText = pendingCoinBonus > 0 
+    ? `<div style="font-size:1.1rem;font-weight:900;color:#fbbf24;margin-top:10px;">💰 BONUS COIN JACKPOT: +${pendingCoinBonus.toLocaleString()} COINS!</div>` 
+    : '';
+
+  resultCard.classList.remove('hidden');
+  resultCard.innerHTML = `
+    <div class="shop-card" style="margin:0 auto;max-width:320px;text-align:center;">
+      <div class="shop-card-header">
+        <span class="rarity-badge rarity-${pendingRewardPart.rarity}">${pendingRewardPart.rarity.toUpperCase()}</span>
+        <span style="font-size:0.75rem;color:var(--text-light);font-weight:700;">${pendingRewardPart.slot.toUpperCase()}</span>
+      </div>
+      <div class="shop-card-icon" style="font-size:3.5rem;">${pendingRewardPart.icon}</div>
+      <div class="shop-card-title">${pendingRewardPart.name}</div>
+      <div class="shop-card-desc">${pendingRewardPart.desc}</div>
+      <div class="shop-card-stats" style="justify-content:center;">
+        <span>⚔️ +${pendingRewardPart.stats.power}</span>
+        <span>🛡️ +${pendingRewardPart.stats.defense}</span>
+        <span>⚡ +${pendingRewardPart.stats.speed}</span>
+      </div>
+      <div style="font-size:0.85rem;font-weight:800;color:var(--success);margin-top:8px;">✅ Added to your Inventory!</div>
+      ${bonusText}
+    </div>
+  `;
 }
 
 // SHOP LOGIC
