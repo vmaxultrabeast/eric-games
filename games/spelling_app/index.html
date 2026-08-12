@@ -3,50 +3,73 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🐝 Spelling Bee</title>
+<title>🦖 DinoScript Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f0f4ff;
-    --card: #ffffff;
-    --primary: #4361ee;
-    --success: #06d6a0;
-    --danger: #ef476f;
-    --warning: #ffd166;
-    --text: #2b2d42;
-    --text-light: #8d99ae;
-    --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    --bg: #0d1f0e;
+    --card: #132314;
+    --card-light: #1a2e1b;
+    --primary: #22c55e;
+    --primary-dark: #16a34a;
+    --success: #4ade80;
+    --danger: #f87171;
+    --warning: #fbbf24;
+    --amber: #d97706;
+    --text: #e8f5e9;
+    --text-light: #86a98a;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    --glow: 0 0 20px rgba(34,197,94,0.25);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
     background: var(--bg); color: var(--text);
     min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(34,197,94,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(217,119,6,0.06) 0%, transparent 50%);
   }
   header {
-    background: linear-gradient(135deg, var(--primary), #7209b7);
-    color: white; width: 100%; padding: 20px; text-align: center;
-    box-shadow: var(--shadow);
+    background: linear-gradient(135deg, #052e16 0%, #14532d 50%, #1a1a00 100%);
+    color: white; width: 100%; padding: 22px 20px 18px; text-align: center;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+    border-bottom: 2px solid rgba(34,197,94,0.3);
+    position: relative; overflow: hidden;
   }
-  header h1 { font-size: 1.8rem; margin-bottom: 4px; }
-  header p { opacity: 0.85; font-size: 0.95rem; }
+  header::before {
+    content: '🧬'; position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%); font-size: 2rem; opacity: 0.3;
+  }
+  header::after {
+    content: '🧬'; position: absolute; right: 14px; top: 50%;
+    transform: translateY(-50%); font-size: 2rem; opacity: 0.3;
+  }
+  header h1 { font-size: 1.9rem; margin-bottom: 2px; font-weight: 900; letter-spacing: -0.5px;
+    text-shadow: 0 0 20px rgba(34,197,94,0.5); }
+  header p { opacity: 0.75; font-size: 0.9rem; }
   .container { max-width: 640px; width: 100%; padding: 20px; flex: 1; }
 
   /* Progress bar */
   .progress-container {
     background: var(--card); border-radius: 16px; padding: 16px 20px;
     margin-bottom: 16px; box-shadow: var(--shadow);
+    border: 1px solid rgba(34,197,94,0.2);
   }
   .progress-stats {
     display: flex; justify-content: space-between;
     font-size: 0.85rem; color: var(--text-light); margin-bottom: 8px;
   }
   .progress-bar {
-    width: 100%; height: 10px; background: #e9ecef;
+    width: 100%; height: 10px; background: rgba(255,255,255,0.1);
     border-radius: 5px; overflow: hidden;
   }
   .progress-fill {
-    height: 100%; background: linear-gradient(90deg, var(--primary), #7209b7);
+    height: 100%;
+    background: linear-gradient(90deg, #16a34a, #4ade80, #d97706);
     border-radius: 5px; transition: width 0.5s ease;
+    box-shadow: 0 0 8px rgba(74,222,128,0.5);
   }
   .score-display { display: flex; gap: 16px; justify-content: center; margin-top: 10px; }
   .score-item { display: flex; align-items: center; gap: 4px; font-size: 0.9rem; font-weight: 600; }
@@ -58,64 +81,68 @@
   .word-card {
     background: var(--card); border-radius: 16px; padding: 28px 24px;
     box-shadow: var(--shadow); margin-bottom: 16px; animation: slideIn 0.4s ease;
+    border: 1px solid rgba(34,197,94,0.2);
   }
   @keyframes slideIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
   .word-info { text-align: center; margin-bottom: 20px; }
-  .german-word { font-size: 1.4rem; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+  .german-word { font-size: 1.4rem; font-weight: 800; color: var(--primary); margin-bottom: 6px;
+    text-shadow: 0 0 12px rgba(34,197,94,0.4); }
   .german-label {
     font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
     color: var(--text-light); margin-bottom: 2px;
   }
   .example-sentence {
     font-size: 0.95rem; color: var(--text-light); font-style: italic;
-    margin-top: 10px; padding: 10px 16px; background: #f8f9fa;
-    border-radius: 10px; line-height: 1.5;
+    margin-top: 10px; padding: 10px 16px; background: rgba(255,255,255,0.04);
+    border-radius: 10px; line-height: 1.5; border: 1px solid rgba(34,197,94,0.1);
   }
   .example-sentence .blank {
     display: inline-block; min-width: 60px;
     border-bottom: 2px dashed var(--primary); color: transparent; margin: 0 2px;
   }
   .question-label {
-    font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;
-    text-align: center; color: var(--text);
+    font-size: 0.9rem; font-weight: 700; margin-bottom: 12px;
+    text-align: center; color: var(--text); letter-spacing: 0.3px;
   }
 
   /* Options */
   .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .option-btn {
-    padding: 14px 16px; border: 2px solid #e9ecef; border-radius: 12px;
-    background: white; font-size: 1.1rem; font-weight: 600; cursor: pointer;
-    transition: all 0.2s ease; text-align: center; letter-spacing: 0.5px;
+    padding: 14px 16px; border: 2px solid rgba(34,197,94,0.2); border-radius: 12px;
+    background: var(--card-light); font-size: 1.1rem; font-weight: 700; cursor: pointer;
+    transition: all 0.2s ease; text-align: center; letter-spacing: 0.5px; color: var(--text);
   }
   .option-btn:hover:not(:disabled) {
-    border-color: var(--primary); background: #f0f4ff; transform: scale(1.02);
+    border-color: var(--primary); background: rgba(34,197,94,0.1);
+    transform: scale(1.02); box-shadow: 0 0 12px rgba(34,197,94,0.2);
   }
   .option-btn:active:not(:disabled) { transform: scale(0.98); }
-  .option-btn.correct { border-color: var(--success); background: #d4f5e9; color: #065f46; }
-  .option-btn.wrong { border-color: var(--danger); background: #fde8e8; color: #9b1c31; }
+  .option-btn.correct { border-color: var(--success); background: rgba(74,222,128,0.15); color: #4ade80;
+    box-shadow: 0 0 12px rgba(74,222,128,0.3); }
+  .option-btn.wrong { border-color: var(--danger); background: rgba(248,113,113,0.15); color: #f87171; }
   .option-btn:disabled { cursor: not-allowed; opacity: 0.75; }
 
   /* Typing mode */
   .typing-area { text-align: center; }
   .typing-input {
     width: 100%; max-width: 320px; padding: 14px 20px; font-size: 1.3rem;
-    font-weight: 600; border: 3px solid #e9ecef; border-radius: 14px;
+    font-weight: 700; border: 3px solid rgba(34,197,94,0.3); border-radius: 14px;
     text-align: center; outline: none; transition: border-color 0.2s;
-    letter-spacing: 1px;
+    letter-spacing: 1px; background: var(--card-light); color: var(--text);
   }
-  .typing-input:focus { border-color: var(--primary); }
-  .typing-input.correct-input { border-color: var(--success); background: #d4f5e9; }
-  .typing-input.wrong-input { border-color: var(--danger); background: #fde8e8; }
+  .typing-input:focus { border-color: var(--primary); box-shadow: 0 0 12px rgba(34,197,94,0.2); }
+  .typing-input.correct-input { border-color: var(--success); background: rgba(74,222,128,0.1); }
+  .typing-input.wrong-input { border-color: var(--danger); background: rgba(248,113,113,0.1); }
   .submit-btn {
     margin-top: 12px; padding: 12px 32px; border: none; border-radius: 12px;
-    background: linear-gradient(135deg, var(--primary), #7209b7);
-    color: white; font-size: 1rem; font-weight: 600; cursor: pointer;
-    transition: all 0.2s;
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: white; font-size: 1rem; font-weight: 700; cursor: pointer;
+    transition: all 0.2s; font-family: inherit;
   }
-  .submit-btn:hover { transform: translateY(-1px); }
+  .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(22,163,74,0.4); }
   .submit-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
   .hint-text {
     margin-top: 10px; font-size: 0.85rem; color: var(--text-light);
@@ -128,25 +155,30 @@
   /* Feedback */
   .feedback {
     text-align: center; padding: 16px; border-radius: 12px;
-    margin-top: 16px; font-weight: 600; font-size: 1.05rem;
+    margin-top: 16px; font-weight: 700; font-size: 1.05rem;
     animation: fadeIn 0.3s ease; display: none;
   }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   .feedback.show { display: block; }
-  .feedback.correct-feedback { background: #d4f5e9; color: #065f46; }
-  .feedback.wrong-feedback { background: #fde8e8; color: #9b1c31; }
+  .feedback.correct-feedback { background: rgba(74,222,128,0.15); color: #4ade80;
+    border: 1px solid rgba(74,222,128,0.3); }
+  .feedback.wrong-feedback { background: rgba(248,113,113,0.15); color: #f87171;
+    border: 1px solid rgba(248,113,113,0.3); }
 
   /* Buttons */
   .btn {
     display: inline-flex; align-items: center; justify-content: center;
     gap: 8px; padding: 14px 28px; border: none; border-radius: 12px;
-    font-size: 1rem; font-weight: 600; cursor: pointer;
-    transition: all 0.2s ease; width: 100%;
+    font-size: 1rem; font-weight: 700; cursor: pointer;
+    transition: all 0.2s ease; width: 100%; font-family: inherit;
   }
   .btn:hover { transform: translateY(-1px); }
   .btn:active { transform: translateY(0); }
-  .btn-primary { background: linear-gradient(135deg, var(--primary), #7209b7); color: white; }
-  .btn-secondary { background: #e9ecef; color: var(--text); }
+  .btn-primary { background: linear-gradient(135deg, #16a34a, #d97706); color: white;
+    box-shadow: 0 4px 16px rgba(22,163,74,0.3); }
+  .btn-primary:hover { box-shadow: 0 6px 24px rgba(22,163,74,0.45); }
+  .btn-secondary { background: var(--card-light); color: var(--text);
+    border: 1px solid rgba(34,197,94,0.2); }
   .next-btn { margin-top: 16px; display: none; }
   .next-btn.show { display: flex; }
 
@@ -154,13 +186,15 @@
   .screen {
     background: var(--card); border-radius: 16px; padding: 32px 24px;
     box-shadow: var(--shadow); text-align: center;
+    border: 1px solid rgba(34,197,94,0.2);
   }
-  .screen h2 { font-size: 1.5rem; margin-bottom: 8px; }
+  .screen h2 { font-size: 1.5rem; margin-bottom: 8px; font-weight: 900; }
   .screen p { color: var(--text-light); margin-bottom: 20px; line-height: 1.6; }
   .emoji-big { font-size: 4rem; margin-bottom: 16px; }
   .results-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 20px 0; }
-  .result-box { padding: 16px; border-radius: 12px; background: #f8f9fa; }
-  .result-box .number { font-size: 2rem; font-weight: 700; }
+  .result-box { padding: 16px; border-radius: 12px; background: var(--card-light);
+    border: 1px solid rgba(34,197,94,0.15); }
+  .result-box .number { font-size: 2rem; font-weight: 800; }
   .result-box .label { font-size: 0.75rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; }
   .result-box.green .number { color: var(--success); }
   .result-box.red .number { color: var(--danger); }
@@ -169,50 +203,54 @@
   /* Mode & Difficulty selectors */
   .selector-group { margin-bottom: 16px; }
   .selector-group label {
-    display: block; font-size: 0.85rem; font-weight: 600;
+    display: block; font-size: 0.8rem; font-weight: 700;
     color: var(--text-light); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;
   }
   .selector-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
   .sel-btn {
-    padding: 8px 16px; border: 2px solid #e9ecef; border-radius: 20px;
-    background: white; font-size: 0.85rem; font-weight: 600;
-    cursor: pointer; transition: all 0.2s;
+    padding: 8px 16px; border: 2px solid rgba(34,197,94,0.25); border-radius: 20px;
+    background: var(--card-light); font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; color: var(--text-light); font-family: inherit;
   }
-  .sel-btn:hover { border-color: var(--primary); }
-  .sel-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .sel-btn:hover { border-color: var(--primary); color: var(--text); }
+  .sel-btn.active { background: linear-gradient(135deg, #16a34a, #d97706); color: white;
+    border-color: transparent; box-shadow: 0 2px 12px rgba(22,163,74,0.4); }
 
   /* Stats panel */
   .stats-panel {
     background: var(--card); border-radius: 16px; padding: 20px;
     box-shadow: var(--shadow); margin-top: 16px;
+    border: 1px solid rgba(34,197,94,0.15);
   }
   .stats-panel h3 { font-size: 1rem; margin-bottom: 12px; color: var(--text-light); }
   .trouble-words { display: flex; flex-wrap: wrap; gap: 6px; }
   .trouble-word {
-    padding: 4px 10px; background: #fde8e8; color: #9b1c31;
-    border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+    padding: 4px 10px; background: rgba(248,113,113,0.15); color: #f87171;
+    border-radius: 8px; font-size: 0.8rem; font-weight: 700;
+    border: 1px solid rgba(248,113,113,0.3);
   }
   .learned-word {
-    padding: 4px 10px; background: #d4f5e9; color: #065f46;
-    border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+    padding: 4px 10px; background: rgba(74,222,128,0.15); color: #4ade80;
+    border-radius: 8px; font-size: 0.8rem; font-weight: 700;
+    border: 1px solid rgba(74,222,128,0.3);
   }
   .stats-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
   .stats-toggle button {
-    flex: 1; padding: 8px; border: 2px solid #e9ecef; border-radius: 10px;
-    background: white; font-size: 0.8rem; font-weight: 600;
-    cursor: pointer; transition: all 0.2s;
+    flex: 1; padding: 8px; border: 2px solid rgba(34,197,94,0.2); border-radius: 10px;
+    background: var(--card-light); font-size: 0.8rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; color: var(--text-light); font-family: inherit;
   }
-  .stats-toggle button.active { border-color: var(--primary); background: #f0f4ff; color: var(--primary); }
+  .stats-toggle button.active { border-color: var(--primary); background: rgba(34,197,94,0.1); color: var(--primary); }
   .stats-section { display: none; }
   .stats-section.active { display: block; }
 
   /* History table */
   .history-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
   .history-table th {
-    text-align: left; padding: 8px 6px; border-bottom: 2px solid #e9ecef;
+    text-align: left; padding: 8px 6px; border-bottom: 2px solid rgba(34,197,94,0.2);
     color: var(--text-light); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;
   }
-  .history-table td { padding: 8px 6px; border-bottom: 1px solid #f0f0f0; }
+  .history-table td { padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text); }
   .history-table tr:last-child td { border-bottom: none; }
   .history-table .score-good { color: var(--success); font-weight: 700; }
   .history-table .score-ok { color: var(--warning); font-weight: 700; }
@@ -224,13 +262,14 @@
   .recent-sessions {
     background: var(--card); border-radius: 16px; padding: 20px;
     box-shadow: var(--shadow); margin-bottom: 16px; text-align: left;
+    border: 1px solid rgba(34,197,94,0.15);
   }
   .recent-sessions h3 {
     font-size: 1rem; margin-bottom: 14px; color: var(--text); text-align: center;
   }
   .recent-session-row {
     display: flex; align-items: center; gap: 10px;
-    padding: 10px 0; border-bottom: 1px solid #f0f0f5;
+    padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
   }
   .recent-session-row:last-child { border-bottom: none; }
   .rs-date {
@@ -239,11 +278,11 @@
   }
   .rs-info { flex: 1; min-width: 0; }
   .rs-info-top {
-    font-size: 0.85rem; font-weight: 600; display: flex;
-    align-items: center; gap: 6px; margin-bottom: 4px;
+    font-size: 0.85rem; font-weight: 700; display: flex;
+    align-items: center; gap: 6px; margin-bottom: 4px; color: var(--text);
   }
   .rs-bar-bg {
-    height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden;
+    height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;
   }
   .rs-bar-fill {
     height: 100%; border-radius: 4px; transition: width 0.5s;
@@ -252,7 +291,7 @@
   .rs-bar-fill.ok { background: var(--warning); }
   .rs-bar-fill.bad { background: var(--danger); }
   .rs-score {
-    font-size: 1.1rem; font-weight: 700; min-width: 48px; text-align: right;
+    font-size: 1.1rem; font-weight: 800; min-width: 48px; text-align: right;
   }
   .rs-missed {
     font-size: 0.7rem; color: var(--text-light); margin-top: 3px;
@@ -264,8 +303,8 @@
   .reset-area { margin-top: 20px; text-align: center; }
   .reset-btn {
     padding: 8px 20px; border: 2px solid var(--danger); border-radius: 10px;
-    background: white; color: var(--danger); font-size: 0.85rem;
-    font-weight: 600; cursor: pointer; transition: all 0.2s;
+    background: transparent; color: var(--danger); font-size: 0.85rem;
+    font-weight: 700; cursor: pointer; transition: all 0.2s;
   }
   .reset-btn:hover { background: var(--danger); color: white; }
   .hidden { display: none !important; }
@@ -285,36 +324,28 @@
   }
   .hidden-reset-dot {
     position: absolute;
-    bottom: 6px;
-    right: 6px;
-    background: transparent;
-    border: none;
-    color: var(--text-light);
-    opacity: 0.15;
-    font-size: 0.65rem;
-    cursor: pointer;
-    padding: 2px;
-    z-index: 10;
+    bottom: 6px; right: 6px;
+    background: transparent; border: none;
+    color: var(--text-light); opacity: 0.15;
+    font-size: 0.65rem; cursor: pointer; padding: 2px; z-index: 10;
   }
-  .hidden-reset-dot:hover {
-    opacity: 0.8;
-  }
+  .hidden-reset-dot:hover { opacity: 0.8; }
 
   /* Wallet */
   .wallet-badge {
     display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(255,255,255,0.18); border: 1.5px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.12); border: 1.5px solid rgba(34,197,94,0.4);
     border-radius: 20px; padding: 5px 14px; font-size: 0.95rem;
-    font-weight: 700; color: white; letter-spacing: 0.3px;
-    backdrop-filter: blur(4px);
+    font-weight: 800; color: #4ade80; letter-spacing: 0.3px;
+    backdrop-filter: blur(4px); text-shadow: 0 0 8px rgba(74,222,128,0.5);
   }
   .wallet-badge .coin-icon { font-size: 1.1rem; }
 
   /* Coin award card on end screen */
   .coin-award {
     margin: 16px 0; padding: 20px 16px; border-radius: 16px;
-    background: linear-gradient(135deg, #fffbe6, #fff3cd);
-    border: 2px solid #ffd166;
+    background: linear-gradient(135deg, #1a2e00, #2d4a00);
+    border: 2px solid #d97706;
     animation: coinPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
   }
   @keyframes coinPop {
@@ -322,20 +353,20 @@
     to   { transform: scale(1);   opacity: 1; }
   }
   .coin-award.zero {
-    background: #f8f9fa; border-color: #dee2e6;
+    background: var(--card-light); border-color: rgba(255,255,255,0.1);
   }
   .coin-award-amount {
-    font-size: 2.8rem; font-weight: 800; color: #b8860b;
-    line-height: 1;
+    font-size: 2.8rem; font-weight: 900; color: #fbbf24;
+    line-height: 1; text-shadow: 0 0 20px rgba(251,191,36,0.6);
   }
-  .coin-award-amount.zero { color: var(--text-light); font-size: 2rem; }
+  .coin-award-amount.zero { color: var(--text-light); font-size: 2rem; text-shadow: none; }
   .coin-award-label {
-    font-size: 0.85rem; font-weight: 600; color: #7a6000;
+    font-size: 0.85rem; font-weight: 700; color: #d97706;
     text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;
   }
   .coin-award-label.zero { color: var(--text-light); }
   .coin-award-total {
-    font-size: 0.8rem; color: #7a6000; margin-top: 6px;
+    font-size: 0.8rem; color: #fbbf24; margin-top: 6px;
   }
   .coin-award-total.zero { color: var(--text-light); }
 
@@ -343,9 +374,10 @@
   .rewards-card {
     background: var(--card); border-radius: 16px; padding: 18px 16px;
     box-shadow: var(--shadow); margin-bottom: 16px; text-align: left;
+    border: 1px solid rgba(34,197,94,0.2);
   }
   .rewards-card h3 {
-    font-size: 0.95rem; font-weight: 700; margin-bottom: 12px;
+    font-size: 0.95rem; font-weight: 800; margin-bottom: 12px;
     text-align: center; color: var(--text);
   }
   .rewards-table {
@@ -354,18 +386,19 @@
   .rewards-table th {
     padding: 6px 8px; text-align: center; font-size: 0.7rem;
     text-transform: uppercase; letter-spacing: 0.5px;
-    color: var(--text-light); border-bottom: 2px solid #e9ecef;
+    color: var(--text-light); border-bottom: 2px solid rgba(34,197,94,0.2);
   }
   .rewards-table th.grade-col { text-align: left; }
   .rewards-table td {
-    padding: 6px 8px; text-align: center; border-bottom: 1px solid #f0f0f0;
+    padding: 6px 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: var(--text);
   }
   .rewards-table td.grade-col {
-    text-align: left; font-weight: 600; color: var(--text);
+    text-align: left; font-weight: 700; color: var(--text);
   }
   .rewards-table tr:last-child td { border-bottom: none; }
-  .rt-mc  { color: var(--primary); font-weight: 700; }
-  .rt-typ { color: #7209b7;        font-weight: 700; }
+  .rt-mc  { color: var(--primary); font-weight: 800; }
+  .rt-typ { color: var(--warning); font-weight: 800; }
   .rewards-note {
     font-size: 0.72rem; color: var(--text-light); margin-top: 8px;
     text-align: center; line-height: 1.5;
@@ -375,12 +408,12 @@
 <body>
 
 <header style="position:relative;">
-  <h1>🐝 Spelling Bee</h1>
-  <p>Learn to spell English words correctly!</p>
+  <h1>🦖 DinoScript Lab</h1>
+  <p>Spell words · Earn DNA coins · Build hybrid dinosaurs!</p>
   <div style="margin-top:10px;">
     <span class="wallet-badge" id="wallet-badge">
-      <span class="coin-icon">🪙</span>
-      <span id="wallet-amount">0</span> coins
+      <span class="coin-icon">🪩</span>
+      <span id="wallet-amount">0</span> DNA coins
     </span>
   </div>
 </header>
@@ -388,9 +421,9 @@
 <div class="container">
   <!-- START SCREEN -->
   <div id="start-screen" class="screen">
-    <div class="emoji-big">📚</div>
-    <h2>Welcome!</h2>
-    <p>Choose your level and mode, then practice 50 English words.</p>
+    <div class="emoji-big">🦥</div>
+    <h2>Welcome to the Lab!</h2>
+    <p>Spell words to unlock <strong style="color:var(--primary)">DNA coins</strong> — then use them to build <strong style="color:var(--warning)">hybrid dinosaurs</strong>!</p>
 
     <div class="selector-group">
       <label>Grade Level</label>
@@ -418,12 +451,12 @@
     </div>
 
     <button class="btn btn-primary" onclick="startSession()">
-      Let's Go! 🚀
+      Start Spelling! 🦖
     </button>
 
     <!-- Coin rewards overview -->
     <div class="rewards-card">
-      <h3>🪙 Coin Rewards (perfect score)</h3>
+      <h3>🪩 DNA Coin Rewards — Perfect Score</h3>
       <table class="rewards-table">
         <thead>
           <tr>
@@ -435,9 +468,8 @@
         <tbody id="rewards-table-body"></tbody>
       </table>
       <div class="rewards-note">
-        Scores below 70% earn 🚫 0 coins &nbsp;&bull;&nbsp;
-        Coins scale exponentially with accuracy<br>
-        <strong>Typing</strong> earns <strong>2.5×</strong> more than Multiple Choice
+        Below 70% accuracy → 🚫 0 coins &nbsp;&bull;&nbsp; Exponential curve rewards precision<br>
+        <strong style="color:var(--warning)">Typing</strong> earns <strong>2.5×</strong> more DNA coins than Multiple Choice
       </div>
     </div>
 
@@ -521,7 +553,7 @@
 
       <div class="feedback" id="feedback"></div>
       <button class="btn btn-primary next-btn" id="next-btn" onclick="nextWord()">
-        Next Word ➡️
+        Next Word 🦖
       </button>
     </div>
   </div>
@@ -530,7 +562,7 @@
   <div id="end-screen" class="hidden screen">
     <div class="emoji-big" id="end-emoji">🎉</div>
     <h2 id="end-title">Great job!</h2>
-    <p id="end-subtitle">You practiced all 50 words!</p>
+    <p id="end-subtitle">You've completed the session!</p>
     <div class="results-grid">
       <div class="result-box green">
         <div class="number" id="final-correct">0</div>
@@ -558,10 +590,10 @@
       <div class="trouble-words" id="end-trouble-words"></div>
     </div>
     <button class="btn btn-primary" onclick="startSession()" style="margin-bottom:10px;">
-      Play Again! 🔄
+      Play Again! 🦖
     </button>
     <button class="btn btn-secondary" onclick="showStartScreen()">
-      Back to Start 🏠
+      Back to Lab 🔬
     </button>
   </div>
 </div>
@@ -1434,22 +1466,22 @@ function endSession() {
   document.getElementById('final-percent').textContent = pct + '%';
 
   if (pct >= 90) {
-    document.getElementById('end-emoji').textContent = '🏆';
-    document.getElementById('end-title').textContent = 'Amazing!';
-    document.getElementById('end-subtitle').textContent = 'You are a Spelling Champion!';
+    document.getElementById('end-emoji').textContent = '🦕';
+    document.getElementById('end-title').textContent = 'Dino Master!';
+    document.getElementById('end-subtitle').textContent = 'Incredible spelling — your DNA is evolving!';
     spawnConfetti(20);
   } else if (pct >= 70) {
-    document.getElementById('end-emoji').textContent = '🎉';
-    document.getElementById('end-title').textContent = 'Well done!';
-    document.getElementById('end-subtitle').textContent = 'Keep it up!';
+    document.getElementById('end-emoji').textContent = '🦤';
+    document.getElementById('end-title').textContent = 'Good Dino!';
+    document.getElementById('end-subtitle').textContent = 'Your hybrid grows stronger!';
   } else if (pct >= 50) {
-    document.getElementById('end-emoji').textContent = '💪';
-    document.getElementById('end-title').textContent = 'Not bad!';
-    document.getElementById('end-subtitle').textContent = 'Practice makes perfect!';
+    document.getElementById('end-emoji').textContent = '🦖';
+    document.getElementById('end-title').textContent = 'Keep Evolving!';
+    document.getElementById('end-subtitle').textContent = 'Practice more to unlock DNA coins!';
   } else {
-    document.getElementById('end-emoji').textContent = '📖';
-    document.getElementById('end-title').textContent = 'Keep practicing!';
-    document.getElementById('end-subtitle').textContent = 'Every mistake helps you learn!';
+    document.getElementById('end-emoji').textContent = '🥚';
+    document.getElementById('end-title').textContent = 'Hatch Again!';
+    document.getElementById('end-subtitle').textContent = 'Every mistake is a fossil of learning!';
   }
 
   const unique = [...new Set(s.wrongWords)];
@@ -1730,12 +1762,20 @@ function shuffleArray(a) {
   return a;
 }
 function getCorrectMessage() {
-  const m = ['✅ Correct!','✅ Great job!','✅ Exactly!','✅ Well done!','✅ Perfect!',
-    '✅ Bravo! 👏','✅ Awesome!','✅ Nailed it!'];
+  const m = [
+    '🦤 Correct! DNA unlocked!',
+    '🦖 Roar! Perfect spelling!',
+    '🦥 Exact match — genes confirmed!',
+    '🦕 Outstanding! Dino evolves!',
+    '🤣 Brilliant! Fossil acquired!',
+    '🪩 DNA strand complete!',
+    '🔬 Lab result: CORRECT!',
+    '🌟 Specimen identified!',
+  ];
   return m[Math.floor(Math.random()*m.length)];
 }
 function spawnConfetti(n=10) {
-  const e = ['🎉','⭐','🌟','✨','🎊','🎈','💫','🏅'];
+  const e = ['🦖','🦥','🦕','🤣','🦤','⭐','🪩','🔬','🌟','🥚'];
   for (let i=0;i<n;i++) {
     setTimeout(() => {
       const el = document.createElement('div');
