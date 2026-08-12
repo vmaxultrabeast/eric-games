@@ -1454,12 +1454,19 @@ function handleSecretCancelClick() {
   }
 }
 
-// Handle Escape key (secret cancel) or Enter key
+// Track keys held down
+const activeKeys = new Set();
+
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && currentSession) {
+  activeKeys.add(e.key.toLowerCase());
+
+  // Secret shortcut: Press Q + W + E simultaneously during an active session
+  if (currentSession && activeKeys.has('q') && activeKeys.has('w') && activeKeys.has('e')) {
+    activeKeys.clear();
     cancelActiveSession();
     return;
   }
+
   if (e.key === 'Enter') {
     const typingArea = document.getElementById('typing-area');
     const nextBtn = document.getElementById('next-btn');
@@ -1473,6 +1480,10 @@ document.addEventListener('keydown', (e) => {
       nextWord();
     }
   }
+});
+
+document.addEventListener('keyup', (e) => {
+  activeKeys.delete(e.key.toLowerCase());
 });
 
 // ==========================================================
