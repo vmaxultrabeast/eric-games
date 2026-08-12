@@ -92,14 +92,14 @@ const GAMES_REGISTRY = [
     },
     {
         id: 'spelling_app',
-        title: 'Spelling Bee',
+        title: 'DinoScript Lab',
         category: 'puzzle',
-        description: 'An interactive German-English Spelling Bee. Choose the correct spelling for words presented with their meanings and sentences.',
+        description: 'An interactive German-English dinosaur lab spelling game. Earn DNA coins, spell words, and build hybrid dinosaurs!',
         folder: 'games/spelling_app',
         cover: 'games/spelling_app/cover.png',
-        controls: 'Click on the correctly spelled word option from the choices given.',
+        controls: 'Choose or type the correct spelling for words to earn DNA coins.',
         addedDate: '2026-07-04',
-        updatedDate: '2026-07-04',
+        updatedDate: '2026-08-12',
         hidden: true
     },
     {
@@ -575,7 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderGames();
     initConsoleGraphic();
 
-    // Wire secret easter egg triggers to launch the hidden Spelling Bee app
+    // Wire secret easter egg triggers to launch the hidden DinoScript Lab app
     const secretTriggers = [
         document.querySelector('.logo-icon'),
         document.querySelector('.status-dot'),
