@@ -299,13 +299,58 @@
   .hidden-reset-dot:hover {
     opacity: 0.8;
   }
+
+  /* Wallet */
+  .wallet-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.18); border: 1.5px solid rgba(255,255,255,0.35);
+    border-radius: 20px; padding: 5px 14px; font-size: 0.95rem;
+    font-weight: 700; color: white; letter-spacing: 0.3px;
+    backdrop-filter: blur(4px);
+  }
+  .wallet-badge .coin-icon { font-size: 1.1rem; }
+
+  /* Coin award card on end screen */
+  .coin-award {
+    margin: 16px 0; padding: 20px 16px; border-radius: 16px;
+    background: linear-gradient(135deg, #fffbe6, #fff3cd);
+    border: 2px solid #ffd166;
+    animation: coinPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes coinPop {
+    from { transform: scale(0.6); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  .coin-award.zero {
+    background: #f8f9fa; border-color: #dee2e6;
+  }
+  .coin-award-amount {
+    font-size: 2.8rem; font-weight: 800; color: #b8860b;
+    line-height: 1;
+  }
+  .coin-award-amount.zero { color: var(--text-light); font-size: 2rem; }
+  .coin-award-label {
+    font-size: 0.85rem; font-weight: 600; color: #7a6000;
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;
+  }
+  .coin-award-label.zero { color: var(--text-light); }
+  .coin-award-total {
+    font-size: 0.8rem; color: #7a6000; margin-top: 6px;
+  }
+  .coin-award-total.zero { color: var(--text-light); }
 </style>
 </head>
 <body>
 
-<header>
+<header style="position:relative;">
   <h1>🐝 Spelling Bee</h1>
   <p>Learn to spell English words correctly!</p>
+  <div style="margin-top:10px;">
+    <span class="wallet-badge" id="wallet-badge">
+      <span class="coin-icon">🪙</span>
+      <span id="wallet-amount">0</span> coins
+    </span>
+  </div>
 </header>
 
 <div class="container">
@@ -448,6 +493,14 @@
         <div class="label">Score</div>
       </div>
     </div>
+
+    <!-- Coin award -->
+    <div class="coin-award" id="coin-award-card">
+      <div class="coin-award-amount" id="coin-award-amount">+0</div>
+      <div class="coin-award-label" id="coin-award-label">coins earned</div>
+      <div class="coin-award-total" id="coin-award-total"></div>
+    </div>
+
     <div id="end-trouble-section" style="margin:16px 0;">
       <h3 style="font-size:0.95rem;margin-bottom:8px;">Let's practice these again:</h3>
       <div class="trouble-words" id="end-trouble-words"></div>
@@ -1356,14 +1409,19 @@ function endSession() {
     troubleDiv.innerHTML = unique.map(w => `<span class="trouble-word">${w}</span>`).join('');
   }
 
+  // Award coins
+  const earned = calculateCoins(s.correct, s.words.length);
+  const newTotal = addCoins(earned);
+  showCoinAward(earned, newTotal);
+
   // Save session to history
-  saveSessionHistory(s, pct, unique);
-  
+  saveSessionHistory(s, pct, unique, earned);
+
   currentSession = null;
   saveSessionState();
 }
 
-function saveSessionHistory(s, pct, wrongWords) {
+function saveSessionHistory(s, pct, wrongWords, coinsEarned) {
   let history = loadHistory();
   history.push({
     date: new Date().toISOString(),
@@ -1375,8 +1433,67 @@ function saveSessionHistory(s, pct, wrongWords) {
     percent: pct,
     maxStreak: s.maxStreak,
     wrongWords: wrongWords,
+    coins: coinsEarned,
   });
   localStorage.setItem('spelling_bee_history', JSON.stringify(history));
+}
+
+// ==========================================================
+// COINS
+// ==========================================================
+function calculateCoins(correct, total) {
+  const accuracy = correct / total;
+  if (accuracy < 0.70) return 0;
+  const normalized = (accuracy - 0.70) / 0.30; // 0→1 for 70%→100%
+  const base = Math.round(500 * Math.pow(normalized, 3));
+  const perfectBonus = (correct === total) ? 100 : 0;
+  return base + perfectBonus;
+}
+
+function loadCoins() {
+  return parseInt(localStorage.getItem('spelling_bee_coins') || '0', 10);
+}
+
+function addCoins(amount) {
+  const total = loadCoins() + amount;
+  localStorage.setItem('spelling_bee_coins', total);
+  updateWalletDisplay();
+  return total;
+}
+
+function updateWalletDisplay() {
+  document.getElementById('wallet-amount').textContent = loadCoins().toLocaleString();
+}
+
+function showCoinAward(earned, newTotal) {
+  const card  = document.getElementById('coin-award-card');
+  const amt   = document.getElementById('coin-award-amount');
+  const label = document.getElementById('coin-award-label');
+  const tot   = document.getElementById('coin-award-total');
+
+  if (earned === 0) {
+    card.className  = 'coin-award zero';
+    amt.className   = 'coin-award-amount zero';
+    label.className = 'coin-award-label zero';
+    tot.className   = 'coin-award-total zero';
+    amt.textContent   = '+0';
+    label.textContent = 'coins — reach 70% to earn coins';
+    tot.textContent   = `Total: 🪙 ${newTotal.toLocaleString()} coins`;
+  } else {
+    card.className  = 'coin-award';
+    amt.className   = 'coin-award-amount';
+    label.className = 'coin-award-label';
+    tot.className   = 'coin-award-total';
+    amt.textContent   = `+${earned}`;
+    label.textContent = earned === 600 ? '🌟 PERFECT SCORE! coins earned' : 'coins earned';
+    tot.textContent   = `Total: 🪙 ${newTotal.toLocaleString()} coins`;
+    if (earned >= 400) spawnConfetti(8);
+  }
+
+  // Force re-trigger CSS animation
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = '';
 }
 
 function loadHistory() {
@@ -1517,9 +1634,11 @@ function resetProgress() {
   if (confirm('Really delete all progress and history?')) {
     progress = {}; saveProgress();
     localStorage.removeItem('spelling_bee_history');
+    localStorage.removeItem('spelling_bee_coins');
     currentSession = null;
     saveSessionState();
     updateStatsPanel();
+    updateWalletDisplay();
   }
 }
 
@@ -1566,6 +1685,7 @@ document.querySelectorAll('#mode-selector .sel-btn').forEach(btn => {
 if (!loadSessionState()) {
   updateStatsPanel();
 }
+updateWalletDisplay();
 </script>
 </body>
 </html>
