@@ -417,10 +417,106 @@
     text-align: center;
     line-height: 1.4;
   }
-  .sel-btn.locked-option {
-    opacity: 0.7;
-    border-color: rgba(217,99,88,0.4) !important;
+  /* Navigation bar */
+  .app-nav {
+    display: flex; gap: 8px; justify-content: center; margin-top: 12px;
+    flex-wrap: wrap;
   }
+  .nav-btn {
+    padding: 8px 16px; border: 2px solid rgba(232,165,58,0.25); border-radius: 20px;
+    background: rgba(0,0,0,0.3); color: var(--text-light); font-size: 0.85rem;
+    font-weight: 800; cursor: pointer; transition: all 0.2s; font-family: inherit;
+  }
+  .nav-btn:hover { border-color: var(--primary); color: var(--text); }
+  .nav-btn.active {
+    background: linear-gradient(135deg, #c77d20, #e8a53a); color: white;
+    border-color: transparent; box-shadow: 0 0 16px rgba(232,165,58,0.4);
+  }
+
+  /* Shop grid */
+  .shop-filters { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .shop-filter-btn {
+    padding: 6px 12px; border: 1.5px solid rgba(232,165,58,0.2); border-radius: 16px;
+    background: var(--card-light); color: var(--text-light); font-size: 0.78rem;
+    font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: inherit;
+  }
+  .shop-filter-btn.active { background: var(--primary); color: #000; border-color: var(--primary); }
+  .shop-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px; margin-top: 14px; text-align: left;
+  }
+  .shop-card {
+    background: var(--card); border-radius: 14px; padding: 16px;
+    border: 1.5px solid rgba(232,165,58,0.15); display: flex;
+    flex-direction: column; justify-content: space-between;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .shop-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+  .shop-card-header { display: flex; justify-content: space-between; align-items: center; }
+  .rarity-badge {
+    font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 10px; letter-spacing: 0.5px;
+  }
+  .rarity-common { background: rgba(93,171,124,0.15); color: #5dab7c; border: 1px solid rgba(93,171,124,0.3); }
+  .rarity-rare { background: rgba(67,97,238,0.15); color: #60a5fa; border: 1px solid rgba(67,97,238,0.3); }
+  .rarity-epic { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
+  .rarity-legendary { background: rgba(232,165,58,0.2); color: #f59e0b; border: 1px solid rgba(232,165,58,0.4); }
+
+  .shop-card-icon { font-size: 2.2rem; margin: 8px 0 4px; text-align: center; }
+  .shop-card-title { font-size: 1rem; font-weight: 800; color: var(--text); }
+  .shop-card-desc { font-size: 0.78rem; color: var(--text-light); margin: 6px 0 10px; line-height: 1.4; }
+  .shop-card-stats {
+    display: flex; gap: 8px; font-size: 0.75rem; font-weight: 700;
+    margin-bottom: 12px; color: var(--text); flex-wrap: wrap;
+  }
+  .buy-btn {
+    width: 100%; padding: 10px; border: none; border-radius: 10px;
+    font-size: 0.9rem; font-weight: 800; cursor: pointer; transition: all 0.2s;
+    font-family: inherit; display: flex; justify-content: center; align-items: center; gap: 6px;
+  }
+  .buy-btn:not(:disabled) { background: linear-gradient(135deg, #c77d20, #e8a53a); color: white; }
+  .buy-btn:disabled { background: var(--card-light); color: var(--text-light); opacity: 0.6; cursor: not-allowed; }
+  .buy-btn.owned { background: rgba(93,171,124,0.2); color: var(--success); cursor: default; }
+
+  /* Lab slot selector & Hybrid preview */
+  .lab-slots { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; text-align: left; }
+  .lab-slot-row {
+    background: var(--card-light); border-radius: 12px; padding: 12px;
+    border: 1px solid rgba(232,165,58,0.12); display: flex; align-items: center; gap: 12px;
+  }
+  .lab-slot-row label { font-size: 0.85rem; font-weight: 800; min-width: 90px; color: var(--text-light); }
+  .lab-slot-select {
+    flex: 1; padding: 8px 12px; border-radius: 10px; background: var(--card);
+    border: 1px solid rgba(232,165,58,0.2); color: var(--text); font-weight: 700;
+    font-size: 0.9rem; outline: none; font-family: inherit;
+  }
+  .hybrid-preview-card {
+    background: linear-gradient(135deg, #1f1608, #2e2010);
+    border: 2px solid #c77d20; border-radius: 16px; padding: 20px; margin-top: 16px;
+    text-align: center; box-shadow: var(--shadow);
+  }
+  .hybrid-avatar { font-size: 3rem; margin-bottom: 8px; letter-spacing: 4px; }
+  .hybrid-name-input {
+    background: rgba(0,0,0,0.3); border: 1.5px solid rgba(232,165,58,0.3);
+    border-radius: 10px; color: #fbbf24; font-size: 1.2rem; font-weight: 800;
+    text-align: center; padding: 8px 12px; width: 100%; max-width: 320px;
+    margin-bottom: 12px; outline: none; font-family: inherit;
+  }
+  .hybrid-stats-bar {
+    display: flex; justify-content: space-around; font-size: 0.9rem;
+    font-weight: 800; margin: 12px 0 16px; padding: 10px; background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+  }
+  .stable-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px; margin-top: 16px; text-align: left;
+  }
+  .stable-card {
+    background: var(--card); border-radius: 14px; padding: 16px;
+    border: 1.5px solid rgba(232,165,58,0.15); display: flex;
+    flex-direction: column; justify-content: space-between; text-align: center;
+  }
+  .stable-card.active-mascot { border-color: var(--primary); box-shadow: 0 0 16px rgba(232,165,58,0.3); }
 </style>
 </head>
 <body>
@@ -434,6 +530,12 @@
       <span id="wallet-amount">0</span> DNA coins
     </span>
   </div>
+  <nav class="app-nav">
+    <button class="nav-btn active" id="nav-practice" onclick="showTab('practice')">🎮 Practice</button>
+    <button class="nav-btn" id="nav-shop" onclick="showTab('shop')">🛒 DNA Shop</button>
+    <button class="nav-btn" id="nav-lab" onclick="showTab('lab')">🔬 Hybrid Lab</button>
+    <button class="nav-btn" id="nav-stable" onclick="showTab('stable')">🦕 Stable (<span id="stable-count">0</span>)</button>
+  </nav>
 </header>
 
 <div class="container">
@@ -538,6 +640,74 @@
       </div>
       <button onclick="resetProgress()" class="hidden-reset-dot" title="Reset Data">.</button>
     </div>
+  </div>
+
+  <!-- DNA SHOP SCREEN -->
+  <div id="shop-screen" class="hidden screen">
+    <div class="emoji-big">🛒</div>
+    <h2>Dino DNA Shop</h2>
+    <p>Spend your DNA coins on rare fossil genetics to assemble ultimate hybrid dinosaurs!</p>
+    <div class="shop-filters">
+      <button class="shop-filter-btn active" onclick="filterShop('all', this)">All Parts</button>
+      <button class="shop-filter-btn" onclick="filterShop('head', this)">💀 Head</button>
+      <button class="shop-filter-btn" onclick="filterShop('torso', this)">🦴 Torso</button>
+      <button class="shop-filter-btn" onclick="filterShop('limbs', this)">🦵 Limbs</button>
+      <button class="shop-filter-btn" onclick="filterShop('tail', this)">🐊 Tail</button>
+      <button class="shop-filter-btn" onclick="filterShop('aura', this)">⚡ Mutation</button>
+    </div>
+    <div class="shop-grid" id="shop-grid"></div>
+  </div>
+
+  <!-- HYBRID LAB SCREEN -->
+  <div id="lab-screen" class="hidden screen">
+    <div class="emoji-big">🔬</div>
+    <h2>Hybrid Fusion Chamber</h2>
+    <p>Select your owned DNA parts to fuse a powerful custom dinosaur!</p>
+    
+    <div class="lab-slots">
+      <div class="lab-slot-row">
+        <label>💀 Head:</label>
+        <select class="lab-slot-select" id="lab-head-select" onchange="renderHybridPreview()"></select>
+      </div>
+      <div class="lab-slot-row">
+        <label>🦴 Torso:</label>
+        <select class="lab-slot-select" id="lab-torso-select" onchange="renderHybridPreview()"></select>
+      </div>
+      <div class="lab-slot-row">
+        <label>🦵 Limbs:</label>
+        <select class="lab-slot-select" id="lab-limbs-select" onchange="renderHybridPreview()"></select>
+      </div>
+      <div class="lab-slot-row">
+        <label>🐊 Tail:</label>
+        <select class="lab-slot-select" id="lab-tail-select" onchange="renderHybridPreview()"></select>
+      </div>
+      <div class="lab-slot-row">
+        <label>⚡ Mutation:</label>
+        <select class="lab-slot-select" id="lab-aura-select" onchange="renderHybridPreview()"></select>
+      </div>
+    </div>
+
+    <!-- Hybrid Preview Card -->
+    <div class="hybrid-preview-card">
+      <div class="hybrid-avatar" id="lab-hybrid-avatar">🦖</div>
+      <input type="text" class="hybrid-name-input" id="lab-hybrid-name" placeholder="Name your hybrid..." maxlength="28">
+      <div class="hybrid-stats-bar">
+        <span>⚔️ <span id="lab-stat-power">0</span> Power</span>
+        <span>🛡️ <span id="lab-stat-defense">0</span> Defense</span>
+        <span>⚡ <span id="lab-stat-speed">0</span> Speed</span>
+      </div>
+      <button class="btn btn-primary" onclick="fuseHybridDino()">
+        🧪 Fuse Hybrid & Save to Stable! 🦖
+      </button>
+    </div>
+  </div>
+
+  <!-- DINO STABLE SCREEN -->
+  <div id="stable-screen" class="hidden screen">
+    <div class="emoji-big">🦕</div>
+    <h2>Dino Stable & Garage</h2>
+    <p>View your fused hybrid dinosaurs. Choose an active mascot for your lab!</p>
+    <div class="stable-grid" id="stable-grid"></div>
   </div>
 
   <!-- QUIZ SCREEN -->
@@ -2108,6 +2278,285 @@ function spawnConfetti(n=10) {
   }
 }
 
+// ==========================================================
+// DINO CATALOG, SHOP, HYBRID LAB & STABLE
+// ==========================================================
+const DINO_PARTS = [
+  // HEADS (Slot: head)
+  { id: 'head_raptor', name: 'Raptor Speed Snout', slot: 'head', rarity: 'common', price: 200, icon: '🦎', stats: { power: 15, defense: 10, speed: 35 }, desc: 'Agile skull with sharp tracking eyes.' },
+  { id: 'head_stego', name: 'Stego Plated Crest', slot: 'head', rarity: 'common', price: 250, icon: '🐢', stats: { power: 10, defense: 35, speed: 10 }, desc: 'Hardened skull plate resistant to impacts.' },
+  { id: 'head_trike', name: 'Triceratops Triple Horn', slot: 'head', rarity: 'rare', price: 600, icon: '🦏', stats: { power: 30, defense: 50, speed: 15 }, desc: 'Three massive frontal horns for charging.' },
+  { id: 'head_rex', name: 'T-Rex Apex Jaws', slot: 'head', rarity: 'epic', price: 1800, icon: '🦖', stats: { power: 85, defense: 25, speed: 20 }, desc: 'Bone-crushing jaws with serrated teeth.' },
+  { id: 'head_spino', name: 'Spinosaurus Croc Snout', slot: 'head', rarity: 'epic', price: 2200, icon: '🐊', stats: { power: 75, defense: 35, speed: 40 }, desc: 'Long predator snout suited for amphibious strike.' },
+  { id: 'head_cyber', name: 'Cybernetic Laser Helmet', slot: 'head', rarity: 'legendary', price: 6500, icon: '🤖', stats: { power: 120, defense: 80, speed: 90 }, desc: 'High-tech helmet with targeting systems.' },
+
+  // TORSOS (Slot: torso)
+  { id: 'torso_raptor', name: 'Leaping Feathered Core', slot: 'torso', rarity: 'common', price: 180, icon: '🪶', stats: { power: 10, defense: 15, speed: 35 }, desc: 'Lightweight ribcage covered in proto-feathers.' },
+  { id: 'torso_ankylo', name: 'Ankylo Boulder Armor', slot: 'torso', rarity: 'rare', price: 750, icon: '🛡️', stats: { power: 20, defense: 85, speed: 5 }, desc: 'Thick osteoderm armor shell.' },
+  { id: 'torso_spino', name: 'Spino Solar Sail', slot: 'torso', rarity: 'rare', price: 950, icon: '⛵', stats: { power: 45, defense: 40, speed: 40 }, desc: 'Huge dorsal fin that absorbs solar energy.' },
+  { id: 'torso_brachio', name: 'Titan Brachio Core', slot: 'torso', rarity: 'epic', price: 2500, icon: '🦕', stats: { power: 40, defense: 120, speed: 10 }, desc: 'Giant sauropod chest with enormous health reserves.' },
+  { id: 'torso_rex', name: 'Rex Carnivore Torso', slot: 'torso', rarity: 'epic', price: 3000, icon: '🦾', stats: { power: 95, defense: 50, speed: 30 }, desc: 'Muscular chest built for heavy impacts.' },
+  { id: 'torso_crystal', name: 'Prismatic Crystal Spine', slot: 'torso', rarity: 'legendary', price: 8500, icon: '💎', stats: { power: 110, defense: 110, speed: 110 }, desc: 'Glowing crystal exoskeleton radiating bio-energy.' },
+
+  // LIMBS (Slot: limbs)
+  { id: 'limbs_raptor', name: 'Raptor Talon Feet', slot: 'limbs', rarity: 'common', price: 220, icon: '🦤', stats: { power: 25, defense: 10, speed: 45 }, desc: 'Sickle-clawed feet engineered for high-speed sprinting.' },
+  { id: 'limbs_ptero', name: 'Pteranodon Glider Wings', slot: 'limbs', rarity: 'rare', price: 800, icon: '🦅', stats: { power: 15, defense: 20, speed: 75 }, desc: 'Leathery wing arms allowing aerial maneuvers.' },
+  { id: 'limbs_stego', name: 'Stego Pillar Legs', slot: 'limbs', rarity: 'rare', price: 650, icon: '🦣', stats: { power: 20, defense: 60, speed: 15 }, desc: 'Heavy column legs designed for firm ground stability.' },
+  { id: 'limbs_rex', name: 'Rex Heavy Stompers', slot: 'limbs', rarity: 'epic', price: 2000, icon: '🐾', stats: { power: 70, defense: 40, speed: 35 }, desc: 'Giant clawed legs capable of crushing rock.' },
+  { id: 'limbs_plasma', name: 'Plasma Jet Thrusters', slot: 'limbs', rarity: 'legendary', price: 7000, icon: '🚀', stats: { power: 90, defense: 50, speed: 140 }, desc: 'Futuristic jet propulsion limbs.' },
+
+  // TAILS (Slot: tail)
+  { id: 'tail_raptor', name: 'Raptor Whip Balance', slot: 'tail', rarity: 'common', price: 150, icon: '🐍', stats: { power: 15, defense: 10, speed: 30 }, desc: 'Stiff, elongated tail for hairpin turns.' },
+  { id: 'tail_stego', name: 'Thagomizer Spike Tail', slot: 'tail', rarity: 'rare', price: 700, icon: '🗡️', stats: { power: 60, defense: 25, speed: 15 }, desc: 'Four lethal tail spikes for counter-attacks.' },
+  { id: 'tail_ankylo', name: 'Ankylo Wrecking Club', slot: 'tail', rarity: 'rare', price: 850, icon: '🔨', stats: { power: 55, defense: 55, speed: 10 }, desc: 'Heavy solid bone club capable of breaking bone.' },
+  { id: 'tail_rex', name: 'Rex Muscular Tail', slot: 'tail', rarity: 'epic', price: 2100, icon: '🐊', stats: { power: 75, defense: 30, speed: 25 }, desc: 'Counterbalancing tail with powerful sweep.' },
+  { id: 'tail_dragon', name: 'Inferno Dragon Tail', slot: 'tail', rarity: 'legendary', price: 7500, icon: '🔥', stats: { power: 130, defense: 40, speed: 60 }, desc: 'Tail ablaze with primordial fire flames.' },
+
+  // SPECIAL AURA / MUTATION (Slot: aura)
+  { id: 'aura_none', name: 'Standard DNA', slot: 'aura', rarity: 'common', price: 0, icon: '✨', stats: { power: 0, defense: 0, speed: 0 }, desc: 'Natural unmodified dinosaur genetics.' },
+  { id: 'aura_camo', name: 'Chameleon Camouflage', slot: 'aura', rarity: 'rare', price: 1000, icon: '🦎', stats: { power: 20, defense: 40, speed: 40 }, desc: 'Skin shifts color to blend into foliage.' },
+  { id: 'aura_electric', name: 'Bio-Electric Charge', slot: 'aura', rarity: 'epic', price: 3500, icon: '⚡', stats: { power: 65, defense: 30, speed: 70 }, desc: 'Sparks of electricity surge along the scales.' },
+  { id: 'aura_indominus', name: 'Indominus Apex Mutation', slot: 'aura', rarity: 'legendary', price: 12000, icon: '🌌', stats: { power: 150, defense: 100, speed: 100 }, desc: 'Ultimate hybrid genetic sequence.' }
+];
+
+const DEFAULT_OWNED = ['head_raptor', 'torso_raptor', 'limbs_raptor', 'tail_raptor', 'aura_none'];
+
+function loadOwnedParts() {
+  try {
+    const d = localStorage.getItem('dinoscript_owned_parts');
+    return d ? JSON.parse(d) : [...DEFAULT_OWNED];
+  } catch { return [...DEFAULT_OWNED]; }
+}
+
+function saveOwnedParts(parts) {
+  localStorage.setItem('dinoscript_owned_parts', JSON.stringify(parts));
+}
+
+function loadSavedHybrids() {
+  try {
+    const d = localStorage.getItem('dinoscript_hybrids');
+    return d ? JSON.parse(d) : [];
+  } catch { return []; }
+}
+
+function saveHybrids(hybrids) {
+  localStorage.setItem('dinoscript_hybrids', JSON.stringify(hybrids));
+  updateStableBadge();
+}
+
+function updateStableBadge() {
+  const count = loadSavedHybrids().length;
+  const badge = document.getElementById('stable-count');
+  if (badge) badge.textContent = count;
+}
+
+// Nav Tab Switcher
+function showTab(tab) {
+  ['practice', 'shop', 'lab', 'stable'].forEach(t => {
+    const btn = document.getElementById(`nav-${t}`);
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+
+  document.getElementById('start-screen').classList.toggle('hidden', tab !== 'practice');
+  document.getElementById('quiz-screen').classList.add('hidden');
+  document.getElementById('end-screen').classList.add('hidden');
+
+  document.getElementById('shop-screen').classList.toggle('hidden', tab !== 'shop');
+  document.getElementById('lab-screen').classList.toggle('hidden', tab !== 'lab');
+  document.getElementById('stable-screen').classList.toggle('hidden', tab !== 'stable');
+
+  if (tab === 'shop') renderShop();
+  if (tab === 'lab') setupLabSelectors();
+  if (tab === 'stable') renderStable();
+}
+
+// SHOP LOGIC
+let currentShopFilter = 'all';
+function filterShop(slot, btn) {
+  currentShopFilter = slot;
+  document.querySelectorAll('.shop-filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderShop();
+}
+
+function renderShop() {
+  const container = document.getElementById('shop-grid');
+  if (!container) return;
+  const owned = loadOwnedParts();
+  const coins = loadCoins();
+
+  const filtered = currentShopFilter === 'all'
+    ? DINO_PARTS
+    : DINO_PARTS.filter(p => p.slot === currentShopFilter);
+
+  container.innerHTML = filtered.map(part => {
+    const isOwned = owned.includes(part.id);
+    const canAfford = coins >= part.price;
+    let btnHTML = '';
+
+    if (isOwned) {
+      btnHTML = `<button class="buy-btn owned" disabled>✅ Unlocked</button>`;
+    } else if (canAfford) {
+      btnHTML = `<button class="buy-btn" onclick="buyPart('${part.id}')">🪩 Buy for ${part.price.toLocaleString()} coins</button>`;
+    } else {
+      btnHTML = `<button class="buy-btn" disabled>🪙 Needs ${part.price.toLocaleString()} coins</button>`;
+    }
+
+    return `<div class="shop-card">
+      <div>
+        <div class="shop-card-header">
+          <span class="rarity-badge rarity-${part.rarity}">${part.rarity}</span>
+          <span style="font-size:0.75rem;color:var(--text-light);font-weight:700;">${part.slot.toUpperCase()}</span>
+        </div>
+        <div class="shop-card-icon">${part.icon}</div>
+        <div class="shop-card-title">${part.name}</div>
+        <div class="shop-card-desc">${part.desc}</div>
+      </div>
+      <div>
+        <div class="shop-card-stats">
+          <span>⚔️ +${part.stats.power}</span>
+          <span>🛡️ +${part.stats.defense}</span>
+          <span>⚡ +${part.stats.speed}</span>
+        </div>
+        ${btnHTML}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buyPart(partId) {
+  const part = DINO_PARTS.find(p => p.id === partId);
+  if (!part) return;
+  const coins = loadCoins();
+  if (coins < part.price) return;
+
+  addCoins(-part.price);
+  const owned = loadOwnedParts();
+  owned.push(partId);
+  saveOwnedParts(owned);
+  spawnConfetti(12);
+  renderShop();
+}
+
+// LAB LOGIC
+function setupLabSelectors() {
+  const ownedIds = loadOwnedParts();
+  const ownedParts = DINO_PARTS.filter(p => ownedIds.includes(p.id));
+
+  ['head', 'torso', 'limbs', 'tail', 'aura'].forEach(slot => {
+    const select = document.getElementById(`lab-${slot}-select`);
+    if (!select) return;
+    const partsForSlot = ownedParts.filter(p => p.slot === slot);
+    select.innerHTML = partsForSlot.map(p => `<option value="${p.id}">${p.icon} ${p.name} (+${p.stats.power}⚔️ +${p.stats.defense}🛡️ +${p.stats.speed}⚡)</option>`).join('');
+  });
+
+  renderHybridPreview();
+}
+
+function renderHybridPreview() {
+  const headId  = document.getElementById('lab-head-select').value;
+  const torsoId = document.getElementById('lab-torso-select').value;
+  const limbsId = document.getElementById('lab-limbs-select').value;
+  const tailId  = document.getElementById('lab-tail-select').value;
+  const auraId  = document.getElementById('lab-aura-select').value;
+
+  const head  = DINO_PARTS.find(p => p.id === headId);
+  const torso = DINO_PARTS.find(p => p.id === torsoId);
+  const limbs = DINO_PARTS.find(p => p.id === limbsId);
+  const tail  = DINO_PARTS.find(p => p.id === tailId);
+  const aura  = DINO_PARTS.find(p => p.id === auraId);
+
+  if (!head || !torso || !limbs || !tail || !aura) return;
+
+  const totalPower   = head.stats.power + torso.stats.power + limbs.stats.power + tail.stats.power + aura.stats.power;
+  const totalDefense = head.stats.defense + torso.stats.defense + limbs.stats.defense + tail.stats.defense + aura.stats.defense;
+  const totalSpeed   = head.stats.speed + torso.stats.speed + limbs.stats.speed + tail.stats.speed + aura.stats.speed;
+
+  document.getElementById('lab-stat-power').textContent   = totalPower;
+  document.getElementById('lab-stat-defense').textContent = totalDefense;
+  document.getElementById('lab-stat-speed').textContent   = totalSpeed;
+
+  const avatar = `${head.icon} ${torso.icon} ${limbs.icon} ${tail.icon} ${aura.id !== 'aura_none' ? aura.icon : ''}`.trim();
+  document.getElementById('lab-hybrid-avatar').textContent = avatar;
+
+  const nameInput = document.getElementById('lab-hybrid-name');
+  if (!nameInput.value || nameInput.dataset.autoGenerated === 'true') {
+    const autoName = `${head.name.split(' ')[0]}-${torso.name.split(' ')[0]}-saurus`;
+    nameInput.value = autoName;
+    nameInput.dataset.autoGenerated = 'true';
+  }
+}
+
+function fuseHybridDino() {
+  const headId  = document.getElementById('lab-head-select').value;
+  const torsoId = document.getElementById('lab-torso-select').value;
+  const limbsId = document.getElementById('lab-limbs-select').value;
+  const tailId  = document.getElementById('lab-tail-select').value;
+  const auraId  = document.getElementById('lab-aura-select').value;
+
+  const head  = DINO_PARTS.find(p => p.id === headId);
+  const torso = DINO_PARTS.find(p => p.id === torsoId);
+  const limbs = DINO_PARTS.find(p => p.id === limbsId);
+  const tail  = DINO_PARTS.find(p => p.id === tailId);
+  const aura  = DINO_PARTS.find(p => p.id === auraId);
+
+  const name = document.getElementById('lab-hybrid-name').value.trim() || 'Hybrid-Saurus';
+  const totalPower   = head.stats.power + torso.stats.power + limbs.stats.power + tail.stats.power + aura.stats.power;
+  const totalDefense = head.stats.defense + torso.stats.defense + limbs.stats.defense + tail.stats.defense + aura.stats.defense;
+  const totalSpeed   = head.stats.speed + torso.stats.speed + limbs.stats.speed + tail.stats.speed + aura.stats.speed;
+  const avatar = `${head.icon} ${torso.icon} ${limbs.icon} ${tail.icon} ${aura.id !== 'aura_none' ? aura.icon : ''}`.trim();
+
+  const hybrid = {
+    id: 'hybrid_' + Date.now(),
+    name, avatar,
+    parts: { head: headId, torso: torsoId, limbs: limbsId, tail: tailId, aura: auraId },
+    stats: { power: totalPower, defense: totalDefense, speed: totalSpeed },
+    date: new Date().toISOString()
+  };
+
+  const hybrids = loadSavedHybrids();
+  hybrids.push(hybrid);
+  saveHybrids(hybrids);
+  spawnConfetti(25);
+
+  showTab('stable');
+}
+
+// STABLE LOGIC
+function renderStable() {
+  const container = document.getElementById('stable-grid');
+  if (!container) return;
+  const hybrids = loadSavedHybrids();
+
+  if (hybrids.length === 0) {
+    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-light)">
+      No hybrids in your stable yet! Go to the 🔬 <strong>Hybrid Lab</strong> tab to assemble your first dinosaur!
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = hybrids.map(h => {
+    return `<div class="stable-card">
+      <div style="font-size:2.5rem;margin-bottom:6px;">${h.avatar}</div>
+      <div style="font-size:1.1rem;font-weight:800;color:#fbbf24;margin-bottom:6px;">${h.name}</div>
+      <div class="shop-card-stats" style="justify-content:center;margin-bottom:12px;">
+        <span>⚔️ ${h.stats.power}</span>
+        <span>🛡️ ${h.stats.defense}</span>
+        <span>⚡ ${h.stats.speed}</span>
+      </div>
+      <button class="buy-btn" style="background:rgba(217,99,88,0.2);color:#e88a82;" onclick="deleteHybrid('${h.id}')">🗑️ Release</button>
+    </div>`;
+  }).join('');
+}
+
+function deleteHybrid(id) {
+  if (!confirm('Release this hybrid back into the wild?')) return;
+  let hybrids = loadSavedHybrids();
+  hybrids = hybrids.filter(h => h.id !== id);
+  saveHybrids(hybrids);
+  renderStable();
+}
+
 // Selector buttons
 document.querySelectorAll('#subject-selector .sel-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -2140,6 +2589,7 @@ if (!loadSessionState()) {
 updateWalletDisplay();
 updateLockUI();
 buildRewardsTable();
+updateStableBadge();
 </script>
 </body>
 </html>
