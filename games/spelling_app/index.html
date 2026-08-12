@@ -3247,42 +3247,55 @@ function setupLabSelectors() {
 
 // ARTWORK MATCHING
 function getHybridArtwork(headId, torsoId, limbsId, tailId, auraId) {
-  if (torsoId === 'torso_brachio') {
+  // 1. Sauropods / Titan Sauropelta / Argentinosaurus
+  if (torsoId === 'torso_brachio' || torsoId === 'torso_diplodocus' || torsoId === 'torso_argentino' || headId === 'head_amarga') {
     return 'assets/dino_titan_brachio.png';
   }
-  if (auraId === 'aura_omni' || torsoId === 'torso_singularity') {
+  // 2. Quantum Singularity / Void / Omega Crown / Reality Rift
+  if (auraId === 'aura_omni' || torsoId === 'torso_singularity' || auraId === 'aura_black_hole' || headId === 'head_omega' || torsoId === 'torso_primordial_void') {
     return 'assets/dino_quantum_galaxy.png';
   }
-  if (headId === 'head_golden' || headId === 'head_hyperion') {
+  // 3. Golden King-Rex / Sol / Phoenix / Hyperion
+  if (headId === 'head_golden' || headId === 'head_hyperion' || headId === 'head_phoenix' || limbsId === 'limbs_hyperion_wings' || auraId === 'aura_god_apex') {
     return 'assets/dino_golden_king_rex.png';
   }
-  if (headId === 'head_giga') {
+  // 4. Giganotosaurus / Tarbosaurus / Cyber-Mecha Rex
+  if (headId === 'head_giga' || headId === 'head_tarbo' || headId === 'head_mecha_rex' || tailId === 'tail_titanium') {
     return 'assets/dino_cyber_giga.png';
   }
-  if (auraId === 'aura_toxin' || headId === 'head_dilo') {
+  // 5. Venomous Dilophosaurus / Toxin / Acidic Spores
+  if (auraId === 'aura_toxin' || headId === 'head_dilo' || auraId === 'aura_spores' || headId === 'head_sucho') {
     return 'assets/dino_poison_dilo.png';
   }
-  if (limbsId === 'limbs_plasma' || limbsId === 'limbs_celestial') {
+  // 6. Plasma Wings / Jet Thrusters / Gliders / Quetzalcoatlus
+  if (limbsId === 'limbs_plasma' || limbsId === 'limbs_celestial' || limbsId === 'limbs_quetzal' || limbsId === 'limbs_tapejara' || limbsId === 'limbs_dragon_wings') {
     return 'assets/dino_plasma_wings.png';
   }
-  if (torsoId === 'torso_carno' || headId === 'head_carno') {
+  // 7. Volcanic Carnotaurus / Magma Chamber / Flare Lash
+  if (torsoId === 'torso_carno' || headId === 'head_carno' || torsoId === 'torso_magma' || auraId === 'aura_magma_skin' || tailId === 'tail_solar_flare') {
     return 'assets/dino_volcanic_carno.png';
   }
-  if (auraId === 'aura_nebula' || auraId === 'aura_indominus' || auraId === 'aura_godzilla') {
+  // 8. Cosmic Nebula / Godzilla Atomic Pulse / Phoenix Rebirth
+  if (auraId === 'aura_nebula' || auraId === 'aura_indominus' || auraId === 'aura_godzilla' || auraId === 'aura_phoenix_rebirth' || torsoId === 'torso_celestial_nebula') {
     return 'assets/dino_cosmic_nebula.png';
   }
-  if (headId === 'head_cyber' || limbsId === 'limbs_aeon' || limbsId === 'limbs_void') {
+  // 9. Cybernetic Laser Helmet / Repulsor Hover / Void Shadow
+  if (headId === 'head_cyber' || limbsId === 'limbs_aeon' || limbsId === 'limbs_void' || limbsId === 'limbs_cyber_hover' || auraId === 'aura_emp' || auraId === 'aura_stealth') {
     return 'assets/dino_cyber_raptor.png';
   }
-  if (torsoId === 'torso_crystal' || torsoId === 'torso_brachio') {
+  // 10. Crystal Spine / Frost Ice Dragon / Sub-Zero
+  if (torsoId === 'torso_crystal' || headId === 'head_frost' || auraId === 'aura_ice' || tailId === 'tail_frost_blade') {
     return 'assets/dino_crystal_titan.png';
   }
-  if (tailId === 'tail_dragon' || torsoId === 'torso_magma' || headId === 'head_spino') {
+  // 11. Inferno Dragon Tail / Spinosaurus Croc Snout
+  if (tailId === 'tail_dragon' || headId === 'head_spino' || torsoId === 'torso_spino' || torsoId === 'torso_infernal_lava') {
     return 'assets/dino_inferno_dragon.png';
   }
-  if (torsoId === 'torso_ankylo' || tailId === 'tail_stego' || tailId === 'tail_ankylo' || headId === 'head_stego' || headId === 'head_pachy') {
+  // 12. Armored Stego / Ankylosaurus Wrecking Mace / Sauropelta
+  if (torsoId === 'torso_ankylo' || tailId === 'tail_stego' || tailId === 'tail_ankylo' || headId === 'head_stego' || headId === 'head_pachy' || tailId === 'tail_euoplocephalus' || torsoId === 'torso_sauropelta') {
     return 'assets/dino_armored_stego.png';
   }
+  // 13. Default Apex T-Rex Predator
   return 'assets/dino_apex_rex.png';
 }
 
