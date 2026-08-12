@@ -427,7 +427,7 @@
 
 <header style="position:relative;">
   <h1>🦖 DinoScript Lab</h1>
-  <p>Spell words · Earn DNA coins · Build hybrid dinosaurs!</p>
+  <p>Spell words & solve math · Earn DNA coins · Build hybrid dinosaurs!</p>
   <div style="margin-top:10px;">
     <span class="wallet-badge" id="wallet-badge">
       <span class="coin-icon">🪩</span>
@@ -441,7 +441,15 @@
   <div id="start-screen" class="screen">
     <div class="emoji-big">🦥</div>
     <h2>Welcome to the Lab!</h2>
-    <p>Spell words to unlock <strong style="color:var(--primary)">DNA coins</strong> — then use them to build <strong style="color:var(--warning)">hybrid dinosaurs</strong>!</p>
+    <p>Practice spelling & math to unlock <strong style="color:var(--primary)">DNA coins</strong> — then use them to build <strong style="color:var(--warning)">hybrid dinosaurs</strong>!</p>
+
+    <div class="selector-group">
+      <label>Subject</label>
+      <div class="selector-row" id="subject-selector">
+        <button class="sel-btn active" data-subject="english">🔤 English</button>
+        <button class="sel-btn" data-subject="math">🔢 Math</button>
+      </div>
+    </div>
 
     <div class="selector-group">
       <label>Grade Level</label>
@@ -551,7 +559,7 @@
 
     <div class="word-card" id="word-card">
       <div class="word-info">
-        <div class="german-label">🇩🇪 German:</div>
+        <div class="german-label" id="german-label">🇩🇪 German:</div>
         <div class="german-word" id="german-word"></div>
         <div class="example-sentence" id="example-sentence"></div>
       </div>
@@ -1145,6 +1153,10 @@ function loadSessionState() {
 // ==========================================================
 // SESSION
 // ==========================================================
+function getSelectedSubject() {
+  const a = document.querySelector('#subject-selector .sel-btn.active');
+  return a ? a.dataset.subject : 'english';
+}
 function getSelectedGrade() {
   const a = document.querySelector('#grade-selector .sel-btn.active');
   return a ? a.dataset.grade : '3';
@@ -1155,42 +1167,47 @@ function getSelectedMode() {
 }
 
 function startSession() {
+  const subject = getSelectedSubject();
   const grade = getSelectedGrade();
   const mode = getSelectedMode();
 
-  const lockStatus = getLockStatus(grade, mode);
+  const lockStatus = getLockStatus(subject, grade, mode);
   if (lockStatus.locked) {
     updateLockUI();
     return;
   }
-  const focusTrouble = document.getElementById('focus-trouble').checked;
 
   let pool;
-  if (grade === 'mix') { pool = [...WORDS]; }
-  else { pool = WORDS.filter(w => w.grade <= parseInt(grade)); }
-
-  const seen = new Set();
-  pool = pool.filter(w => { if (seen.has(w.word)) return false; seen.add(w.word); return true; });
-
-  if (focusTrouble) {
-    const trouble = pool.filter(w => { const p = progress[w.word]; return p && p.wrong > p.correct; });
-    const other = pool.filter(w => { const p = progress[w.word]; return !p || p.wrong <= p.correct; });
-    shuffleArray(trouble); shuffleArray(other);
-    pool = [...trouble, ...other];
+  if (subject === 'math') {
+    pool = generateMathPool(grade);
   } else {
-    pool.sort((a, b) => {
-      const pa = progress[a.word] || {correct:0,wrong:0};
-      const pb = progress[b.word] || {correct:0,wrong:0};
-      const sa = pa.wrong - pa.correct + (pa.correct+pa.wrong===0?1:0);
-      const sb = pb.wrong - pb.correct + (pb.correct+pb.wrong===0?1:0);
-      return sb - sa + (Math.random()-0.5)*2;
-    });
+    const focusTrouble = document.getElementById('focus-trouble').checked;
+    if (grade === 'mix') { pool = [...WORDS]; }
+    else { pool = WORDS.filter(w => w.grade <= parseInt(grade)); }
+
+    const seen = new Set();
+    pool = pool.filter(w => { if (seen.has(w.word)) return false; seen.add(w.word); return true; });
+
+    if (focusTrouble) {
+      const trouble = pool.filter(w => { const p = progress[w.word]; return p && p.wrong > p.correct; });
+      const other = pool.filter(w => { const p = progress[w.word]; return !p || p.wrong <= p.correct; });
+      shuffleArray(trouble); shuffleArray(other);
+      pool = [...trouble, ...other];
+    } else {
+      pool.sort((a, b) => {
+        const pa = progress[a.word] || {correct:0,wrong:0};
+        const pb = progress[b.word] || {correct:0,wrong:0};
+        const sa = pa.wrong - pa.correct + (pa.correct+pa.wrong===0?1:0);
+        const sb = pb.wrong - pb.correct + (pb.correct+pb.wrong===0?1:0);
+        return sb - sa + (Math.random()-0.5)*2;
+      });
+    }
   }
 
   currentSession = {
     words: pool.slice(0, 50), current: 0, correct: 0, wrong: 0,
     streak: 0, maxStreak: 0, wrongWords: [], mode: mode, grade: grade,
-    typingAttempts: 0,
+    subject: subject, typingAttempts: 0,
   };
   saveSessionState();
 
@@ -1204,16 +1221,23 @@ function showCurrentWord() {
   const s = currentSession;
   const w = s.words[s.current];
 
-  document.getElementById('word-counter').textContent = `Word ${s.current+1} of ${s.words.length}`;
+  document.getElementById('word-counter').textContent = `Problem ${s.current+1} of ${s.words.length}`;
   document.getElementById('session-score').textContent = `${s.correct} correct`;
   document.getElementById('progress-fill').style.width = `${(s.current/s.words.length)*100}%`;
   document.getElementById('correct-count').textContent = s.correct;
   document.getElementById('wrong-count').textContent = s.wrong;
   document.getElementById('streak-count').textContent = s.streak;
 
-  document.getElementById('german-word').textContent = w.german;
-  document.getElementById('example-sentence').innerHTML =
-    w.sentence.replace('___', `<span class="blank">${w.word}</span>`);
+  if (w.isMath) {
+    document.getElementById('german-label').textContent = '🔢 Math Problem:';
+    document.getElementById('german-word').innerHTML = w.german;
+    document.getElementById('example-sentence').innerHTML = w.sentence;
+  } else {
+    document.getElementById('german-label').textContent = '🇩🇪 German:';
+    document.getElementById('german-word').textContent = w.german;
+    document.getElementById('example-sentence').innerHTML =
+      w.sentence.replace('___', `<span class="blank">${w.word}</span>`);
+  }
 
   document.getElementById('feedback').classList.remove('show');
   document.getElementById('feedback').className = 'feedback';
@@ -1222,12 +1246,12 @@ function showCurrentWord() {
   if (s.mode === 'choice') {
     document.getElementById('choice-area').classList.remove('hidden');
     document.getElementById('typing-area').classList.add('hidden');
-    document.getElementById('question-label').textContent = 'Which spelling is correct?';
+    document.getElementById('question-label').textContent = w.isMath ? 'Which answer is correct?' : 'Which spelling is correct?';
     showChoiceOptions(w);
   } else {
     document.getElementById('choice-area').classList.add('hidden');
     document.getElementById('typing-area').classList.remove('hidden');
-    document.getElementById('question-label').textContent = 'Type the correct spelling:';
+    document.getElementById('question-label').textContent = w.isMath ? 'Type the correct answer:' : 'Type the correct spelling:';
     setupTypingMode(w);
   }
 
@@ -1460,7 +1484,12 @@ function markWrong(word, feedback) {
   progress[word].lastSeen = Date.now();
   saveProgress();
 
-  feedback.textContent = `❌ The correct spelling is: "${word}"`;
+  const isMath = s.words[s.current] && s.words[s.current].isMath;
+  if (isMath) {
+    feedback.textContent = `❌ Incorrect! The answer is: "${word}"`;
+  } else {
+    feedback.textContent = `❌ The correct spelling is: "${word}"`;
+  }
   feedback.className = 'feedback wrong-feedback show';
   revealSentence(s.words[s.current]);
 
@@ -1527,7 +1556,7 @@ function endSession() {
 
   // Check 95%+ completion for 2-week level lock
   if (pct >= 95) {
-    recordMasteryPass(s.grade, s.mode);
+    recordMasteryPass(s.subject || 'english', s.grade, s.mode);
   }
 
   // Save session to history
@@ -1541,6 +1570,7 @@ function saveSessionHistory(s, pct, wrongWords, coinsEarned) {
   let history = loadHistory();
   history.push({
     date: new Date().toISOString(),
+    subject: s.subject || 'english',
     mode: s.mode === 'choice' ? 'Multiple Choice' : 'Typing',
     grade: getSelectedGrade(),
     total: s.words.length,
@@ -1626,12 +1656,13 @@ function showCoinAward(earned, newTotal, mode, grade) {
 }
 
 function buildRewardsTable() {
+  const selectedSubject = getSelectedSubject();
   const grades = ['1','2','3','4','5','mix'];
   const tbody = document.getElementById('rewards-table-body');
   if (!tbody) return;
   tbody.innerHTML = grades.map(g => {
-    const mcStatus = getLockStatus(g, 'choice');
-    const typStatus = getLockStatus(g, 'typing');
+    const mcStatus = getLockStatus(selectedSubject, g, 'choice');
+    const typStatus = getLockStatus(selectedSubject, g, 'typing');
     const mc  = mcStatus.locked ? `<span style="color:var(--danger)">🔒 ${mcStatus.days}d</span>` : `🪙 ${maxCoins('choice', g).toLocaleString()}`;
     const typ = typStatus.locked ? `<span style="color:var(--danger)">🔒 ${typStatus.days}d</span>` : `🪙 ${maxCoins('typing', g).toLocaleString()}`;
     return `<tr>
@@ -1718,6 +1749,7 @@ function updateRecentSessions() {
     const scoreClass = h.percent >= 80 ? 'score-good' : h.percent >= 50 ? 'score-ok' : 'score-bad';
     const gradeLabel = h.grade === 'mix' ? 'Mix' : `Grade ${h.grade}`;
     const modeIcon = h.mode === 'Multiple Choice' ? '🔘' : '⌨️';
+    const subjIcon = h.subject === 'math' ? '🔢' : '🔤';
     const missedStr = h.wrongWords && h.wrongWords.length > 0
       ? 'Missed: ' + h.wrongWords.slice(0, 4).join(', ') + (h.wrongWords.length > 4 ? ` +${h.wrongWords.length - 4} more` : '')
       : '';
@@ -1726,7 +1758,7 @@ function updateRecentSessions() {
       <div class="rs-date">${dateStr}<br>${timeStr}</div>
       <div class="rs-info">
         <div class="rs-info-top">
-          <span>${modeIcon}</span>
+          <span>${subjIcon} ${modeIcon}</span>
           <span>${gradeLabel}</span>
           <span style="color:var(--text-light);font-size:0.75rem">${h.correct}✓ ${h.wrong}✗ · 🔥${h.maxStreak || 0}</span>
         </div>
@@ -1799,8 +1831,6 @@ function resetProgress() {
     buildRewardsTable();
   }
 }
-
-// ==========================================================
 // MASTERY / 2-WEEK LEVEL LOCKING
 // ==========================================================
 const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
@@ -1816,46 +1846,52 @@ function saveMastery(mastery) {
   localStorage.setItem('dinoscript_mastery', JSON.stringify(mastery));
 }
 
-function recordMasteryPass(grade, mode) {
+function recordMasteryPass(subject, grade, mode) {
   const mastery = loadMastery();
-  const key = `${grade}_${mode}`;
+  const key = `${subject}_${grade}_${mode}`;
   if (!mastery[key]) mastery[key] = [];
   mastery[key].push(Date.now());
   saveMastery(mastery);
 }
 
-function getLockStatus(grade, mode) {
+function getLockStatus(subject, grade, mode) {
   const mastery = loadMastery();
-  const key = `${grade}_${mode}`;
+  let key = `${subject}_${grade}_${mode}`;
+  let passes = mastery[key];
+  if ((!passes || passes.length === 0) && subject === 'english') {
+    passes = mastery[`${grade}_${mode}`] || [];
+  }
   const now = Date.now();
-  const passes = (mastery[key] || []).filter(t => (now - t) < TWO_WEEKS_MS);
+  const validPasses = (passes || []).filter(t => (now - t) < TWO_WEEKS_MS);
 
-  if (passes.length >= 3) {
-    passes.sort((a, b) => a - b);
-    const oldestOfThree = passes[passes.length - 3];
+  if (validPasses.length >= 3) {
+    validPasses.sort((a, b) => a - b);
+    const oldestOfThree = validPasses[validPasses.length - 3];
     const expiresAt = oldestOfThree + TWO_WEEKS_MS;
     const msRemaining = expiresAt - now;
     if (msRemaining > 0) {
       const days = Math.ceil(msRemaining / (24 * 60 * 60 * 1000));
-      return { locked: true, days, passesCount: passes.length, expiresAt };
+      return { locked: true, days, passesCount: validPasses.length, expiresAt };
     }
   }
-  return { locked: false, days: 0, passesCount: passes.length, expiresAt: null };
+  return { locked: false, days: 0, passesCount: validPasses.length, expiresAt: null };
 }
 
 function updateLockUI() {
+  const selectedSubject = getSelectedSubject();
   const selectedGrade = getSelectedGrade();
   const selectedMode = getSelectedMode();
-  const status = getLockStatus(selectedGrade, selectedMode);
+  const status = getLockStatus(selectedSubject, selectedGrade, selectedMode);
   const startBtn = document.getElementById('start-btn');
   const banner = document.getElementById('lock-warning-banner');
 
+  const subjName = selectedSubject === 'math' ? 'Math 🔢' : 'English 🔤';
   const gradeName = GRADE_LABEL[selectedGrade] || `Grade ${selectedGrade}`;
   const modeName = selectedMode === 'choice' ? 'Multiple Choice 🔘' : 'Typing ⌨️';
 
   if (status.locked) {
     banner.classList.remove('hidden');
-    banner.innerHTML = `🔒 <strong>Level Passed!</strong><br>You completed ${gradeName} (${modeName}) 3 times with 95%+. This level is locked for <strong>${status.days} more day(s)</strong>.`;
+    banner.innerHTML = `🔒 <strong>Level Passed!</strong><br>You completed ${subjName} - ${gradeName} (${modeName}) 3 times with 95%+. This level is locked for <strong>${status.days} more day(s)</strong>.`;
     if (startBtn) {
       startBtn.disabled = true;
       startBtn.innerHTML = '🔒 Level Already Passed';
@@ -1867,7 +1903,7 @@ function updateLockUI() {
     banner.innerHTML = '';
     if (startBtn) {
       startBtn.disabled = false;
-      startBtn.innerHTML = 'Start Spelling! 🦖';
+      startBtn.innerHTML = 'Start Practice! 🦖';
       startBtn.style.opacity = '1';
       startBtn.style.cursor = 'pointer';
     }
@@ -1876,8 +1912,123 @@ function updateLockUI() {
   // Update button badges
   document.querySelectorAll('#grade-selector .sel-btn').forEach(btn => {
     const g = btn.dataset.grade;
-    const choiceLocked = getLockStatus(g, 'choice').locked;
-    const typingLocked = getLockStatus(g, 'typing').locked;
+    const choiceLocked = getLockStatus(selectedSubject, g, 'choice').locked;
+    const typingLocked = getLockStatus(selectedSubject, g, 'typing').locked;
+    btn.classList.toggle('locked-option', choiceLocked && typingLocked);
+  });
+
+  document.querySelectorAll('#mode-selector .sel-btn').forEach(btn => {
+    const m = btn.dataset.mode;
+    const currentGradeLocked = getLockStatus(selectedSubject, selectedGrade, m).locked;
+    btn.classList.toggle('locked-option', currentGradeLocked);
+  });
+}
+
+// ==========================================================
+// MATH GENERATOR
+// ==========================================================
+function generateMathPool(grade) {
+  const pool = [];
+  const count = 50;
+
+  for (let i = 0; i < count; i++) {
+    let questionText = '';
+    let detailText = '';
+    let ans = 0;
+    let category = grade;
+
+    if (grade === 'mix') {
+      const grades = ['1', '2', '3', '4', '5'];
+      category = grades[Math.floor(Math.random() * grades.length)];
+    }
+
+    if (category === '1') {
+      // Grade 1: Single-digit 1x1 ops & tables
+      const a = Math.floor(Math.random() * 9) + 1;
+      const b = Math.floor(Math.random() * 9) + 1;
+      ans = a * b;
+      questionText = `${a} × ${b} = ?`;
+      detailText = `Calculate ${a} × ${b}`;
+    } else if (category === '2') {
+      // Grade 2: Up to 10x10 multiplication tables
+      const a = Math.floor(Math.random() * 10) + 1;
+      const b = Math.floor(Math.random() * 10) + 1;
+      ans = a * b;
+      questionText = `${a} × ${b} = ?`;
+      detailText = `Calculate ${a} × ${b}`;
+    } else if (category === '3') {
+      // Grade 3: Up to 15x15 multiplication tables
+      const a = Math.floor(Math.random() * 10) + 6;
+      const b = Math.floor(Math.random() * 15) + 1;
+      ans = a * b;
+      questionText = `${a} × ${b} = ?`;
+      detailText = `Calculate ${a} × ${b}`;
+    } else if (category === '4') {
+      // Grade 4: Up to 20x20 multiplication tables
+      const a = Math.floor(Math.random() * 10) + 11;
+      const b = Math.floor(Math.random() * 20) + 1;
+      ans = a * b;
+      questionText = `${a} × ${b} = ?`;
+      detailText = `Calculate ${a} × ${b}`;
+    } else if (category === '5') {
+      // Grade 5: Advanced math (Powers x^y, Factorials x!, Square roots √x)
+      const type = Math.floor(Math.random() * 3);
+      if (type === 0) {
+        const bases = [2, 3, 4, 5, 10];
+        const base = bases[Math.floor(Math.random() * bases.length)];
+        const maxExp = base === 2 ? 6 : (base === 3 ? 4 : 3);
+        const exp = Math.floor(Math.random() * (maxExp - 1)) + 2;
+        ans = Math.pow(base, exp);
+        questionText = `${base}<sup>${exp}</sup> = ?`;
+        detailText = `${base} to the power of ${exp}`;
+      } else if (type === 1) {
+        const n = Math.floor(Math.random() * 5) + 2; // 2..6
+        let fact = 1;
+        for (let k = 2; k <= n; k++) fact *= k;
+        ans = fact;
+        questionText = `${n}! = ?`;
+        detailText = `Factorial of ${n} (${Array.from({length:n}, (_,k)=>k+1).join(' × ')})`;
+      } else {
+        const root = Math.floor(Math.random() * 15) + 2;
+        const square = root * root;
+        ans = root;
+        questionText = `√${square} = ?`;
+        detailText = `Square root of ${square}`;
+      }
+    }
+
+    // Traps / Distractors generator
+    const traps = [];
+    const offsets = [-2, -1, 1, 2, -10, 10, -5, 5, 3, -3];
+    shuffleArray(offsets);
+
+    for (let off of offsets) {
+      const candidate = ans + off;
+      if (candidate > 0 && candidate !== ans && !traps.includes(String(candidate))) {
+        traps.push(String(candidate));
+      }
+      if (traps.length >= 3) break;
+    }
+
+    while (traps.length < 3) {
+      const candidate = ans + traps.length + 1;
+      if (!traps.includes(String(candidate))) {
+        traps.push(String(candidate));
+      }
+    }
+
+    pool.push({
+      word: String(ans),
+      german: questionText,
+      sentence: detailText,
+      grade: grade,
+      traps: traps,
+      isMath: true
+    });
+  }
+
+  return pool;
+}ping').locked;
     btn.classList.toggle('locked-option', choiceLocked && typingLocked);
   });
 
@@ -1923,6 +2074,14 @@ function spawnConfetti(n=10) {
 }
 
 // Selector buttons
+document.querySelectorAll('#subject-selector .sel-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#subject-selector .sel-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    updateLockUI();
+    buildRewardsTable();
+  });
+});
 document.querySelectorAll('#grade-selector .sel-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('#grade-selector .sel-btn').forEach(b=>b.classList.remove('active'));
