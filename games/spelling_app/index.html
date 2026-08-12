@@ -96,18 +96,7 @@
   .option-btn:active:not(:disabled) { transform: scale(0.98); }
   .option-btn.correct { border-color: var(--success); background: #d4f5e9; color: #065f46; }
   .option-btn.wrong { border-color: var(--danger); background: #fde8e8; color: #9b1c31; }
-  .option-btn:disabled { cursor: default; }
-  .option-btn.eliminated { border-color: #e9ecef; background: #f5f5f5; color: #bbb; cursor: default; opacity: 0.5; }
-  .option-btn.locked-btn {
-    position: relative; cursor: not-allowed;
-  }
-  .option-btn .lock-countdown {
-    position: absolute; inset: 0; display: flex; align-items: center;
-    justify-content: center; background: rgba(0,0,0,0.18);
-    border-radius: 10px; font-size: 1.4rem; font-weight: 800;
-    color: white; pointer-events: none;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-  }
+  .option-btn:disabled { cursor: not-allowed; opacity: 0.75; }
 
   /* Typing mode */
   .typing-area { text-align: center; }
@@ -1127,8 +1116,8 @@ function handleChoiceAnswer(selected, correct, btn) {
     s._choiceWrong = false;
     document.getElementById('next-btn').classList.add('show');
   } else {
-    // ❌ Wrong — lock everything for 5 seconds, then allow retry
-    allBtns.forEach(b => { b.disabled = true; b.classList.add('locked-btn'); });
+    // ❌ Wrong — lock all buttons for 10 seconds, then allow retry (including same wrong btn)
+    allBtns.forEach(b => { b.disabled = true; });
     btn.classList.add('wrong');
 
     // Count wrong only on first miss
@@ -1150,43 +1139,22 @@ function handleChoiceAnswer(selected, correct, btn) {
       saveSessionState();
     }
 
-    feedback.textContent = `❌ Not quite! Try again in 5 seconds…`;
+    // Show countdown in feedback text only — buttons stay visible and readable
+    let remaining = 10;
+    feedback.textContent = `❌ Not quite! Look carefully… try again in ${remaining}s`;
     feedback.className = 'feedback wrong-feedback show';
-
-    // Add countdown overlays to all non-eliminated buttons
-    let remaining = 5;
-    allBtns.forEach(b => {
-      if (!b.classList.contains('wrong') && !b.classList.contains('eliminated')) {
-        const cd = document.createElement('span');
-        cd.className = 'lock-countdown';
-        cd.textContent = remaining;
-        b.appendChild(cd);
-      }
-    });
 
     const tick = setInterval(() => {
       remaining--;
-      allBtns.forEach(b => {
-        const cd = b.querySelector('.lock-countdown');
-        if (cd) cd.textContent = remaining;
-      });
-      if (remaining <= 0) {
+      if (remaining > 0) {
+        feedback.textContent = `❌ Not quite! Look carefully… try again in ${remaining}s`;
+      } else {
         clearInterval(tick);
-        // Remove overlays
+        // Re-enable ALL buttons so user can try any answer again
         allBtns.forEach(b => {
-          const cd = b.querySelector('.lock-countdown');
-          if (cd) cd.remove();
-          b.classList.remove('locked-btn');
+          b.disabled = false;
+          b.classList.remove('wrong');
         });
-        // Re-enable only buttons that haven't been eliminated
-        allBtns.forEach(b => {
-          if (!b.classList.contains('wrong') && !b.classList.contains('eliminated')) {
-            b.disabled = false;
-          }
-        });
-        // Mark the wrong button as permanently eliminated
-        btn.classList.remove('wrong');
-        btn.classList.add('eliminated');
         feedback.textContent = `Choose the correct spelling:`;
         feedback.className = 'feedback wrong-feedback show';
       }
