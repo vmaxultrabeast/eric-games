@@ -461,6 +461,7 @@
   .rarity-rare { background: rgba(67,97,238,0.15); color: #60a5fa; border: 1px solid rgba(67,97,238,0.3); }
   .rarity-epic { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
   .rarity-legendary { background: rgba(232,165,58,0.2); color: #f59e0b; border: 1px solid rgba(232,165,58,0.4); }
+  .rarity-mythic { background: rgba(236,72,153,0.25); color: #f472b6; border: 1px solid rgba(236,72,153,0.5); box-shadow: 0 0 10px rgba(236,72,153,0.4); }
 
   .shop-card-icon { font-size: 2.2rem; margin: 8px 0 4px; text-align: center; }
   .shop-card-title { font-size: 1rem; font-weight: 800; color: var(--text); }
@@ -533,6 +534,7 @@
   <nav class="app-nav">
     <button class="nav-btn active" id="nav-practice" onclick="showTab('practice')">🎮 Practice</button>
     <button class="nav-btn" id="nav-shop" onclick="showTab('shop')">🛒 DNA Shop</button>
+    <button class="nav-btn" id="nav-inventory" onclick="showTab('inventory')">🎒 Inventory (<span id="inventory-count">0</span>)</button>
     <button class="nav-btn" id="nav-lab" onclick="showTab('lab')">🔬 Hybrid Lab</button>
     <button class="nav-btn" id="nav-stable" onclick="showTab('stable')">🦕 Stable (<span id="stable-count">0</span>)</button>
   </nav>
@@ -656,6 +658,33 @@
       <button class="shop-filter-btn" onclick="filterShop('aura', this)">⚡ Mutation</button>
     </div>
     <div class="shop-grid" id="shop-grid"></div>
+  </div>
+
+  <!-- INVENTORY SCREEN -->
+  <div id="inventory-screen" class="hidden screen">
+    <div class="emoji-big">🎒</div>
+    <h2>DNA Genetic Vault</h2>
+    <p>View all dinosaur body parts and mutations you have unlocked.</p>
+    
+    <div style="background:var(--card-light);border-radius:14px;padding:14px;margin-bottom:16px;border:1px solid rgba(232,165,58,0.15);">
+      <div style="display:flex;justify-content:space-between;font-size:0.85rem;font-weight:800;margin-bottom:6px;">
+        <span>Collection Completion</span>
+        <span id="inventory-progress-text">0 / 48 Parts (0%)</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="inventory-progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="shop-filters">
+      <button class="shop-filter-btn active" onclick="filterInventory('all', this)">All Owned</button>
+      <button class="shop-filter-btn" onclick="filterInventory('head', this)">💀 Head</button>
+      <button class="shop-filter-btn" onclick="filterInventory('torso', this)">🦴 Torso</button>
+      <button class="shop-filter-btn" onclick="filterInventory('limbs', this)">🦵 Limbs</button>
+      <button class="shop-filter-btn" onclick="filterInventory('tail', this)">🐊 Tail</button>
+      <button class="shop-filter-btn" onclick="filterInventory('aura', this)">⚡ Mutation</button>
+    </div>
+    <div class="shop-grid" id="inventory-grid"></div>
   </div>
 
   <!-- HYBRID LAB SCREEN -->
@@ -2279,31 +2308,44 @@ function spawnConfetti(n=10) {
 }
 
 // ==========================================================
-// DINO CATALOG, SHOP, HYBRID LAB & STABLE
+// DINO CATALOG, SHOP, INVENTORY, HYBRID LAB & STABLE
 // ==========================================================
 const DINO_PARTS = [
   // HEADS (Slot: head)
   { id: 'head_raptor', name: 'Raptor Speed Snout', slot: 'head', rarity: 'common', price: 200, icon: '🦎', stats: { power: 15, defense: 10, speed: 35 }, desc: 'Agile skull with sharp tracking eyes.' },
   { id: 'head_stego', name: 'Stego Plated Crest', slot: 'head', rarity: 'common', price: 250, icon: '🐢', stats: { power: 10, defense: 35, speed: 10 }, desc: 'Hardened skull plate resistant to impacts.' },
+  { id: 'head_pachy', name: 'Pachy Dome Skull', slot: 'head', rarity: 'common', price: 350, icon: '🦙', stats: { power: 25, defense: 40, speed: 15 }, desc: 'Thick bone dome built for headbutting.' },
   { id: 'head_trike', name: 'Triceratops Triple Horn', slot: 'head', rarity: 'rare', price: 600, icon: '🦏', stats: { power: 30, defense: 50, speed: 15 }, desc: 'Three massive frontal horns for charging.' },
+  { id: 'head_carno', name: 'Carnotaurus Bull Horns', slot: 'head', rarity: 'rare', price: 900, icon: '🐂', stats: { power: 50, defense: 30, speed: 25 }, desc: 'Twin brow horns for high-speed ramming.' },
   { id: 'head_rex', name: 'T-Rex Apex Jaws', slot: 'head', rarity: 'epic', price: 1800, icon: '🦖', stats: { power: 85, defense: 25, speed: 20 }, desc: 'Bone-crushing jaws with serrated teeth.' },
   { id: 'head_spino', name: 'Spinosaurus Croc Snout', slot: 'head', rarity: 'epic', price: 2200, icon: '🐊', stats: { power: 75, defense: 35, speed: 40 }, desc: 'Long predator snout suited for amphibious strike.' },
-  { id: 'head_cyber', name: 'Cybernetic Laser Helmet', slot: 'head', rarity: 'legendary', price: 6500, icon: '🤖', stats: { power: 120, defense: 80, speed: 90 }, desc: 'High-tech helmet with targeting systems.' },
+  { id: 'head_giga', name: 'Giganotosaurus Dread Jaws', slot: 'head', rarity: 'epic', price: 3800, icon: '🐉', stats: { power: 110, defense: 30, speed: 25 }, desc: 'Massive terrorizing jaw structure.' },
+  { id: 'head_cyber', name: 'Cybernetic Laser Helmet', slot: 'head', rarity: 'legendary', price: 6500, icon: '🤖', stats: { power: 140, defense: 80, speed: 90 }, desc: 'High-tech helmet with targeting systems.' },
+  { id: 'head_golden', name: 'Golden King-Rex Crown Skull', slot: 'head', rarity: 'mythic', price: 25000, icon: '👑', stats: { power: 220, defense: 140, speed: 110 }, desc: 'Solid gold fossil crown forged in primordial magma.' },
+  { id: 'head_hyperion', name: 'Hyperion Solar Crown', slot: 'head', rarity: 'mythic', price: 75000, icon: '☀️', stats: { power: 350, defense: 200, speed: 180 }, desc: 'Ancient sun-god skull radiating stellar heat.' },
 
   // TORSOS (Slot: torso)
   { id: 'torso_raptor', name: 'Leaping Feathered Core', slot: 'torso', rarity: 'common', price: 180, icon: '🪶', stats: { power: 10, defense: 15, speed: 35 }, desc: 'Lightweight ribcage covered in proto-feathers.' },
+  { id: 'torso_parasaur', name: 'Parasaur Resonating Ribs', slot: 'torso', rarity: 'common', price: 300, icon: '🎶', stats: { power: 15, defense: 25, speed: 25 }, desc: 'Acoustic chest cavity amplifies battle roars.' },
   { id: 'torso_ankylo', name: 'Ankylo Boulder Armor', slot: 'torso', rarity: 'rare', price: 750, icon: '🛡️', stats: { power: 20, defense: 85, speed: 5 }, desc: 'Thick osteoderm armor shell.' },
   { id: 'torso_spino', name: 'Spino Solar Sail', slot: 'torso', rarity: 'rare', price: 950, icon: '⛵', stats: { power: 45, defense: 40, speed: 40 }, desc: 'Huge dorsal fin that absorbs solar energy.' },
   { id: 'torso_brachio', name: 'Titan Brachio Core', slot: 'torso', rarity: 'epic', price: 2500, icon: '🦕', stats: { power: 40, defense: 120, speed: 10 }, desc: 'Giant sauropod chest with enormous health reserves.' },
   { id: 'torso_rex', name: 'Rex Carnivore Torso', slot: 'torso', rarity: 'epic', price: 3000, icon: '🦾', stats: { power: 95, defense: 50, speed: 30 }, desc: 'Muscular chest built for heavy impacts.' },
+  { id: 'torso_diplodocus', name: 'Diplodocus Iron Lattice', slot: 'torso', rarity: 'epic', price: 4500, icon: '⛓️', stats: { power: 50, defense: 150, speed: 15 }, desc: 'Impenetrable rib cage matrix.' },
   { id: 'torso_crystal', name: 'Prismatic Crystal Spine', slot: 'torso', rarity: 'legendary', price: 8500, icon: '💎', stats: { power: 110, defense: 110, speed: 110 }, desc: 'Glowing crystal exoskeleton radiating bio-energy.' },
+  { id: 'torso_magma', name: 'Volcanic Magma Chamber', slot: 'torso', rarity: 'mythic', price: 35000, icon: '🌋', stats: { power: 260, defense: 180, speed: 70 }, desc: 'Molten lava core generating explosive kinetic thermal blasts.' },
+  { id: 'torso_singularity', name: 'Quantum Singularity Core', slot: 'torso', rarity: 'mythic', price: 100000, icon: '🌌', stats: { power: 400, defense: 300, speed: 250 }, desc: 'Miniature black hole heart bending gravitational fields.' },
 
   // LIMBS (Slot: limbs)
   { id: 'limbs_raptor', name: 'Raptor Talon Feet', slot: 'limbs', rarity: 'common', price: 220, icon: '🦤', stats: { power: 25, defense: 10, speed: 45 }, desc: 'Sickle-clawed feet engineered for high-speed sprinting.' },
-  { id: 'limbs_ptero', name: 'Pteranodon Glider Wings', slot: 'limbs', rarity: 'rare', price: 800, icon: '🦅', stats: { power: 15, defense: 20, speed: 75 }, desc: 'Leathery wing arms allowing aerial maneuvers.' },
+  { id: 'limbs_gallimimus', name: 'Gallimimus Strider Legs', slot: 'limbs', rarity: 'common', price: 350, icon: '🏃', stats: { power: 10, defense: 10, speed: 60 }, desc: 'Ultra-light legs built for marathon speed.' },
   { id: 'limbs_stego', name: 'Stego Pillar Legs', slot: 'limbs', rarity: 'rare', price: 650, icon: '🦣', stats: { power: 20, defense: 60, speed: 15 }, desc: 'Heavy column legs designed for firm ground stability.' },
+  { id: 'limbs_ptero', name: 'Pteranodon Glider Wings', slot: 'limbs', rarity: 'rare', price: 800, icon: '🦅', stats: { power: 15, defense: 20, speed: 75 }, desc: 'Leathery wing arms allowing aerial maneuvers.' },
+  { id: 'limbs_quetzal', name: 'Quetzalcoatlus Titan Wings', slot: 'limbs', rarity: 'epic', price: 2200, icon: '🦩', stats: { power: 40, defense: 30, speed: 110 }, desc: 'Huge 12-meter wingspan for cloud altitude flight.' },
   { id: 'limbs_rex', name: 'Rex Heavy Stompers', slot: 'limbs', rarity: 'epic', price: 2000, icon: '🐾', stats: { power: 70, defense: 40, speed: 35 }, desc: 'Giant clawed legs capable of crushing rock.' },
   { id: 'limbs_plasma', name: 'Plasma Jet Thrusters', slot: 'limbs', rarity: 'legendary', price: 7000, icon: '🚀', stats: { power: 90, defense: 50, speed: 140 }, desc: 'Futuristic jet propulsion limbs.' },
+  { id: 'limbs_void', name: 'Void Dragon Shadow Wings', slot: 'limbs', rarity: 'mythic', price: 30000, icon: '🦇', stats: { power: 180, defense: 100, speed: 220 }, desc: 'Dark matter wings phasing through physical obstacles.' },
+  { id: 'limbs_aeon', name: 'Aeon Gravity Skaters', slot: 'limbs', rarity: 'mythic', price: 85000, icon: '💫', stats: { power: 250, defense: 200, speed: 380 }, desc: 'Anti-gravity repulsor boots levitating over terrain.' },
 
   // TAILS (Slot: tail)
   { id: 'tail_raptor', name: 'Raptor Whip Balance', slot: 'tail', rarity: 'common', price: 150, icon: '🐍', stats: { power: 15, defense: 10, speed: 30 }, desc: 'Stiff, elongated tail for hairpin turns.' },
@@ -2311,12 +2353,18 @@ const DINO_PARTS = [
   { id: 'tail_ankylo', name: 'Ankylo Wrecking Club', slot: 'tail', rarity: 'rare', price: 850, icon: '🔨', stats: { power: 55, defense: 55, speed: 10 }, desc: 'Heavy solid bone club capable of breaking bone.' },
   { id: 'tail_rex', name: 'Rex Muscular Tail', slot: 'tail', rarity: 'epic', price: 2100, icon: '🐊', stats: { power: 75, defense: 30, speed: 25 }, desc: 'Counterbalancing tail with powerful sweep.' },
   { id: 'tail_dragon', name: 'Inferno Dragon Tail', slot: 'tail', rarity: 'legendary', price: 7500, icon: '🔥', stats: { power: 130, defense: 40, speed: 60 }, desc: 'Tail ablaze with primordial fire flames.' },
+  { id: 'tail_supernova', name: 'Supernova Meteor Tail', slot: 'tail', rarity: 'mythic', price: 28000, icon: '☄️', stats: { power: 240, defense: 90, speed: 70 }, desc: 'Crashing tail tipped with a dense star fragment.' },
+  { id: 'tail_chronos', name: 'Chronos Time-Distortion Tail', slot: 'tail', rarity: 'mythic', price: 90000, icon: '⏳', stats: { power: 320, defense: 250, speed: 300 }, desc: 'Distorts temporal flow around the hybrid.' },
 
-  // SPECIAL AURA / MUTATION (Slot: aura)
+  // MUTATIONS / AURAS (Slot: aura)
   { id: 'aura_none', name: 'Standard DNA', slot: 'aura', rarity: 'common', price: 0, icon: '✨', stats: { power: 0, defense: 0, speed: 0 }, desc: 'Natural unmodified dinosaur genetics.' },
+  { id: 'aura_biolum', name: 'Bioluminescent Glow', slot: 'aura', rarity: 'common', price: 400, icon: '🌟', stats: { power: 10, defense: 10, speed: 20 }, desc: 'Neon glowing vein patterns.' },
   { id: 'aura_camo', name: 'Chameleon Camouflage', slot: 'aura', rarity: 'rare', price: 1000, icon: '🦎', stats: { power: 20, defense: 40, speed: 40 }, desc: 'Skin shifts color to blend into foliage.' },
   { id: 'aura_electric', name: 'Bio-Electric Charge', slot: 'aura', rarity: 'epic', price: 3500, icon: '⚡', stats: { power: 65, defense: 30, speed: 70 }, desc: 'Sparks of electricity surge along the scales.' },
-  { id: 'aura_indominus', name: 'Indominus Apex Mutation', slot: 'aura', rarity: 'legendary', price: 12000, icon: '🌌', stats: { power: 150, defense: 100, speed: 100 }, desc: 'Ultimate hybrid genetic sequence.' }
+  { id: 'aura_toxin', name: 'Dilophosaurus Toxin Venom', slot: 'aura', rarity: 'epic', price: 5000, icon: '🧪', stats: { power: 100, defense: 40, speed: 50 }, desc: 'Acidic venom aura corrodes enemy armor.' },
+  { id: 'aura_indominus', name: 'Indominus Apex Mutation', slot: 'aura', rarity: 'legendary', price: 12000, icon: '🌌', stats: { power: 150, defense: 100, speed: 100 }, desc: 'Ultimate hybrid genetic sequence.' },
+  { id: 'aura_godzilla', name: 'Atomic Radiation Spike Aura', slot: 'aura', rarity: 'mythic', price: 50000, icon: '⚛️', stats: { power: 300, defense: 150, speed: 80 }, desc: 'Radiates blue atomic pulse energy.' },
+  { id: 'aura_nebula', name: 'Starlight Nebula Cosmic Shield', slot: 'aura', rarity: 'mythic', price: 95000, icon: '🎆', stats: { power: 380, defense: 350, speed: 300 }, desc: 'Cosmic aura of swirling stardust and galaxies.' }
 ];
 
 const DEFAULT_OWNED = ['head_raptor', 'torso_raptor', 'limbs_raptor', 'tail_raptor', 'aura_none'];
@@ -2352,7 +2400,7 @@ function updateStableBadge() {
 
 // Nav Tab Switcher
 function showTab(tab) {
-  ['practice', 'shop', 'lab', 'stable'].forEach(t => {
+  ['practice', 'shop', 'inventory', 'lab', 'stable'].forEach(t => {
     const btn = document.getElementById(`nav-${t}`);
     if (btn) btn.classList.toggle('active', t === tab);
   });
@@ -2362,12 +2410,77 @@ function showTab(tab) {
   document.getElementById('end-screen').classList.add('hidden');
 
   document.getElementById('shop-screen').classList.toggle('hidden', tab !== 'shop');
+  document.getElementById('inventory-screen').classList.toggle('hidden', tab !== 'inventory');
   document.getElementById('lab-screen').classList.toggle('hidden', tab !== 'lab');
   document.getElementById('stable-screen').classList.toggle('hidden', tab !== 'stable');
 
   if (tab === 'shop') renderShop();
+  if (tab === 'inventory') renderInventory();
   if (tab === 'lab') setupLabSelectors();
   if (tab === 'stable') renderStable();
+}
+
+// INVENTORY LOGIC
+let currentInventoryFilter = 'all';
+function filterInventory(slot, btn) {
+  currentInventoryFilter = slot;
+  document.querySelectorAll('#inventory-screen .shop-filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderInventory();
+}
+
+function renderInventory() {
+  const container = document.getElementById('inventory-grid');
+  if (!container) return;
+  const ownedIds = loadOwnedParts();
+  const ownedParts = DINO_PARTS.filter(p => ownedIds.includes(p.id));
+
+  // Update progress bar
+  const totalCount = DINO_PARTS.length;
+  const ownedCount = ownedParts.length;
+  const pct = Math.round((ownedCount / totalCount) * 100);
+
+  const progText = document.getElementById('inventory-progress-text');
+  if (progText) progText.textContent = `${ownedCount} / ${totalCount} Parts (${pct}%)`;
+
+  const progFill = document.getElementById('inventory-progress-fill');
+  if (progFill) progFill.style.width = `${pct}%`;
+
+  const invBadge = document.getElementById('inventory-count');
+  if (invBadge) invBadge.textContent = ownedCount;
+
+  const filtered = currentInventoryFilter === 'all'
+    ? ownedParts
+    : ownedParts.filter(p => p.slot === currentInventoryFilter);
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-light)">
+      No owned parts in this category yet! Go to the 🛒 <strong>DNA Shop</strong> to unlock more!
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(part => {
+    return `<div class="shop-card">
+      <div>
+        <div class="shop-card-header">
+          <span class="rarity-badge rarity-${part.rarity}">${part.rarity}</span>
+          <span style="font-size:0.75rem;color:var(--text-light);font-weight:700;">${part.slot.toUpperCase()}</span>
+        </div>
+        <div class="shop-card-icon">${part.icon}</div>
+        <div class="shop-card-title">${part.name}</div>
+        <div class="shop-card-desc">${part.desc}</div>
+      </div>
+      <div>
+        <div class="shop-card-stats">
+          <span>⚔️ +${part.stats.power}</span>
+          <span>🛡️ +${part.stats.defense}</span>
+          <span>⚡ +${part.stats.speed}</span>
+        </div>
+        <button class="buy-btn owned" disabled>✅ Unlocked & Ready in Lab</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // SHOP LOGIC
