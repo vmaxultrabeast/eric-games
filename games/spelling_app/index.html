@@ -2602,6 +2602,9 @@ function setupLabSelectors() {
 
 // ARTWORK MATCHING
 function getHybridArtwork(headId, torsoId, limbsId, tailId, auraId) {
+  if (torsoId === 'torso_brachio') {
+    return 'assets/dino_titan_brachio.png';
+  }
   if (auraId === 'aura_omni' || torsoId === 'torso_singularity') {
     return 'assets/dino_quantum_galaxy.png';
   }
