@@ -1554,8 +1554,8 @@ function endSession() {
   const newTotal = addCoins(earned);
   showCoinAward(earned, newTotal, s.mode, s.grade);
 
-  // Check 95%+ completion for 2-week level lock
-  if (pct >= 95) {
+  // Check 90%+ completion for 2-week level lock
+  if (pct >= 90) {
     recordMasteryPass(s.subject || 'english', s.grade, s.mode);
   }
 
@@ -1891,7 +1891,7 @@ function updateLockUI() {
 
   if (status.locked) {
     banner.classList.remove('hidden');
-    banner.innerHTML = `🔒 <strong>Level Passed!</strong><br>You completed ${subjName} - ${gradeName} (${modeName}) 3 times with 95%+. This level is locked for <strong>${status.days} more day(s)</strong>.`;
+    banner.innerHTML = `🔒 <strong>Level Passed!</strong><br>You completed ${subjName} - ${gradeName} (${modeName}) 3 times with 90%+. This level is locked for <strong>${status.days} more day(s)</strong>.`;
     if (startBtn) {
       startBtn.disabled = true;
       startBtn.innerHTML = '🔒 Level Already Passed';
