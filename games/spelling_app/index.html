@@ -718,6 +718,7 @@
 
     <!-- Hybrid Preview Card -->
     <div class="hybrid-preview-card">
+      <img id="lab-hybrid-img" src="assets/dino_apex_rex.png" style="width:100%;max-width:280px;height:180px;object-fit:cover;border-radius:14px;border:2px solid var(--primary);box-shadow:0 0 20px rgba(232,165,58,0.3);margin-bottom:12px;">
       <div class="hybrid-avatar" id="lab-hybrid-avatar">🦖</div>
       <input type="text" class="hybrid-name-input" id="lab-hybrid-name" placeholder="Name your hybrid..." maxlength="28">
       <div class="hybrid-stats-bar">
@@ -2317,8 +2318,10 @@ const DINO_PARTS = [
   { id: 'head_pachy', name: 'Pachy Dome Skull', slot: 'head', rarity: 'common', price: 350, icon: '🦙', stats: { power: 25, defense: 40, speed: 15 }, desc: 'Thick bone dome built for headbutting.' },
   { id: 'head_trike', name: 'Triceratops Triple Horn', slot: 'head', rarity: 'rare', price: 600, icon: '🦏', stats: { power: 30, defense: 50, speed: 15 }, desc: 'Three massive frontal horns for charging.' },
   { id: 'head_carno', name: 'Carnotaurus Bull Horns', slot: 'head', rarity: 'rare', price: 900, icon: '🐂', stats: { power: 50, defense: 30, speed: 25 }, desc: 'Twin brow horns for high-speed ramming.' },
+  { id: 'head_bary', name: 'Baryonyx Heavy Snout', slot: 'head', rarity: 'rare', price: 1200, icon: '🐊', stats: { power: 45, defense: 40, speed: 30 }, desc: 'Rugged river predator skull.' },
   { id: 'head_rex', name: 'T-Rex Apex Jaws', slot: 'head', rarity: 'epic', price: 1800, icon: '🦖', stats: { power: 85, defense: 25, speed: 20 }, desc: 'Bone-crushing jaws with serrated teeth.' },
   { id: 'head_spino', name: 'Spinosaurus Croc Snout', slot: 'head', rarity: 'epic', price: 2200, icon: '🐊', stats: { power: 75, defense: 35, speed: 40 }, desc: 'Long predator snout suited for amphibious strike.' },
+  { id: 'head_dilo', name: 'Dilophosaurus Dual Frill Head', slot: 'head', rarity: 'epic', price: 2800, icon: '🐍', stats: { power: 80, defense: 30, speed: 50 }, desc: 'Twin crested head with venom glands.' },
   { id: 'head_giga', name: 'Giganotosaurus Dread Jaws', slot: 'head', rarity: 'epic', price: 3800, icon: '🐉', stats: { power: 110, defense: 30, speed: 25 }, desc: 'Massive terrorizing jaw structure.' },
   { id: 'head_cyber', name: 'Cybernetic Laser Helmet', slot: 'head', rarity: 'legendary', price: 6500, icon: '🤖', stats: { power: 140, defense: 80, speed: 90 }, desc: 'High-tech helmet with targeting systems.' },
   { id: 'head_golden', name: 'Golden King-Rex Crown Skull', slot: 'head', rarity: 'mythic', price: 25000, icon: '👑', stats: { power: 220, defense: 140, speed: 110 }, desc: 'Solid gold fossil crown forged in primordial magma.' },
@@ -2329,11 +2332,13 @@ const DINO_PARTS = [
   { id: 'torso_parasaur', name: 'Parasaur Resonating Ribs', slot: 'torso', rarity: 'common', price: 300, icon: '🎶', stats: { power: 15, defense: 25, speed: 25 }, desc: 'Acoustic chest cavity amplifies battle roars.' },
   { id: 'torso_ankylo', name: 'Ankylo Boulder Armor', slot: 'torso', rarity: 'rare', price: 750, icon: '🛡️', stats: { power: 20, defense: 85, speed: 5 }, desc: 'Thick osteoderm armor shell.' },
   { id: 'torso_spino', name: 'Spino Solar Sail', slot: 'torso', rarity: 'rare', price: 950, icon: '⛵', stats: { power: 45, defense: 40, speed: 40 }, desc: 'Huge dorsal fin that absorbs solar energy.' },
+  { id: 'torso_carno', name: 'Carnotaurus Bullet Core', slot: 'torso', rarity: 'rare', price: 1100, icon: '🛡️', stats: { power: 40, defense: 35, speed: 50 }, desc: 'Aerodynamic torso built for straight-line charges.' },
   { id: 'torso_brachio', name: 'Titan Brachio Core', slot: 'torso', rarity: 'epic', price: 2500, icon: '🦕', stats: { power: 40, defense: 120, speed: 10 }, desc: 'Giant sauropod chest with enormous health reserves.' },
   { id: 'torso_rex', name: 'Rex Carnivore Torso', slot: 'torso', rarity: 'epic', price: 3000, icon: '🦾', stats: { power: 95, defense: 50, speed: 30 }, desc: 'Muscular chest built for heavy impacts.' },
   { id: 'torso_diplodocus', name: 'Diplodocus Iron Lattice', slot: 'torso', rarity: 'epic', price: 4500, icon: '⛓️', stats: { power: 50, defense: 150, speed: 15 }, desc: 'Impenetrable rib cage matrix.' },
   { id: 'torso_crystal', name: 'Prismatic Crystal Spine', slot: 'torso', rarity: 'legendary', price: 8500, icon: '💎', stats: { power: 110, defense: 110, speed: 110 }, desc: 'Glowing crystal exoskeleton radiating bio-energy.' },
   { id: 'torso_magma', name: 'Volcanic Magma Chamber', slot: 'torso', rarity: 'mythic', price: 35000, icon: '🌋', stats: { power: 260, defense: 180, speed: 70 }, desc: 'Molten lava core generating explosive kinetic thermal blasts.' },
+  { id: 'torso_chronos', name: 'Chronos Time-Lattice Core', slot: 'torso', rarity: 'mythic', price: 60000, icon: '⏳', stats: { power: 300, defense: 220, speed: 280 }, desc: 'Woven time-threads reducing incoming damage to zero.' },
   { id: 'torso_singularity', name: 'Quantum Singularity Core', slot: 'torso', rarity: 'mythic', price: 100000, icon: '🌌', stats: { power: 400, defense: 300, speed: 250 }, desc: 'Miniature black hole heart bending gravitational fields.' },
 
   // LIMBS (Slot: limbs)
@@ -2341,18 +2346,22 @@ const DINO_PARTS = [
   { id: 'limbs_gallimimus', name: 'Gallimimus Strider Legs', slot: 'limbs', rarity: 'common', price: 350, icon: '🏃', stats: { power: 10, defense: 10, speed: 60 }, desc: 'Ultra-light legs built for marathon speed.' },
   { id: 'limbs_stego', name: 'Stego Pillar Legs', slot: 'limbs', rarity: 'rare', price: 650, icon: '🦣', stats: { power: 20, defense: 60, speed: 15 }, desc: 'Heavy column legs designed for firm ground stability.' },
   { id: 'limbs_ptero', name: 'Pteranodon Glider Wings', slot: 'limbs', rarity: 'rare', price: 800, icon: '🦅', stats: { power: 15, defense: 20, speed: 75 }, desc: 'Leathery wing arms allowing aerial maneuvers.' },
-  { id: 'limbs_quetzal', name: 'Quetzalcoatlus Titan Wings', slot: 'limbs', rarity: 'epic', price: 2200, icon: '🦩', stats: { power: 40, defense: 30, speed: 110 }, desc: 'Huge 12-meter wingspan for cloud altitude flight.' },
   { id: 'limbs_rex', name: 'Rex Heavy Stompers', slot: 'limbs', rarity: 'epic', price: 2000, icon: '🐾', stats: { power: 70, defense: 40, speed: 35 }, desc: 'Giant clawed legs capable of crushing rock.' },
+  { id: 'limbs_quetzal', name: 'Quetzalcoatlus Titan Wings', slot: 'limbs', rarity: 'epic', price: 2200, icon: '🦩', stats: { power: 40, defense: 30, speed: 110 }, desc: 'Huge 12-meter wingspan for cloud altitude flight.' },
+  { id: 'limbs_bary', name: 'Baryonyx Heavy Hook Claws', slot: 'limbs', rarity: 'epic', price: 2800, icon: '🦅', stats: { power: 75, defense: 35, speed: 45 }, desc: 'Giant thumb claws for slashing prey.' },
   { id: 'limbs_plasma', name: 'Plasma Jet Thrusters', slot: 'limbs', rarity: 'legendary', price: 7000, icon: '🚀', stats: { power: 90, defense: 50, speed: 140 }, desc: 'Futuristic jet propulsion limbs.' },
   { id: 'limbs_void', name: 'Void Dragon Shadow Wings', slot: 'limbs', rarity: 'mythic', price: 30000, icon: '🦇', stats: { power: 180, defense: 100, speed: 220 }, desc: 'Dark matter wings phasing through physical obstacles.' },
   { id: 'limbs_aeon', name: 'Aeon Gravity Skaters', slot: 'limbs', rarity: 'mythic', price: 85000, icon: '💫', stats: { power: 250, defense: 200, speed: 380 }, desc: 'Anti-gravity repulsor boots levitating over terrain.' },
+  { id: 'limbs_celestial', name: 'Celestial Quetzal Wings of Eternity', slot: 'limbs', rarity: 'mythic', price: 90000, icon: '🌌', stats: { power: 280, defense: 220, speed: 420 }, desc: 'Wings woven from starlight spanning dimensions.' },
 
   // TAILS (Slot: tail)
   { id: 'tail_raptor', name: 'Raptor Whip Balance', slot: 'tail', rarity: 'common', price: 150, icon: '🐍', stats: { power: 15, defense: 10, speed: 30 }, desc: 'Stiff, elongated tail for hairpin turns.' },
   { id: 'tail_stego', name: 'Thagomizer Spike Tail', slot: 'tail', rarity: 'rare', price: 700, icon: '🗡️', stats: { power: 60, defense: 25, speed: 15 }, desc: 'Four lethal tail spikes for counter-attacks.' },
   { id: 'tail_ankylo', name: 'Ankylo Wrecking Club', slot: 'tail', rarity: 'rare', price: 850, icon: '🔨', stats: { power: 55, defense: 55, speed: 10 }, desc: 'Heavy solid bone club capable of breaking bone.' },
+  { id: 'tail_plume', name: 'Gigantoraptor Feathery Plume Tail', slot: 'tail', rarity: 'rare', price: 1400, icon: '🪶', stats: { power: 25, defense: 25, speed: 60 }, desc: 'Colorful fan tail providing flight maneuvering.' },
   { id: 'tail_rex', name: 'Rex Muscular Tail', slot: 'tail', rarity: 'epic', price: 2100, icon: '🐊', stats: { power: 75, defense: 30, speed: 25 }, desc: 'Counterbalancing tail with powerful sweep.' },
   { id: 'tail_dragon', name: 'Inferno Dragon Tail', slot: 'tail', rarity: 'legendary', price: 7500, icon: '🔥', stats: { power: 130, defense: 40, speed: 60 }, desc: 'Tail ablaze with primordial fire flames.' },
+  { id: 'tail_titanium', name: 'Mecha-Godzilla Titanium Tail', slot: 'tail', rarity: 'legendary', price: 15000, icon: '⚙️', stats: { power: 180, defense: 120, speed: 40 }, desc: 'Reinforced titanium alloy crushing tail.' },
   { id: 'tail_supernova', name: 'Supernova Meteor Tail', slot: 'tail', rarity: 'mythic', price: 28000, icon: '☄️', stats: { power: 240, defense: 90, speed: 70 }, desc: 'Crashing tail tipped with a dense star fragment.' },
   { id: 'tail_chronos', name: 'Chronos Time-Distortion Tail', slot: 'tail', rarity: 'mythic', price: 90000, icon: '⏳', stats: { power: 320, defense: 250, speed: 300 }, desc: 'Distorts temporal flow around the hybrid.' },
 
@@ -2364,7 +2373,8 @@ const DINO_PARTS = [
   { id: 'aura_toxin', name: 'Dilophosaurus Toxin Venom', slot: 'aura', rarity: 'epic', price: 5000, icon: '🧪', stats: { power: 100, defense: 40, speed: 50 }, desc: 'Acidic venom aura corrodes enemy armor.' },
   { id: 'aura_indominus', name: 'Indominus Apex Mutation', slot: 'aura', rarity: 'legendary', price: 12000, icon: '🌌', stats: { power: 150, defense: 100, speed: 100 }, desc: 'Ultimate hybrid genetic sequence.' },
   { id: 'aura_godzilla', name: 'Atomic Radiation Spike Aura', slot: 'aura', rarity: 'mythic', price: 50000, icon: '⚛️', stats: { power: 300, defense: 150, speed: 80 }, desc: 'Radiates blue atomic pulse energy.' },
-  { id: 'aura_nebula', name: 'Starlight Nebula Cosmic Shield', slot: 'aura', rarity: 'mythic', price: 95000, icon: '🎆', stats: { power: 380, defense: 350, speed: 300 }, desc: 'Cosmic aura of swirling stardust and galaxies.' }
+  { id: 'aura_nebula', name: 'Starlight Nebula Cosmic Shield', slot: 'aura', rarity: 'mythic', price: 95000, icon: '🎆', stats: { power: 380, defense: 350, speed: 300 }, desc: 'Cosmic aura of swirling stardust and galaxies.' },
+  { id: 'aura_omni', name: 'Omni-Dimensional Reality-Rift Aura', slot: 'aura', rarity: 'mythic', price: 120000, icon: '🌀', stats: { power: 500, defense: 400, speed: 400 }, desc: 'Bends space-time reality around the apex hybrid.' }
 ];
 
 const DEFAULT_OWNED = ['head_raptor', 'torso_raptor', 'limbs_raptor', 'tail_raptor', 'aura_none'];
@@ -2566,6 +2576,26 @@ function setupLabSelectors() {
   renderHybridPreview();
 }
 
+// ARTWORK MATCHING
+function getHybridArtwork(headId, torsoId, limbsId, tailId, auraId) {
+  if (auraId === 'aura_nebula' || auraId === 'aura_indominus' || auraId === 'aura_godzilla' || auraId === 'aura_omni' || headId === 'head_hyperion') {
+    return 'assets/dino_cosmic_nebula.png';
+  }
+  if (headId === 'head_cyber' || limbsId === 'limbs_plasma' || limbsId === 'limbs_aeon' || limbsId === 'limbs_void') {
+    return 'assets/dino_cyber_raptor.png';
+  }
+  if (torsoId === 'torso_crystal' || torsoId === 'torso_brachio' || headId === 'head_golden' || torsoId === 'torso_singularity') {
+    return 'assets/dino_crystal_titan.png';
+  }
+  if (tailId === 'tail_dragon' || torsoId === 'torso_magma' || headId === 'head_spino' || headId === 'head_carno') {
+    return 'assets/dino_inferno_dragon.png';
+  }
+  if (torsoId === 'torso_ankylo' || tailId === 'tail_stego' || tailId === 'tail_ankylo' || headId === 'head_stego' || headId === 'head_pachy') {
+    return 'assets/dino_armored_stego.png';
+  }
+  return 'assets/dino_apex_rex.png';
+}
+
 function renderHybridPreview() {
   const headId  = document.getElementById('lab-head-select').value;
   const torsoId = document.getElementById('lab-torso-select').value;
@@ -2591,6 +2621,11 @@ function renderHybridPreview() {
 
   const avatar = `${head.icon} ${torso.icon} ${limbs.icon} ${tail.icon} ${aura.id !== 'aura_none' ? aura.icon : ''}`.trim();
   document.getElementById('lab-hybrid-avatar').textContent = avatar;
+
+  const imgEl = document.getElementById('lab-hybrid-img');
+  if (imgEl) {
+    imgEl.src = getHybridArtwork(headId, torsoId, limbsId, tailId, auraId);
+  }
 
   const nameInput = document.getElementById('lab-hybrid-name');
   if (!nameInput.value || nameInput.dataset.autoGenerated === 'true') {
@@ -2618,10 +2653,11 @@ function fuseHybridDino() {
   const totalDefense = head.stats.defense + torso.stats.defense + limbs.stats.defense + tail.stats.defense + aura.stats.defense;
   const totalSpeed   = head.stats.speed + torso.stats.speed + limbs.stats.speed + tail.stats.speed + aura.stats.speed;
   const avatar = `${head.icon} ${torso.icon} ${limbs.icon} ${tail.icon} ${aura.id !== 'aura_none' ? aura.icon : ''}`.trim();
+  const artwork = getHybridArtwork(headId, torsoId, limbsId, tailId, auraId);
 
   const hybrid = {
     id: 'hybrid_' + Date.now(),
-    name, avatar,
+    name, avatar, artwork,
     parts: { head: headId, torso: torsoId, limbs: limbsId, tail: tailId, aura: auraId },
     stats: { power: totalPower, defense: totalDefense, speed: totalSpeed },
     date: new Date().toISOString()
@@ -2649,8 +2685,10 @@ function renderStable() {
   }
 
   container.innerHTML = hybrids.map(h => {
+    const art = h.artwork || 'assets/dino_apex_rex.png';
     return `<div class="stable-card">
-      <div style="font-size:2.5rem;margin-bottom:6px;">${h.avatar}</div>
+      <img src="${art}" style="width:100%;height:160px;object-fit:cover;border-radius:12px;margin-bottom:8px;border:1.5px solid rgba(232,165,58,0.25);">
+      <div style="font-size:1.5rem;margin-bottom:4px;">${h.avatar}</div>
       <div style="font-size:1.1rem;font-weight:800;color:#fbbf24;margin-bottom:6px;">${h.name}</div>
       <div class="shop-card-stats" style="justify-content:center;margin-bottom:12px;">
         <span>⚔️ ${h.stats.power}</span>
