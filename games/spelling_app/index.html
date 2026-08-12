@@ -2478,9 +2478,22 @@ function showTab(tab) {
     if (btn) btn.classList.toggle('active', t === tab);
   });
 
-  document.getElementById('start-screen').classList.toggle('hidden', tab !== 'practice');
-  document.getElementById('quiz-screen').classList.add('hidden');
-  document.getElementById('end-screen').classList.add('hidden');
+  if (tab === 'practice') {
+    if (currentSession) {
+      document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('end-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+      showCurrentWord();
+    } else {
+      document.getElementById('start-screen').classList.remove('hidden');
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('end-screen').classList.add('hidden');
+    }
+  } else {
+    document.getElementById('start-screen').classList.add('hidden');
+    document.getElementById('quiz-screen').classList.add('hidden');
+    document.getElementById('end-screen').classList.add('hidden');
+  }
 
   document.getElementById('shop-screen').classList.toggle('hidden', tab !== 'shop');
   document.getElementById('inventory-screen').classList.toggle('hidden', tab !== 'inventory');
@@ -2858,11 +2871,48 @@ function deleteHybrid(id) {
   renderStable();
 }
 
+// User preference saving / loading (Subject, Grade, Mode)
+function saveUserPreferences() {
+  const prefs = {
+    subject: getSelectedSubject(),
+    grade: getSelectedGrade(),
+    mode: getSelectedMode()
+  };
+  localStorage.setItem('dinoscript_user_prefs', JSON.stringify(prefs));
+}
+
+function loadUserPreferences() {
+  try {
+    const raw = localStorage.getItem('dinoscript_user_prefs');
+    if (raw) {
+      const prefs = JSON.parse(raw);
+      if (prefs.subject) {
+        document.querySelectorAll('#subject-selector .sel-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.subject === prefs.subject);
+        });
+      }
+      if (prefs.grade) {
+        document.querySelectorAll('#grade-selector .sel-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.grade === prefs.grade);
+        });
+      }
+      if (prefs.mode) {
+        document.querySelectorAll('#mode-selector .sel-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.mode === prefs.mode);
+        });
+      }
+    }
+  } catch (e) {
+    console.error("Failed to load user preferences", e);
+  }
+}
+
 // Selector buttons
 document.querySelectorAll('#subject-selector .sel-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('#subject-selector .sel-btn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
+    saveUserPreferences();
     updateLockUI();
     buildRewardsTable();
   });
@@ -2871,6 +2921,7 @@ document.querySelectorAll('#grade-selector .sel-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('#grade-selector .sel-btn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
+    saveUserPreferences();
     updateLockUI();
     buildRewardsTable();
   });
@@ -2879,11 +2930,13 @@ document.querySelectorAll('#mode-selector .sel-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('#mode-selector .sel-btn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
+    saveUserPreferences();
     updateLockUI();
     buildRewardsTable();
   });
 });
 
+loadUserPreferences();
 if (!loadSessionState()) {
   updateStatsPanel();
 }
