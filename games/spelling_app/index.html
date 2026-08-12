@@ -544,7 +544,7 @@
   <div id="quiz-screen" class="hidden">
     <div class="progress-container">
       <div class="progress-stats">
-        <span id="word-counter">Word 1 of 20</span>
+        <span id="word-counter" onclick="handleSecretCancelClick()" style="cursor:pointer;">Word 1 of 20</span>
         <span id="session-score">0 correct</span>
       </div>
       <div class="progress-bar">
@@ -1434,8 +1434,32 @@ function revealSentence(w) {
     w.sentence.replace('___', `<strong style="color:var(--primary)">${w.word}</strong>`);
 }
 
-// Handle Enter key in typing mode
+function cancelActiveSession() {
+  if (!currentSession) return;
+  currentSession = null;
+  saveSessionState();
+  showStartScreen();
+}
+
+let secretCancelClickCount = 0;
+let secretCancelClickTimer = null;
+function handleSecretCancelClick() {
+  if (!currentSession) return;
+  secretCancelClickCount++;
+  if (secretCancelClickTimer) clearTimeout(secretCancelClickTimer);
+  secretCancelClickTimer = setTimeout(() => { secretCancelClickCount = 0; }, 1200);
+  if (secretCancelClickCount >= 3) {
+    secretCancelClickCount = 0;
+    cancelActiveSession();
+  }
+}
+
+// Handle Escape key (secret cancel) or Enter key
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && currentSession) {
+    cancelActiveSession();
+    return;
+  }
   if (e.key === 'Enter') {
     const typingArea = document.getElementById('typing-area');
     const nextBtn = document.getElementById('next-btn');
