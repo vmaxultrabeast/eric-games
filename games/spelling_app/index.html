@@ -1943,12 +1943,21 @@ function generateMathPool(grade) {
     }
 
     if (category === '1') {
-      // Grade 1: Single-digit 1x1 ops & tables
-      const a = Math.floor(Math.random() * 9) + 1;
-      const b = Math.floor(Math.random() * 9) + 1;
-      ans = a * b;
-      questionText = `${a} × ${b} = ?`;
-      detailText = `Calculate ${a} × ${b}`;
+      // Grade 1: Basic addition & subtraction up to 20
+      const isAdd = Math.random() > 0.5;
+      if (isAdd) {
+        const a = Math.floor(Math.random() * 10) + 1; // 1..10
+        const b = Math.floor(Math.random() * 10) + 1; // 1..10
+        ans = a + b;
+        questionText = `${a} + ${b} = ?`;
+        detailText = `Calculate ${a} plus ${b}`;
+      } else {
+        const b = Math.floor(Math.random() * 9) + 1;  // 1..9
+        ans = Math.floor(Math.random() * 10) + 1;     // 1..10 result
+        const a = ans + b;                            // a <= 19
+        questionText = `${a} - ${b} = ?`;
+        detailText = `Calculate ${a} minus ${b}`;
+      }
     } else if (category === '2') {
       // Grade 2: Up to 10x10 multiplication tables
       const a = Math.floor(Math.random() * 10) + 1;
