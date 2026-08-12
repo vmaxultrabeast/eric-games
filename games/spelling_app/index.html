@@ -742,44 +742,80 @@
   <div id="lab-screen" class="hidden screen">
     <div class="emoji-big">🔬</div>
     <h2>Hybrid Fusion Chamber</h2>
-    <p>Select your owned DNA parts to fuse a powerful custom dinosaur!</p>
-    
-    <div class="lab-slots">
-      <div class="lab-slot-row">
-        <label>💀 Head:</label>
-        <select class="lab-slot-select" id="lab-head-select" onchange="renderHybridPreview()"></select>
+    <p>Build 1st Gen dinosaurs from parts, or breed 2nd Gen Super-Hybrids in the Genetic Chamber!</p>
+
+    <div class="shop-filters" style="margin-bottom:20px;">
+      <button class="shop-filter-btn active" id="lab-mode-btn-parts" onclick="switchLabMode('parts')">🧩 1st Gen: Build from Parts</button>
+      <button class="shop-filter-btn" id="lab-mode-btn-super" onclick="switchLabMode('super')">🧬 2nd Gen: Super-Hybrid Fusion</button>
+    </div>
+
+    <!-- 1st Gen Parts Container -->
+    <div id="parts-lab-container">
+      <div class="lab-slots">
+        <div class="lab-slot-row">
+          <label>💀 Head:</label>
+          <select class="lab-slot-select" id="lab-head-select" onchange="renderHybridPreview()"></select>
+        </div>
+        <div class="lab-slot-row">
+          <label>🦴 Torso:</label>
+          <select class="lab-slot-select" id="lab-torso-select" onchange="renderHybridPreview()"></select>
+        </div>
+        <div class="lab-slot-row">
+          <label>🦵 Limbs:</label>
+          <select class="lab-slot-select" id="lab-limbs-select" onchange="renderHybridPreview()"></select>
+        </div>
+        <div class="lab-slot-row">
+          <label>🐊 Tail:</label>
+          <select class="lab-slot-select" id="lab-tail-select" onchange="renderHybridPreview()"></select>
+        </div>
+        <div class="lab-slot-row">
+          <label>⚡ Mutation:</label>
+          <select class="lab-slot-select" id="lab-aura-select" onchange="renderHybridPreview()"></select>
+        </div>
       </div>
-      <div class="lab-slot-row">
-        <label>🦴 Torso:</label>
-        <select class="lab-slot-select" id="lab-torso-select" onchange="renderHybridPreview()"></select>
-      </div>
-      <div class="lab-slot-row">
-        <label>🦵 Limbs:</label>
-        <select class="lab-slot-select" id="lab-limbs-select" onchange="renderHybridPreview()"></select>
-      </div>
-      <div class="lab-slot-row">
-        <label>🐊 Tail:</label>
-        <select class="lab-slot-select" id="lab-tail-select" onchange="renderHybridPreview()"></select>
-      </div>
-      <div class="lab-slot-row">
-        <label>⚡ Mutation:</label>
-        <select class="lab-slot-select" id="lab-aura-select" onchange="renderHybridPreview()"></select>
+
+      <!-- Hybrid Preview Card -->
+      <div class="hybrid-preview-card">
+        <img id="lab-hybrid-img" src="assets/dino_apex_rex.png" style="width:100%;max-width:280px;height:180px;object-fit:cover;border-radius:14px;border:2px solid var(--primary);box-shadow:0 0 20px rgba(232,165,58,0.3);margin-bottom:12px;">
+        <div class="hybrid-avatar" id="lab-hybrid-avatar">🦖</div>
+        <input type="text" class="hybrid-name-input" id="lab-hybrid-name" placeholder="Name your hybrid..." maxlength="28">
+        <div class="hybrid-stats-bar">
+          <span>⚔️ <span id="lab-stat-power">0</span> Power</span>
+          <span>🛡️ <span id="lab-stat-defense">0</span> Defense</span>
+          <span>⚡ <span id="lab-stat-speed">0</span> Speed</span>
+        </div>
+        <button class="btn btn-primary" onclick="fuseHybridDino()">
+          🧪 Fuse Hybrid & Save to Stable! 🦖
+        </button>
       </div>
     </div>
 
-    <!-- Hybrid Preview Card -->
-    <div class="hybrid-preview-card">
-      <img id="lab-hybrid-img" src="assets/dino_apex_rex.png" style="width:100%;max-width:280px;height:180px;object-fit:cover;border-radius:14px;border:2px solid var(--primary);box-shadow:0 0 20px rgba(232,165,58,0.3);margin-bottom:12px;">
-      <div class="hybrid-avatar" id="lab-hybrid-avatar">🦖</div>
-      <input type="text" class="hybrid-name-input" id="lab-hybrid-name" placeholder="Name your hybrid..." maxlength="28">
-      <div class="hybrid-stats-bar">
-        <span>⚔️ <span id="lab-stat-power">0</span> Power</span>
-        <span>🛡️ <span id="lab-stat-defense">0</span> Defense</span>
-        <span>⚡ <span id="lab-stat-speed">0</span> Speed</span>
+    <!-- 2nd Gen Super-Hybrid Container -->
+    <div id="super-lab-container" class="hidden">
+      <div class="lab-slots">
+        <div class="lab-slot-row">
+          <label>🦖 Parent A (Stable):</label>
+          <select class="lab-slot-select" id="super-parent-a" onchange="renderSuperHybridPreview()"></select>
+        </div>
+        <div class="lab-slot-row">
+          <label>🦕 Parent B (Stable):</label>
+          <select class="lab-slot-select" id="super-parent-b" onchange="renderSuperHybridPreview()"></select>
+        </div>
       </div>
-      <button class="btn btn-primary" onclick="fuseHybridDino()">
-        🧪 Fuse Hybrid & Save to Stable! 🦖
-      </button>
+
+      <div class="hybrid-preview-card" style="border-color:#ec4899;box-shadow:0 0 20px rgba(236,72,153,0.3);">
+        <img id="super-lab-img" src="assets/dino_quantum_galaxy.png" style="width:100%;max-width:280px;height:180px;object-fit:cover;border-radius:14px;border:2px solid #ec4899;box-shadow:0 0 25px rgba(236,72,153,0.4);margin-bottom:12px;">
+        <div class="hybrid-avatar" id="super-lab-avatar">🧬</div>
+        <input type="text" class="hybrid-name-input" id="super-lab-name" placeholder="Name your Gen-2 Super-Hybrid..." maxlength="28">
+        <div class="hybrid-stats-bar" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.3);">
+          <span>⚔️ <span id="super-stat-power">0</span> Power</span>
+          <span>🛡️ <span id="super-stat-defense">0</span> Defense</span>
+          <span>⚡ <span id="super-stat-speed">0</span> Speed</span>
+        </div>
+        <button class="btn btn-primary" id="super-fuse-btn" style="background:linear-gradient(135deg, #ec4899, #8b5cf6);" onclick="fuseSuperHybridDino()">
+          ⚡ Fuse 2nd Gen Super-Hybrid! 🌌
+        </button>
+      </div>
     </div>
   </div>
 
@@ -2522,7 +2558,10 @@ function showTab(tab) {
 
   if (tab === 'shop') renderShop();
   if (tab === 'inventory') renderInventory();
-  if (tab === 'lab') setupLabSelectors();
+  if (tab === 'lab') {
+    if (currentLabMode === 'parts') setupLabSelectors();
+    else setupSuperLabSelectors();
+  }
   if (tab === 'stable') renderStable();
 }
 
@@ -2657,7 +2696,170 @@ function buyPart(partId) {
   renderShop();
 }
 
-// LAB LOGIC
+// LAB LOGIC & GEN-2 SUPER-HYBRID FUSION
+let currentLabMode = 'parts';
+
+function switchLabMode(mode) {
+  currentLabMode = mode;
+  document.getElementById('lab-mode-btn-parts').classList.toggle('active', mode === 'parts');
+  document.getElementById('lab-mode-btn-super').classList.toggle('active', mode === 'super');
+  document.getElementById('parts-lab-container').classList.toggle('hidden', mode !== 'parts');
+  document.getElementById('super-lab-container').classList.toggle('hidden', mode !== 'super');
+
+  if (mode === 'parts') {
+    setupLabSelectors();
+  } else {
+    setupSuperLabSelectors();
+  }
+}
+
+function setupSuperLabSelectors() {
+  const hybrids = loadSavedHybrids();
+  const selectA = document.getElementById('super-parent-a');
+  const selectB = document.getElementById('super-parent-b');
+  const fuseBtn = document.getElementById('super-fuse-btn');
+
+  if (!selectA || !selectB) return;
+
+  if (hybrids.length < 2) {
+    selectA.innerHTML = '<option value="">❌ Need 2+ hybrids in Stable to fuse Gen-2!</option>';
+    selectB.innerHTML = '<option value="">❌ Need 2+ hybrids in Stable to fuse Gen-2!</option>';
+    selectA.disabled = true;
+    selectB.disabled = true;
+    if (fuseBtn) {
+      fuseBtn.disabled = true;
+      fuseBtn.textContent = '❌ Need 2+ Hybrids in Stable to Fuse Gen-2!';
+    }
+    return;
+  }
+
+  selectA.disabled = false;
+  selectB.disabled = false;
+  if (fuseBtn) fuseBtn.disabled = false;
+
+  const optionsHTML = hybrids.map(h => `<option value="${h.id}">${h.avatar} ${h.name} (⚔️${h.stats.power} 🛡️${h.stats.defense} ⚡${h.stats.speed})</option>`).join('');
+  
+  selectA.innerHTML = optionsHTML;
+  selectB.innerHTML = optionsHTML;
+
+  if (hybrids.length > 1) {
+    selectB.value = hybrids[1].id;
+  }
+
+  renderSuperHybridPreview();
+}
+
+function renderSuperHybridPreview() {
+  const hybrids = loadSavedHybrids();
+  const selectA = document.getElementById('super-parent-a');
+  const selectB = document.getElementById('super-parent-b');
+  const fuseBtn = document.getElementById('super-fuse-btn');
+
+  if (!selectA || !selectB) return;
+
+  const idA = selectA.value;
+  const idB = selectB.value;
+
+  const pA = hybrids.find(h => h.id === idA);
+  const pB = hybrids.find(h => h.id === idB);
+
+  if (!pA || !pB || idA === idB) {
+    if (fuseBtn) {
+      fuseBtn.disabled = true;
+      fuseBtn.textContent = idA === idB ? '❌ Select 2 Different Parents!' : '❌ Select Parents';
+    }
+    return;
+  }
+
+  if (fuseBtn) {
+    fuseBtn.disabled = false;
+    fuseBtn.textContent = '⚡ Fuse 2nd Gen Super-Hybrid! 🌌';
+  }
+
+  const basePower   = Math.round((pA.stats.power + pB.stats.power) * 0.75);
+  const baseDefense = Math.round((pA.stats.defense + pB.stats.defense) * 0.75);
+  const baseSpeed   = Math.round((pA.stats.speed + pB.stats.speed) * 0.75);
+
+  document.getElementById('super-stat-power').textContent   = `${basePower} (±20%)`;
+  document.getElementById('super-stat-defense').textContent = `${baseDefense} (±20%)`;
+  document.getElementById('super-stat-speed').textContent   = `${baseSpeed} (±20%)`;
+
+  const avatar = `🧬 ${pA.avatar.split(' ')[0]} + ${pB.avatar.split(' ')[0]}`;
+  document.getElementById('super-lab-avatar').textContent = avatar;
+
+  const imgEl = document.getElementById('super-lab-img');
+  if (imgEl) {
+    imgEl.src = pA.artwork || pB.artwork || 'assets/dino_quantum_galaxy.png';
+  }
+
+  const nameInput = document.getElementById('super-lab-name');
+  if (!nameInput.value || nameInput.dataset.autoGenerated === 'true') {
+    const autoName = `Gen-2 Super-${pA.name.split('-')[0]}-${pB.name.split('-')[0]}`;
+    nameInput.value = autoName;
+    nameInput.dataset.autoGenerated = 'true';
+  }
+}
+
+function fuseSuperHybridDino() {
+  let hybrids = loadSavedHybrids();
+  const selectA = document.getElementById('super-parent-a');
+  const selectB = document.getElementById('super-parent-b');
+  if (!selectA || !selectB) return;
+
+  const idA = selectA.value;
+  const idB = selectB.value;
+
+  const pA = hybrids.find(h => h.id === idA);
+  const pB = hybrids.find(h => h.id === idB);
+
+  if (!pA || !pB || idA === idB) return;
+
+  const basePower   = Math.round((pA.stats.power + pB.stats.power) * 0.75);
+  const baseDefense = Math.round((pA.stats.defense + pB.stats.defense) * 0.75);
+  const baseSpeed   = Math.round((pA.stats.speed + pB.stats.speed) * 0.75);
+
+  // Gen-2 Super-Hybrid Mutation Roll (110% to 145% multiplier!)
+  const powerMult   = 1.10 + Math.random() * 0.35;
+  const defenseMult = 1.10 + Math.random() * 0.35;
+  const speedMult   = 1.10 + Math.random() * 0.35;
+
+  const finalPower   = Math.max(10, Math.round(basePower * powerMult));
+  const finalDefense = Math.max(10, Math.round(baseDefense * defenseMult));
+  const finalSpeed   = Math.max(10, Math.round(baseSpeed * speedMult));
+
+  const totalBase = basePower + baseDefense + baseSpeed;
+  const totalFinal = finalPower + finalDefense + finalSpeed;
+  const diffPct = Math.round(((totalFinal - totalBase) / Math.max(1, totalBase)) * 100);
+
+  let geneticTier = `🌌 Transcendent Gen-2 (+${diffPct}%)`;
+  if (diffPct < 20) {
+    geneticTier = `⚡ Super Apex Gen-2 (+${diffPct}%)`;
+  }
+
+  const name = document.getElementById('super-lab-name').value.trim() || 'Gen-2 Super-Hybrid';
+  const avatar = `🧬 ${pA.avatar.split(' ')[0]} + ${pB.avatar.split(' ')[0]}`;
+  const artwork = pA.artwork || pB.artwork || 'assets/dino_quantum_galaxy.png';
+
+  const superHybrid = {
+    id: 'super_hybrid_' + Date.now(),
+    isGen2: true,
+    name, avatar, artwork,
+    lineage: `Lineage: ${pA.name} × ${pB.name}`,
+    stats: { power: finalPower, defense: finalDefense, speed: finalSpeed },
+    baseStats: { power: basePower, defense: baseDefense, speed: baseSpeed },
+    geneticTier: geneticTier,
+    date: new Date().toISOString()
+  };
+
+  // Consume Parent A and Parent B from Stable
+  hybrids = hybrids.filter(h => h.id !== idA && h.id !== idB);
+  hybrids.push(superHybrid);
+  saveHybrids(hybrids);
+  spawnConfetti(50);
+
+  showTab('stable');
+}
+
 function setupLabSelectors() {
   const ownedIds = loadOwnedParts();
   const ownedParts = DINO_PARTS.filter(p => ownedIds.includes(p.id));
@@ -2867,11 +3069,17 @@ function renderStable() {
 
   container.innerHTML = hybrids.map(h => {
     const art = h.artwork || 'assets/dino_apex_rex.png';
-    const tierTag = h.geneticTier ? `<div style="font-size:0.75rem;font-weight:800;color:#fbbf24;margin-bottom:6px;">${h.geneticTier}</div>` : '';
-    return `<div class="stable-card">
+    const tierTag = h.geneticTier ? `<div style="font-size:0.75rem;font-weight:800;color:#fbbf24;margin-bottom:4px;">${h.geneticTier}</div>` : '';
+    const gen2Badge = h.isGen2 ? `<div style="font-size:0.72rem;font-weight:900;color:#f472b6;padding:3px 8px;background:rgba(236,72,153,0.2);border-radius:10px;border:1px solid rgba(236,72,153,0.4);display:inline-block;margin-bottom:4px;">🌌 Gen-2 Super-Hybrid</div>` : '';
+    const lineageTag = h.lineage ? `<div style="font-size:0.7rem;color:var(--text-light);font-style:italic;margin-bottom:6px;">${h.lineage}</div>` : '';
+    const borderStyle = h.isGen2 ? 'border:2px solid #ec4899;box-shadow:0 0 16px rgba(236,72,153,0.3);' : 'border:1.5px solid rgba(232,165,58,0.25);';
+
+    return `<div class="stable-card" style="${borderStyle}">
       <img src="${art}" style="width:100%;height:160px;object-fit:cover;border-radius:12px;margin-bottom:8px;border:1.5px solid rgba(232,165,58,0.25);">
       <div style="font-size:1.5rem;margin-bottom:4px;">${h.avatar}</div>
+      ${gen2Badge}
       <div style="font-size:1.1rem;font-weight:800;color:#fbbf24;margin-bottom:2px;">${h.name}</div>
+      ${lineageTag}
       ${tierTag}
       <div class="shop-card-stats" style="justify-content:center;margin-bottom:8px;">
         <span>⚔️ ${h.stats.power}</span>
