@@ -576,11 +576,14 @@
 <header style="position:relative;">
   <h1>🦖 DinoScript Lab</h1>
   <p>Spell words & solve math · Earn DNA coins · Build hybrid dinosaurs!</p>
-  <div style="margin-top:10px;">
+  <div style="margin-top:10px;display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;">
     <span class="wallet-badge" id="wallet-badge">
       <span class="coin-icon">🪩</span>
       <span id="wallet-amount">0</span> DNA coins
     </span>
+    <button id="audio-toggle-btn" class="sel-btn" onclick="toggleAudioMute()" style="border-radius:20px;padding:5px 14px;font-size:0.85rem;background:rgba(255,255,255,0.08);border:1.5px solid rgba(232,165,58,0.35);color:#fbbf24;cursor:pointer;">
+      🔊 Audio ON
+    </button>
   </div>
   <nav class="app-nav">
     <button class="nav-btn active" id="nav-practice" onclick="showTab('practice')">🎮 Practice</button>
@@ -634,9 +637,14 @@
 
     <div id="lock-warning-banner" class="lock-warning-banner hidden"></div>
 
-    <button class="btn btn-primary" id="start-btn" onclick="startSession()">
-      Start Spelling! 🦖
-    </button>
+    <div style="display:flex;gap:12px;margin-top:16px;">
+      <button class="btn btn-secondary" onclick="startStudyMode()" style="flex:1;border-radius:14px;padding:14px;font-weight:800;">
+        📖 Study Flashcards
+      </button>
+      <button class="btn btn-primary" id="start-btn" onclick="startSession()" style="flex:2;margin-top:0;">
+        Start Practice! 🦖
+      </button>
+    </div>
 
     <!-- Coin rewards overview -->
     <div class="rewards-card">
@@ -911,6 +919,11 @@
     </div>
 
     <div class="word-card" id="word-card">
+      <div style="text-align:center;margin-bottom:10px;">
+        <button id="listen-word-btn" class="sel-btn" onclick="speakCurrentWord()" style="background:rgba(232,165,58,0.15);color:var(--primary);border-color:var(--primary);padding:6px 16px;font-size:0.85rem;border-radius:12px;cursor:pointer;">
+          🔊 Listen to Word
+        </button>
+      </div>
       <div class="word-info">
         <div class="german-label" id="german-label">🇩🇪 German:</div>
         <div class="german-word" id="german-word"></div>
@@ -1460,6 +1473,98 @@ const WORDS = [
   {word:"dangerous", german:"gefährlich", sentence:"Swimming alone can be ___.", grade:5, traps:["dangeros","dangerouse","dangrous"]},
   {word:"comfortable", german:"bequem", sentence:"This chair is very ___.", grade:5, traps:["comftorble","comfertable","confortable"]},
 ];
+
+// ==========================================================
+// AUDIO PRONUNCIATION & SPEECH SYNTHESIS
+// ==========================================================
+let audioMuted = false;
+
+function toggleAudioMute() {
+  audioMuted = !audioMuted;
+  const btn = document.getElementById('audio-toggle-btn');
+  if (btn) {
+    btn.innerHTML = audioMuted ? '🔇 Audio OFF' : '🔊 Audio ON';
+    btn.style.opacity = audioMuted ? '0.6' : '1';
+  }
+  if (audioMuted && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+function speakText(text) {
+  if (audioMuted || !('speechSynthesis' in window) || !text) return;
+  try {
+    window.speechSynthesis.cancel();
+    const cleanText = text.replace(/<[^>]*>?/gm, '').replace(/\?/g, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.85;
+    utterance.pitch = 1.0;
+    window.speechSynthesis.speak(utterance);
+  } catch (e) {
+    console.error("Speech synthesis error", e);
+  }
+}
+
+function speakCurrentWord() {
+  if (!currentSession) return;
+  const w = currentSession.words[currentSession.current];
+  if (!w) return;
+  if (w.isMath) {
+    const text = w.sentence.replace('Calculate ', 'What is ');
+    speakText(text);
+  } else {
+    speakText(w.word);
+  }
+}
+
+// ==========================================================
+// PRE-PRACTICE FLASHCARD STUDY VAULT
+// ==========================================================
+let currentStudyPool = [];
+let currentStudyIndex = 0;
+
+function startStudyMode() {
+  const subject = getSelectedSubject();
+  const grade = getSelectedGrade();
+  currentStudyPool = getWordPool(subject, grade);
+  if (!currentStudyPool || currentStudyPool.length === 0) return;
+  shuffleArray(currentStudyPool);
+  currentStudyIndex = 0;
+
+  document.getElementById('start-screen').classList.add('hidden');
+  document.getElementById('quiz-screen').classList.add('hidden');
+  document.getElementById('study-screen').classList.remove('hidden');
+
+  renderStudyCard();
+}
+
+function renderStudyCard() {
+  if (!currentStudyPool || currentStudyPool.length === 0) return;
+  const w = currentStudyPool[currentStudyIndex];
+  
+  document.getElementById('study-card-counter').textContent = `Card ${currentStudyIndex + 1} of ${currentStudyPool.length}`;
+  document.getElementById('study-card-word').textContent = w.word;
+  document.getElementById('study-card-german').textContent = w.isMath ? '🔢 Math Problem' : `🇩🇪 ${w.german}`;
+  document.getElementById('study-card-sentence').textContent = w.sentence;
+
+  speakText(w.isMath ? w.sentence.replace('Calculate ', 'What is ') : w.word);
+}
+
+function nextStudyCard() {
+  currentStudyIndex = (currentStudyIndex + 1) % currentStudyPool.length;
+  renderStudyCard();
+}
+
+function prevStudyCard() {
+  currentStudyIndex = (currentStudyIndex - 1 + currentStudyPool.length) % currentStudyPool.length;
+  renderStudyCard();
+}
+
+function startSessionFromStudy() {
+  document.getElementById('study-screen').classList.add('hidden');
+  startSession();
+}
 
 // ==========================================================
 // STATE
@@ -2501,65 +2606,125 @@ const DINO_PARTS = [
   { id: 'head_raptor', name: 'Raptor Speed Snout', slot: 'head', rarity: 'common', price: 200, icon: '🦎', stats: { power: 15, defense: 10, speed: 35 }, desc: 'Agile skull with sharp tracking eyes.' },
   { id: 'head_stego', name: 'Stego Plated Crest', slot: 'head', rarity: 'common', price: 250, icon: '🐢', stats: { power: 10, defense: 35, speed: 10 }, desc: 'Hardened skull plate resistant to impacts.' },
   { id: 'head_pachy', name: 'Pachy Dome Skull', slot: 'head', rarity: 'common', price: 350, icon: '🦙', stats: { power: 25, defense: 40, speed: 15 }, desc: 'Thick bone dome built for headbutting.' },
+  { id: 'head_allosaurus', name: 'Allosaurus Crested Head', slot: 'head', rarity: 'common', price: 400, icon: '🦎', stats: { power: 30, defense: 20, speed: 25 }, desc: 'Horned brow predator skull.' },
+  { id: 'head_maiasaura', name: 'Maiasaura Good-Mother Crest', slot: 'head', rarity: 'common', price: 450, icon: '🦆', stats: { power: 15, defense: 30, speed: 30 }, desc: 'Sturdy herbivore head plate.' },
   { id: 'head_trike', name: 'Triceratops Triple Horn', slot: 'head', rarity: 'rare', price: 600, icon: '🦏', stats: { power: 30, defense: 50, speed: 15 }, desc: 'Three massive frontal horns for charging.' },
+  { id: 'head_stegoceras', name: 'Stegoceras Bone-Crown', slot: 'head', rarity: 'rare', price: 850, icon: '🦙', stats: { power: 40, defense: 45, speed: 20 }, desc: 'Thick knobby bone ridge head.' },
   { id: 'head_carno', name: 'Carnotaurus Bull Horns', slot: 'head', rarity: 'rare', price: 900, icon: '🐂', stats: { power: 50, defense: 30, speed: 25 }, desc: 'Twin brow horns for high-speed ramming.' },
+  { id: 'head_therizino', name: 'Therizinosaurus Beaked Head', slot: 'head', rarity: 'rare', price: 1100, icon: '🦜', stats: { power: 55, defense: 25, speed: 35 }, desc: 'Pointed beak with keen eyesight.' },
   { id: 'head_bary', name: 'Baryonyx Heavy Snout', slot: 'head', rarity: 'rare', price: 1200, icon: '🐊', stats: { power: 45, defense: 40, speed: 30 }, desc: 'Rugged river predator skull.' },
   { id: 'head_rex', name: 'T-Rex Apex Jaws', slot: 'head', rarity: 'epic', price: 1800, icon: '🦖', stats: { power: 85, defense: 25, speed: 20 }, desc: 'Bone-crushing jaws with serrated teeth.' },
   { id: 'head_spino', name: 'Spinosaurus Croc Snout', slot: 'head', rarity: 'epic', price: 2200, icon: '🐊', stats: { power: 75, defense: 35, speed: 40 }, desc: 'Long predator snout suited for amphibious strike.' },
   { id: 'head_dilo', name: 'Dilophosaurus Dual Frill Head', slot: 'head', rarity: 'epic', price: 2800, icon: '🐍', stats: { power: 80, defense: 30, speed: 50 }, desc: 'Twin crested head with venom glands.' },
+  { id: 'head_tarbo', name: 'Tarbosaurus Asian Apex Jaws', slot: 'head', rarity: 'epic', price: 3200, icon: '🦖', stats: { power: 95, defense: 35, speed: 25 }, desc: 'Fierce apex predator jaw structure.' },
+  { id: 'head_sucho', name: 'Suchomimus Crocodile Snout', slot: 'head', rarity: 'epic', price: 3500, icon: '🐊', stats: { power: 90, defense: 40, speed: 35 }, desc: 'Long crocodile snout with hook teeth.' },
   { id: 'head_giga', name: 'Giganotosaurus Dread Jaws', slot: 'head', rarity: 'epic', price: 3800, icon: '🐉', stats: { power: 110, defense: 30, speed: 25 }, desc: 'Massive terrorizing jaw structure.' },
+  { id: 'head_amarga', name: 'Amargasaurus Dual-Spine Head', slot: 'head', rarity: 'epic', price: 4200, icon: '🦕', stats: { power: 65, defense: 95, speed: 20 }, desc: 'Twin neck spines protecting the head.' },
   { id: 'head_cyber', name: 'Cybernetic Laser Helmet', slot: 'head', rarity: 'legendary', price: 6500, icon: '🤖', stats: { power: 140, defense: 80, speed: 90 }, desc: 'High-tech helmet with targeting systems.' },
+  { id: 'head_frost', name: 'Glacial Ice-Dragon Horns', slot: 'head', rarity: 'legendary', price: 9500, icon: '❄️', stats: { power: 130, defense: 110, speed: 85 }, desc: 'Sub-zero frozen crystal skull.' },
+  { id: 'head_mecha_rex', name: 'Mecha-Rex Cybernetic Visor', slot: 'head', rarity: 'legendary', price: 18000, icon: '🤖', stats: { power: 170, defense: 120, speed: 95 }, desc: 'Titanium alloy skull with red laser sights.' },
   { id: 'head_golden', name: 'Golden King-Rex Crown Skull', slot: 'head', rarity: 'mythic', price: 25000, icon: '👑', stats: { power: 220, defense: 140, speed: 110 }, desc: 'Solid gold fossil crown forged in primordial magma.' },
+  { id: 'head_phoenix', name: 'Solar Phoenix Crest', slot: 'head', rarity: 'mythic', price: 45000, icon: '🔥', stats: { power: 280, defense: 160, speed: 220 }, desc: 'Flaming plumage crest of rebirth.' },
   { id: 'head_hyperion', name: 'Hyperion Solar Crown', slot: 'head', rarity: 'mythic', price: 75000, icon: '☀️', stats: { power: 350, defense: 200, speed: 180 }, desc: 'Ancient sun-god skull radiating stellar heat.' },
+  { id: 'head_abyss', name: 'Abyssal Leviathan Skull', slot: 'head', rarity: 'mythic', price: 80000, icon: '🦈', stats: { power: 340, defense: 240, speed: 170 }, desc: 'Deep-sea nightmare jaws with bioluminescent fangs.' },
+  { id: 'head_omega', name: 'Omega Singularity Crown', slot: 'head', rarity: 'mythic', price: 130000, icon: '👑', stats: { power: 480, defense: 350, speed: 310 }, desc: 'The ultimate apex crown forged at the edge of the universe.' },
 
   // TORSOS (Slot: torso)
   { id: 'torso_raptor', name: 'Leaping Feathered Core', slot: 'torso', rarity: 'common', price: 180, icon: '🪶', stats: { power: 10, defense: 15, speed: 35 }, desc: 'Lightweight ribcage covered in proto-feathers.' },
+  { id: 'torso_gallimimus', name: 'Gallimimus Aerodynamic Ribs', slot: 'torso', rarity: 'common', price: 250, icon: '🪶', stats: { power: 15, defense: 20, speed: 45 }, desc: 'Ultra-sleek lightweight torso.' },
   { id: 'torso_parasaur', name: 'Parasaur Resonating Ribs', slot: 'torso', rarity: 'common', price: 300, icon: '🎶', stats: { power: 15, defense: 25, speed: 25 }, desc: 'Acoustic chest cavity amplifies battle roars.' },
+  { id: 'torso_iguanodon', name: 'Iguanodon Sturdy Breastplate', slot: 'torso', rarity: 'common', price: 380, icon: '🦏', stats: { power: 25, defense: 40, speed: 20 }, desc: 'Solid muscular chest.' },
+  { id: 'torso_dryosaurus', name: 'Dryo Forest Camo Chest', slot: 'torso', rarity: 'rare', price: 700, icon: '🌿', stats: { power: 20, defense: 35, speed: 55 }, desc: 'Flexible torso with forest shadow markings.' },
   { id: 'torso_ankylo', name: 'Ankylo Boulder Armor', slot: 'torso', rarity: 'rare', price: 750, icon: '🛡️', stats: { power: 20, defense: 85, speed: 5 }, desc: 'Thick osteoderm armor shell.' },
   { id: 'torso_spino', name: 'Spino Solar Sail', slot: 'torso', rarity: 'rare', price: 950, icon: '⛵', stats: { power: 45, defense: 40, speed: 40 }, desc: 'Huge dorsal fin that absorbs solar energy.' },
   { id: 'torso_carno', name: 'Carnotaurus Bullet Core', slot: 'torso', rarity: 'rare', price: 1100, icon: '🛡️', stats: { power: 40, defense: 35, speed: 50 }, desc: 'Aerodynamic torso built for straight-line charges.' },
+  { id: 'torso_sauropelta', name: 'Sauropelta Spiked Shoulder Plate', slot: 'torso', rarity: 'rare', price: 1250, icon: '🛡️', stats: { power: 35, defense: 100, speed: 10 }, desc: 'Heavy shoulder spikes deflect bites.' },
   { id: 'torso_brachio', name: 'Titan Brachio Core', slot: 'torso', rarity: 'epic', price: 2500, icon: '🦕', stats: { power: 40, defense: 120, speed: 10 }, desc: 'Giant sauropod chest with enormous health reserves.' },
+  { id: 'torso_albertosaurus', name: 'Albertosaurus Swift Predator Chest', slot: 'torso', rarity: 'epic', price: 2900, icon: '🐆', stats: { power: 85, defense: 45, speed: 50 }, desc: 'Lean athletic chest for pursuit.' },
   { id: 'torso_rex', name: 'Rex Carnivore Torso', slot: 'torso', rarity: 'epic', price: 3000, icon: '🦾', stats: { power: 95, defense: 50, speed: 30 }, desc: 'Muscular chest built for heavy impacts.' },
+  { id: 'torso_deinocheirus', name: 'Deinocheirus Giant Duckbill Chest', slot: 'torso', rarity: 'epic', price: 3800, icon: '🪿', stats: { power: 60, defense: 110, speed: 30 }, desc: 'Massive feathered body with huge lung capacity.' },
   { id: 'torso_diplodocus', name: 'Diplodocus Iron Lattice', slot: 'torso', rarity: 'epic', price: 4500, icon: '⛓️', stats: { power: 50, defense: 150, speed: 15 }, desc: 'Impenetrable rib cage matrix.' },
+  { id: 'torso_argentino', name: 'Argentinosaurus Mountain Core', slot: 'torso', rarity: 'epic', price: 5500, icon: '🏔️', stats: { power: 70, defense: 180, speed: 10 }, desc: 'Largest land animal torso in history.' },
   { id: 'torso_crystal', name: 'Prismatic Crystal Spine', slot: 'torso', rarity: 'legendary', price: 8500, icon: '💎', stats: { power: 110, defense: 110, speed: 110 }, desc: 'Glowing crystal exoskeleton radiating bio-energy.' },
+  { id: 'torso_cyber_titanium', name: 'Cyber-Titanium Reinforced Hull', slot: 'torso', rarity: 'legendary', price: 14000, icon: '🦾', stats: { power: 130, defense: 210, speed: 50 }, desc: 'Heavy blast-resistant steel plating.' },
+  { id: 'torso_thunder', name: 'Storm Thunder Core', slot: 'torso', rarity: 'legendary', price: 22000, icon: '⚡', stats: { power: 190, defense: 140, speed: 160 }, desc: 'Lightning reactor generating infinite electric current.' },
   { id: 'torso_magma', name: 'Volcanic Magma Chamber', slot: 'torso', rarity: 'mythic', price: 35000, icon: '🌋', stats: { power: 260, defense: 180, speed: 70 }, desc: 'Molten lava core generating explosive kinetic thermal blasts.' },
+  { id: 'torso_celestial_nebula', name: 'Celestial Nebula Star-Matrix', slot: 'torso', rarity: 'mythic', price: 50000, icon: '🌌', stats: { power: 310, defense: 270, speed: 220 }, desc: 'Constellations woven into immortal armor.' },
   { id: 'torso_chronos', name: 'Chronos Time-Lattice Core', slot: 'torso', rarity: 'mythic', price: 60000, icon: '⏳', stats: { power: 300, defense: 220, speed: 280 }, desc: 'Woven time-threads reducing incoming damage to zero.' },
+  { id: 'torso_infernal_lava', name: 'Infernal Core of Ragnarek', slot: 'torso', rarity: 'mythic', price: 95000, icon: '🔥', stats: { power: 420, defense: 290, speed: 180 }, desc: 'Burning solar flares erupt from the ribcage.' },
   { id: 'torso_singularity', name: 'Quantum Singularity Core', slot: 'torso', rarity: 'mythic', price: 100000, icon: '🌌', stats: { power: 400, defense: 300, speed: 250 }, desc: 'Miniature black hole heart bending gravitational fields.' },
+  { id: 'torso_primordial_void', name: 'Primordial Void Aegis', slot: 'torso', rarity: 'mythic', price: 140000, icon: '🌀', stats: { power: 520, defense: 450, speed: 330 }, desc: 'Absorbs all incoming energy into null space.' },
 
   // LIMBS (Slot: limbs)
   { id: 'limbs_raptor', name: 'Raptor Talon Feet', slot: 'limbs', rarity: 'common', price: 220, icon: '🦤', stats: { power: 25, defense: 10, speed: 45 }, desc: 'Sickle-clawed feet engineered for high-speed sprinting.' },
+  { id: 'limbs_troodon', name: 'Troodon Agile Leapers', slot: 'limbs', rarity: 'common', price: 280, icon: '🦘', stats: { power: 20, defense: 10, speed: 50 }, desc: 'High-jumping night hunter legs.' },
   { id: 'limbs_gallimimus', name: 'Gallimimus Strider Legs', slot: 'limbs', rarity: 'common', price: 350, icon: '🏃', stats: { power: 10, defense: 10, speed: 60 }, desc: 'Ultra-light legs built for marathon speed.' },
+  { id: 'limbs_edmontosaurus', name: 'Edmonto Bipedal Hooves', slot: 'limbs', rarity: 'common', price: 420, icon: '🦵', stats: { power: 25, defense: 35, speed: 30 }, desc: 'Tough padded feet for long migrations.' },
   { id: 'limbs_stego', name: 'Stego Pillar Legs', slot: 'limbs', rarity: 'rare', price: 650, icon: '🦣', stats: { power: 20, defense: 60, speed: 15 }, desc: 'Heavy column legs designed for firm ground stability.' },
   { id: 'limbs_ptero', name: 'Pteranodon Glider Wings', slot: 'limbs', rarity: 'rare', price: 800, icon: '🦅', stats: { power: 15, defense: 20, speed: 75 }, desc: 'Leathery wing arms allowing aerial maneuvers.' },
+  { id: 'limbs_therizino', name: 'Therizinosaurus 1-Meter Scythe Claws', slot: 'limbs', rarity: 'rare', price: 1300, icon: '⚔️', stats: { power: 85, defense: 20, speed: 30 }, desc: 'Longest claws in Earth history.' },
+  { id: 'limbs_ornithomimus', name: 'Ornithomimus Ostrich Legs', slot: 'limbs', rarity: 'rare', price: 1500, icon: '🦩', stats: { power: 20, defense: 15, speed: 85 }, desc: 'Clocked at 70 km/h top speed.' },
   { id: 'limbs_rex', name: 'Rex Heavy Stompers', slot: 'limbs', rarity: 'epic', price: 2000, icon: '🐾', stats: { power: 70, defense: 40, speed: 35 }, desc: 'Giant clawed legs capable of crushing rock.' },
   { id: 'limbs_quetzal', name: 'Quetzalcoatlus Titan Wings', slot: 'limbs', rarity: 'epic', price: 2200, icon: '🦩', stats: { power: 40, defense: 30, speed: 110 }, desc: 'Huge 12-meter wingspan for cloud altitude flight.' },
+  { id: 'limbs_deinonychus', name: 'Deinonychus Terror Claws', slot: 'limbs', rarity: 'epic', price: 2600, icon: '🦅', stats: { power: 80, defense: 25, speed: 70 }, desc: 'Twin retractable slashing talons.' },
   { id: 'limbs_bary', name: 'Baryonyx Heavy Hook Claws', slot: 'limbs', rarity: 'epic', price: 2800, icon: '🦅', stats: { power: 75, defense: 35, speed: 45 }, desc: 'Giant thumb claws for slashing prey.' },
+  { id: 'limbs_carcharodontosaurus', name: 'Carcharo Stomping Pillars', slot: 'limbs', rarity: 'epic', price: 3400, icon: '🦣', stats: { power: 100, defense: 60, speed: 40 }, desc: 'Heavy predator legs with crushing claws.' },
+  { id: 'limbs_tapejara', name: 'Tapejara Crested Glide Wings', slot: 'limbs', rarity: 'epic', price: 4100, icon: '🦅', stats: { power: 35, defense: 30, speed: 125 }, desc: 'Sail-backed wings for thermal updrafts.' },
   { id: 'limbs_plasma', name: 'Plasma Jet Thrusters', slot: 'limbs', rarity: 'legendary', price: 7000, icon: '🚀', stats: { power: 90, defense: 50, speed: 140 }, desc: 'Futuristic jet propulsion limbs.' },
+  { id: 'limbs_cyber_hover', name: 'Cyber-Hover Repulsor Skis', slot: 'limbs', rarity: 'legendary', price: 11000, icon: '🛹', stats: { power: 110, defense: 70, speed: 190 }, desc: 'Magnetic levitation skis gliding over terrain.' },
   { id: 'limbs_void', name: 'Void Dragon Shadow Wings', slot: 'limbs', rarity: 'mythic', price: 30000, icon: '🦇', stats: { power: 180, defense: 100, speed: 220 }, desc: 'Dark matter wings phasing through physical obstacles.' },
+  { id: 'limbs_supernova_boots', name: 'Supernova Starlight Strider', slot: 'limbs', rarity: 'mythic', price: 40000, icon: '✨', stats: { power: 220, defense: 160, speed: 290 }, desc: 'Leaves blazing trails of cosmic dust.' },
+  { id: 'limbs_dragon_wings', name: 'Draconic Flame Wings', slot: 'limbs', rarity: 'mythic', price: 70000, icon: '🐉', stats: { power: 310, defense: 190, speed: 330 }, desc: 'Massive scaled wings dripping with liquid fire.' },
   { id: 'limbs_aeon', name: 'Aeon Gravity Skaters', slot: 'limbs', rarity: 'mythic', price: 85000, icon: '💫', stats: { power: 250, defense: 200, speed: 380 }, desc: 'Anti-gravity repulsor boots levitating over terrain.' },
   { id: 'limbs_celestial', name: 'Celestial Quetzal Wings of Eternity', slot: 'limbs', rarity: 'mythic', price: 90000, icon: '🌌', stats: { power: 280, defense: 220, speed: 420 }, desc: 'Wings woven from starlight spanning dimensions.' },
+  { id: 'limbs_quantum_warp', name: 'Quantum Warp Strider Legs', slot: 'limbs', rarity: 'mythic', price: 110000, icon: '⚡', stats: { power: 390, defense: 260, speed: 450 }, desc: 'Teleports short distances with every step.' },
+  { id: 'limbs_hyperion_wings', name: 'Hyperion Wings of Sol', slot: 'limbs', rarity: 'mythic', price: 150000, icon: '☀️', stats: { power: 460, defense: 310, speed: 500 }, desc: 'Golden solar wings propelling at warp speed.' },
 
   // TAILS (Slot: tail)
   { id: 'tail_raptor', name: 'Raptor Whip Balance', slot: 'tail', rarity: 'common', price: 150, icon: '🐍', stats: { power: 15, defense: 10, speed: 30 }, desc: 'Stiff, elongated tail for hairpin turns.' },
+  { id: 'tail_compsognathus', name: 'Compsognathus Swift Feather Tail', slot: 'tail', rarity: 'common', price: 180, icon: '🪶', stats: { power: 10, defense: 10, speed: 35 }, desc: 'Tiny, feather-tipped balance tail.' },
+  { id: 'tail_corythosaurus', name: 'Corytho Paddle Tail', slot: 'tail', rarity: 'common', price: 320, icon: '🦦', stats: { power: 15, defense: 20, speed: 25 }, desc: 'Broad tail used for swimming.' },
   { id: 'tail_stego', name: 'Thagomizer Spike Tail', slot: 'tail', rarity: 'rare', price: 700, icon: '🗡️', stats: { power: 60, defense: 25, speed: 15 }, desc: 'Four lethal tail spikes for counter-attacks.' },
   { id: 'tail_ankylo', name: 'Ankylo Wrecking Club', slot: 'tail', rarity: 'rare', price: 850, icon: '🔨', stats: { power: 55, defense: 55, speed: 10 }, desc: 'Heavy solid bone club capable of breaking bone.' },
+  { id: 'tail_miragaia', name: 'Miragaia Long Spike Tail', slot: 'tail', rarity: 'rare', price: 900, icon: '🗡️', stats: { power: 65, defense: 30, speed: 20 }, desc: 'Elongated tail with multiple pair spikes.' },
+  { id: 'tail_euoplocephalus', name: 'Euoplo Mace Tail', slot: 'tail', rarity: 'rare', price: 1150, icon: '🔨', stats: { power: 70, defense: 45, speed: 10 }, desc: 'Double-knobbed heavy bone mace.' },
   { id: 'tail_plume', name: 'Gigantoraptor Feathery Plume Tail', slot: 'tail', rarity: 'rare', price: 1400, icon: '🪶', stats: { power: 25, defense: 25, speed: 60 }, desc: 'Colorful fan tail providing flight maneuvering.' },
   { id: 'tail_rex', name: 'Rex Muscular Tail', slot: 'tail', rarity: 'epic', price: 2100, icon: '🐊', stats: { power: 75, defense: 30, speed: 25 }, desc: 'Counterbalancing tail with powerful sweep.' },
+  { id: 'tail_spino_fin', name: 'Spinosaurus Aqua Paddle Tail', slot: 'tail', rarity: 'epic', price: 2700, icon: '🐊', stats: { power: 75, defense: 40, speed: 65 }, desc: 'Tall fin tail for underwater propulsion.' },
+  { id: 'tail_shunosaurus', name: 'Shunosaurus Club-Spike Tail', slot: 'tail', rarity: 'epic', price: 3300, icon: '🏏', stats: { power: 85, defense: 60, speed: 15 }, desc: 'Hybrid bone club armed with dual spikes.' },
+  { id: 'tail_pterodactyl', name: 'Rhamphorhynchus Vane Tail', slot: 'tail', rarity: 'epic', price: 3900, icon: '🎯', stats: { power: 30, defense: 25, speed: 90 }, desc: 'Rudder-like leaf tail for high-speed turns.' },
   { id: 'tail_dragon', name: 'Inferno Dragon Tail', slot: 'tail', rarity: 'legendary', price: 7500, icon: '🔥', stats: { power: 130, defense: 40, speed: 60 }, desc: 'Tail ablaze with primordial fire flames.' },
+  { id: 'tail_plasma_whip', name: 'Cyber Plasma Lash', slot: 'tail', rarity: 'legendary', price: 8500, icon: '⚡', stats: { power: 140, defense: 50, speed: 85 }, desc: 'Energetic plasma whip cutting through steel.' },
   { id: 'tail_titanium', name: 'Mecha-Godzilla Titanium Tail', slot: 'tail', rarity: 'legendary', price: 15000, icon: '⚙️', stats: { power: 180, defense: 120, speed: 40 }, desc: 'Reinforced titanium alloy crushing tail.' },
+  { id: 'tail_frost_blade', name: 'Glacial Iceblade Tail', slot: 'tail', rarity: 'legendary', price: 16000, icon: '🗡️', stats: { power: 175, defense: 110, speed: 60 }, desc: 'Razor-sharp frozen crystal scythe.' },
   { id: 'tail_supernova', name: 'Supernova Meteor Tail', slot: 'tail', rarity: 'mythic', price: 28000, icon: '☄️', stats: { power: 240, defense: 90, speed: 70 }, desc: 'Crashing tail tipped with a dense star fragment.' },
+  { id: 'tail_dark_matter', name: 'Dark Matter Void Tail', slot: 'tail', rarity: 'mythic', price: 45000, icon: '🖤', stats: { power: 270, defense: 140, speed: 180 }, desc: 'Leaves gravity distortion waves in its wake.' },
+  { id: 'tail_solar_flare', name: 'Solar Flare Meteor Lash', slot: 'tail', rarity: 'mythic', price: 85000, icon: '☀️', stats: { power: 370, defense: 200, speed: 240 }, desc: 'Whip tail unleashing miniature solar prominences.' },
   { id: 'tail_chronos', name: 'Chronos Time-Distortion Tail', slot: 'tail', rarity: 'mythic', price: 90000, icon: '⏳', stats: { power: 320, defense: 250, speed: 300 }, desc: 'Distorts temporal flow around the hybrid.' },
+  { id: 'tail_genesis', name: 'Genesis Cosmic Dragon Tail', slot: 'tail', rarity: 'mythic', price: 135000, icon: '🌌', stats: { power: 480, defense: 310, speed: 350 }, desc: 'Tipped with a miniature galaxy star cluster.' },
 
   // MUTATIONS / AURAS (Slot: aura)
   { id: 'aura_none', name: 'Standard DNA', slot: 'aura', rarity: 'common', price: 0, icon: '✨', stats: { power: 0, defense: 0, speed: 0 }, desc: 'Natural unmodified dinosaur genetics.' },
+  { id: 'aura_spores', name: 'Bio-Luminescent Fungus Spores', slot: 'aura', rarity: 'common', price: 300, icon: '🍄', stats: { power: 10, defense: 15, speed: 15 }, desc: 'Glowing mushroom spores drift around scales.' },
   { id: 'aura_biolum', name: 'Bioluminescent Glow', slot: 'aura', rarity: 'common', price: 400, icon: '🌟', stats: { power: 10, defense: 10, speed: 20 }, desc: 'Neon glowing vein patterns.' },
+  { id: 'aura_amber', name: 'Primordial Amber Shield', slot: 'aura', rarity: 'common', price: 500, icon: '🪙', stats: { power: 15, defense: 35, speed: 10 }, desc: 'Hardened fossilized resin coating.' },
   { id: 'aura_camo', name: 'Chameleon Camouflage', slot: 'aura', rarity: 'rare', price: 1000, icon: '🦎', stats: { power: 20, defense: 40, speed: 40 }, desc: 'Skin shifts color to blend into foliage.' },
+  { id: 'aura_sonic', name: 'Parasaur Sonic Shockwave', slot: 'aura', rarity: 'rare', price: 1200, icon: '🔊', stats: { power: 45, defense: 30, speed: 30 }, desc: 'Acoustic roars create kinetic push waves.' },
+  { id: 'aura_ice', name: 'Sub-Zero Frost Aura', slot: 'aura', rarity: 'rare', price: 1800, icon: '❄️', stats: { power: 40, defense: 50, speed: 30 }, desc: 'Freezes ground underfoot into ice.' },
   { id: 'aura_electric', name: 'Bio-Electric Charge', slot: 'aura', rarity: 'epic', price: 3500, icon: '⚡', stats: { power: 65, defense: 30, speed: 70 }, desc: 'Sparks of electricity surge along the scales.' },
+  { id: 'aura_magma_skin', name: 'Molten Magma Veins', slot: 'aura', rarity: 'epic', price: 4500, icon: '🌋', stats: { power: 110, defense: 60, speed: 40 }, desc: 'Liquid lava pulses through red scale fissures.' },
   { id: 'aura_toxin', name: 'Dilophosaurus Toxin Venom', slot: 'aura', rarity: 'epic', price: 5000, icon: '🧪', stats: { power: 100, defense: 40, speed: 50 }, desc: 'Acidic venom aura corrodes enemy armor.' },
+  { id: 'aura_stealth', name: 'Active Optic Camouflage', slot: 'aura', rarity: 'epic', price: 6000, icon: '👻', stats: { power: 75, defense: 75, speed: 90 }, desc: 'Bends light waves to render body invisible.' },
   { id: 'aura_indominus', name: 'Indominus Apex Mutation', slot: 'aura', rarity: 'legendary', price: 12000, icon: '🌌', stats: { power: 150, defense: 100, speed: 100 }, desc: 'Ultimate hybrid genetic sequence.' },
+  { id: 'aura_emp', name: 'Cyber-EMP Storm Shield', slot: 'aura', rarity: 'legendary', price: 15000, icon: '💥', stats: { power: 160, defense: 120, speed: 110 }, desc: 'Disables electronics and absorbs laser hits.' },
+  { id: 'aura_blood_moon', name: 'Blood Moon Berserker Rage', slot: 'aura', rarity: 'legendary', price: 25000, icon: '🌕', stats: { power: 220, defense: 80, speed: 140 }, desc: 'Crimson lunar aura doubling attack velocity.' },
   { id: 'aura_godzilla', name: 'Atomic Radiation Spike Aura', slot: 'aura', rarity: 'mythic', price: 50000, icon: '⚛️', stats: { power: 300, defense: 150, speed: 80 }, desc: 'Radiates blue atomic pulse energy.' },
+  { id: 'aura_black_hole', name: 'Event Horizon Gravitation Shield', slot: 'aura', rarity: 'mythic', price: 65000, icon: '🕳️', stats: { power: 350, defense: 320, speed: 190 }, desc: 'Sucks incoming attacks into a miniature wormhole.' },
+  { id: 'aura_phoenix_rebirth', name: 'Immortal Phoenix Flame Aura', slot: 'aura', rarity: 'mythic', price: 90000, icon: '🔥', stats: { power: 410, defense: 380, speed: 260 }, desc: 'Revives hybrid with full health upon defeat.' },
   { id: 'aura_nebula', name: 'Starlight Nebula Cosmic Shield', slot: 'aura', rarity: 'mythic', price: 95000, icon: '🎆', stats: { power: 380, defense: 350, speed: 300 }, desc: 'Cosmic aura of swirling stardust and galaxies.' },
-  { id: 'aura_omni', name: 'Omni-Dimensional Reality-Rift Aura', slot: 'aura', rarity: 'mythic', price: 120000, icon: '🌀', stats: { power: 500, defense: 400, speed: 400 }, desc: 'Bends space-time reality around the apex hybrid.' }
+  { id: 'aura_omni', name: 'Omni-Dimensional Reality-Rift Aura', slot: 'aura', rarity: 'mythic', price: 120000, icon: '🌀', stats: { power: 500, defense: 400, speed: 400 }, desc: 'Bends space-time reality around the apex hybrid.' },
+  { id: 'aura_hyper_light', name: 'Hyper-Light Photonic Shield', slot: 'aura', rarity: 'mythic', price: 125000, icon: '✨', stats: { power: 480, defense: 420, speed: 380 }, desc: 'Pure light energy barrier nullifying damage.' },
+  { id: 'aura_god_apex', name: 'God-Apex Primordial Singularity', slot: 'aura', rarity: 'mythic', price: 150000, icon: '👑', stats: { power: 600, defense: 500, speed: 500 }, desc: 'The supreme genetic mutation in dinosaur creation.' }
 ];
 
 const DEFAULT_OWNED = ['head_raptor', 'torso_raptor', 'limbs_raptor', 'tail_raptor', 'aura_none'];
