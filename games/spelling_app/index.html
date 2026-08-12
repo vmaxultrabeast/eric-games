@@ -2028,15 +2028,6 @@ function generateMathPool(grade) {
   }
 
   return pool;
-}ping').locked;
-    btn.classList.toggle('locked-option', choiceLocked && typingLocked);
-  });
-
-  document.querySelectorAll('#mode-selector .sel-btn').forEach(btn => {
-    const m = btn.dataset.mode;
-    const currentGradeLocked = getLockStatus(selectedGrade, m).locked;
-    btn.classList.toggle('locked-option', currentGradeLocked);
-  });
 }
 
 // ==========================================================
