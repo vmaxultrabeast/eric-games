@@ -2573,12 +2573,34 @@ function setupLabSelectors() {
   const ownedIds = loadOwnedParts();
   const ownedParts = DINO_PARTS.filter(p => ownedIds.includes(p.id));
 
+  let missingSlots = [];
   ['head', 'torso', 'limbs', 'tail', 'aura'].forEach(slot => {
     const select = document.getElementById(`lab-${slot}-select`);
     if (!select) return;
-    const partsForSlot = ownedParts.filter(p => p.slot === slot);
-    select.innerHTML = partsForSlot.map(p => `<option value="${p.id}">${p.icon} ${p.name} (+${p.stats.power}⚔️ +${p.stats.defense}🛡️ +${p.stats.speed}⚡)</option>`).join('');
+    const partsForSlot = slot === 'aura' 
+      ? DINO_PARTS.filter(p => p.slot === 'aura' && (p.id === 'aura_none' || ownedIds.includes(p.id)))
+      : ownedParts.filter(p => p.slot === slot);
+
+    if (partsForSlot.length === 0) {
+      missingSlots.push(slot.toUpperCase());
+      select.innerHTML = `<option value="">❌ No ${slot} parts left! Buy in Shop</option>`;
+      select.disabled = true;
+    } else {
+      select.disabled = false;
+      select.innerHTML = partsForSlot.map(p => `<option value="${p.id}">${p.icon} ${p.name} (+${p.stats.power}⚔️ +${p.stats.defense}🛡️ +${p.stats.speed}⚡)</option>`).join('');
+    }
   });
+
+  const fuseBtn = document.querySelector('#lab-screen .btn-primary');
+  if (fuseBtn) {
+    if (missingSlots.length > 0) {
+      fuseBtn.disabled = true;
+      fuseBtn.textContent = `❌ Missing ${missingSlots.join(', ')} — Buy parts in DNA Shop!`;
+    } else {
+      fuseBtn.disabled = false;
+      fuseBtn.textContent = `🧪 Fuse Hybrid & Save to Stable! 🦖`;
+    }
+  }
 
   renderHybridPreview();
 }
@@ -2699,6 +2721,8 @@ function fuseHybridDino() {
   const tail  = DINO_PARTS.find(p => p.id === tailId);
   const aura  = DINO_PARTS.find(p => p.id === auraId);
 
+  if (!head || !torso || !limbs || !tail || !aura) return;
+
   const basePower   = head.stats.power + torso.stats.power + limbs.stats.power + tail.stats.power + aura.stats.power;
   const baseDefense = head.stats.defense + torso.stats.defense + limbs.stats.defense + tail.stats.defense + aura.stats.defense;
   const baseSpeed   = head.stats.speed + torso.stats.speed + limbs.stats.speed + tail.stats.speed + aura.stats.speed;
@@ -2741,10 +2765,23 @@ function fuseHybridDino() {
     date: new Date().toISOString()
   };
 
+  // Permanently consume used parts from inventory (except aura_none)
+  let owned = loadOwnedParts();
+  const usedParts = [headId, torsoId, limbsId, tailId, auraId];
+  usedParts.forEach(pId => {
+    if (pId !== 'aura_none') {
+      const idx = owned.indexOf(pId);
+      if (idx !== -1) {
+        owned.splice(idx, 1);
+      }
+    }
+  });
+  saveOwnedParts(owned);
+
   const hybrids = loadSavedHybrids();
   hybrids.push(hybrid);
   saveHybrids(hybrids);
-  spawnConfetti(30);
+  spawnConfetti(35);
 
   showTab('stable');
 }
