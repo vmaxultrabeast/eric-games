@@ -182,6 +182,57 @@
   .next-btn { margin-top: 16px; display: none; }
   .next-btn.show { display: flex; }
 
+  /* Responsive Tablet & Mobile Ergonomics for Quiz Screen */
+  @media (max-height: 900px), (max-width: 1024px) {
+    #quiz-screen {
+      padding-bottom: 90px;
+    }
+    .word-card {
+      padding: 16px 14px;
+      margin-bottom: 12px;
+    }
+    .german-word {
+      font-size: 1.25rem;
+      margin-bottom: 2px;
+    }
+    .example-sentence {
+      margin-top: 6px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+    }
+    .options {
+      gap: 8px;
+    }
+    .option-btn {
+      padding: 12px 10px;
+      font-size: 1rem;
+    }
+    .feedback {
+      padding: 10px 14px;
+      margin-top: 10px;
+      font-size: 0.92rem;
+    }
+    .next-btn.show {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: 580px;
+      z-index: 9999;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.75), 0 0 20px rgba(232,165,58,0.6);
+      margin-top: 0;
+      padding: 16px 24px;
+      font-size: 1.15rem;
+      border-radius: 16px;
+      animation: pulseStickyNext 1.2s infinite alternate ease-in-out;
+    }
+    @keyframes pulseStickyNext {
+      from { transform: translateX(-50%) scale(1); box-shadow: 0 6px 24px rgba(0,0,0,0.75), 0 0 15px rgba(232,165,58,0.5); }
+      to { transform: translateX(-50%) scale(1.02); box-shadow: 0 8px 30px rgba(0,0,0,0.85), 0 0 25px rgba(232,165,58,0.8); }
+    }
+  }
+
   /* Start / End screens */
   .screen {
     background: var(--card); border-radius: 16px; padding: 32px 24px;
@@ -1459,6 +1510,14 @@ function showCurrentWord() {
   const card = document.getElementById('word-card');
   card.style.animation = 'none'; card.offsetHeight;
   card.style.animation = 'slideIn 0.4s ease';
+
+  // Make tapping card or feedback when Next button is active advance instantly
+  card.onclick = (e) => {
+    const nextBtn = document.getElementById('next-btn');
+    if (nextBtn && nextBtn.classList.contains('show') && !e.target.closest('button')) {
+      nextWord();
+    }
+  };
 }
 
 // ==========================================================
@@ -1668,16 +1727,18 @@ document.addEventListener('keydown', (e) => {
     return;
   }
 
-  if (e.key === 'Enter') {
+  if (e.key === 'Enter' || e.key === ' ') {
     const typingArea = document.getElementById('typing-area');
     const nextBtn = document.getElementById('next-btn');
     if (!typingArea.classList.contains('hidden')) {
       if (nextBtn.classList.contains('show')) {
+        e.preventDefault();
         nextWord();
-      } else {
+      } else if (e.key === 'Enter') {
         submitTyping();
       }
     } else if (nextBtn.classList.contains('show')) {
+      e.preventDefault();
       nextWord();
     }
   }
