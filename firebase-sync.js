@@ -66,6 +66,31 @@ export async function pushGameSave(uid, gameId) {
         const ref = doc(db, 'users', uid, 'saves', gameId);
         await setDoc(ref, saveData, { merge: true });
         console.log(`[Arcade Sync] ✅ Pushed save for "${gameId}"`);
+
+        // Auto-publish hybrids to global community leaderboard if saving DinoScript Lab
+        if (gameId === 'spelling_app' && saveData['dinoscript_hybrids']) {
+            try {
+                const username = localStorage.getItem('arcade_username') || 'Trainer';
+                const hybrids = JSON.parse(saveData['dinoscript_hybrids']);
+                for (const h of hybrids) {
+                    const totalStrength = (h.stats?.power || 0) + (h.stats?.defense || 0) + (h.stats?.speed || 0);
+                    const cRef = doc(db, 'community_dinos', h.id);
+                    await setDoc(cRef, {
+                        name: h.name,
+                        avatar: h.avatar,
+                        artwork: h.artwork || '',
+                        stats: h.stats,
+                        totalStrength: totalStrength,
+                        geneticTier: h.geneticTier || '',
+                        isGen2: h.isGen2 || false,
+                        lineage: h.lineage || '',
+                        username: username,
+                        userId: uid,
+                        date: h.date || new Date().toISOString()
+                    }, { merge: true });
+                }
+            } catch (err) {}
+        }
     } catch (e) {
         console.warn(`[Arcade Sync] ⚠️ Push failed for "${gameId}":`, e.message);
     }
