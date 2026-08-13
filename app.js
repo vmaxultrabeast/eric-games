@@ -665,14 +665,19 @@ function initApp() {
 
         onlinePlayersList.innerHTML = online.map(p => {
             const initial = (p.displayName || 'P').charAt(0).toUpperCase();
-            const avatarHtml = p.photoURL
-                ? `<div class="online-chip-avatar"><img src="${p.photoURL}" class="online-chip-avatar-img" alt="Avatar"><span class="online-chip-dot"></span></div>`
-                : `<div class="online-chip-avatar">${initial}<span class="online-chip-dot"></span></div>`;
+            const avatarInner = p.photoURL
+                ? `<img src="${p.photoURL}" class="online-chip-avatar-img" alt="Avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                   <span class="online-chip-initial" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;">${initial}</span>`
+                : `<span class="online-chip-initial" style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;">${initial}</span>`;
+
             const guestTag = p.isGuest ? ' <span style="font-size:0.7rem;color:var(--text-muted);">(Guest)</span>' : '';
 
-            return `<div class="online-player-chip" onclick="initiateDirectChat('${p.displayName}')" style="cursor:pointer;" title="Click to chat with ${p.displayName}">
-                ${avatarHtml}
-                <span>${p.displayName}${guestTag}</span>
+            return `<div class="online-player-chip" onclick="initiateDirectChat('${escapeHtml(p.displayName)}')" style="cursor:pointer;" title="Click to chat with ${escapeHtml(p.displayName)}">
+                <div class="online-chip-avatar">
+                    ${avatarInner}
+                    <span class="online-chip-dot"></span>
+                </div>
+                <span>${escapeHtml(p.displayName)}${guestTag}</span>
             </div>`;
         }).join('');
     }

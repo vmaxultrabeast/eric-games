@@ -251,7 +251,19 @@ export async function updatePresence(user) {
             }
 
             const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'Player');
-            const photoURL = user.photoURL || localStorage.getItem('arcade_avatar') || '';
+            let photoURL = user.photoURL || localStorage.getItem('arcade_avatar') || '';
+
+            // If photoURL is not available in local session, fetch from Firestore users doc
+            if (!photoURL) {
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists() && userDoc.data().photoURL) {
+                        photoURL = userDoc.data().photoURL;
+                        localStorage.setItem('arcade_avatar', photoURL);
+                    }
+                } catch (err) {}
+            }
+
             const ref = doc(db, 'presence', user.uid);
             await setDoc(ref, {
                 displayName: displayName,
@@ -279,7 +291,7 @@ export async function updatePresence(user) {
 }
 
 /**
- * Fetch list of players active in the last 5 minutes (deduplicated by identity).
+ * Fetch list of players active in the last 5 minutes (deduplicated by identity & avatar enriched).
  */
 export async function getOnlinePlayers() {
     try {
@@ -289,34 +301,45 @@ export async function getOnlinePlayers() {
         const FIVE_MINUTES_MS = 5 * 60 * 1000;
         const playerMap = new Map();
 
-        snap.forEach(docSnap => {
+        for (const docSnap of snap.docs) {
             const data = docSnap.data();
             if (data.lastSeen) {
                 const lastSeenTime = new Date(data.lastSeen).getTime();
                 if (now - lastSeenTime <= FIVE_MINUTES_MS) {
+                    let photoURL = data.photoURL || '';
+                    const isGuest = data.isGuest !== undefined ? data.isGuest : true;
+
+                    // If registered user and photoURL is missing in presence record, look up profile
+                    if (!isGuest && !photoURL && docSnap.id && !docSnap.id.startsWith('guest_')) {
+                        try {
+                            const userDoc = await getDoc(doc(db, 'users', docSnap.id));
+                            if (userDoc.exists() && userDoc.data().photoURL) {
+                                photoURL = userDoc.data().photoURL;
+                            }
+                        } catch (err) {}
+                    }
+
                     const record = {
                         id: docSnap.id,
                         displayName: data.displayName || 'Guest Player',
-                        photoURL: data.photoURL || '',
-                        isGuest: data.isGuest !== undefined ? data.isGuest : true,
+                        photoURL: photoURL,
+                        isGuest: isGuest,
                         lastSeenTime: lastSeenTime
                     };
 
-                    // For guests, use document ID as key. For signed-in users, deduplicate by display name.
                     const key = record.isGuest ? record.id : record.displayName.toLowerCase();
 
                     if (!playerMap.has(key)) {
                         playerMap.set(key, record);
                     } else {
                         const existing = playerMap.get(key);
-                        // Registered account takes priority over guest; otherwise pick most recent lastSeen
-                        if ((!record.isGuest && existing.isGuest) || (record.lastSeenTime > existing.lastSeenTime)) {
+                        if ((!record.isGuest && existing.isGuest) || (!existing.photoURL && photoURL) || (record.lastSeenTime > existing.lastSeenTime)) {
                             playerMap.set(key, record);
                         }
                     }
                 }
             }
-        });
+        }
 
         return Array.from(playerMap.values());
     } catch (e) {
