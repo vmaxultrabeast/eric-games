@@ -3821,7 +3821,9 @@ function syncCommunityWithLocalHybrids() {
     db.collection('community_dinos').get().then(snap => {
       snap.forEach(docSnap => {
         const data = docSnap.data();
-        const matchesUser = (userId && data.userId === userId) || (username && username !== 'Trainer' && data.username === username);
+        const dUser = data.username || '';
+        const dUserId = data.userId || '';
+        const matchesUser = (userId && dUserId === userId) || (username && username !== 'Trainer' && dUser.toLowerCase() === username.toLowerCase());
         if (matchesUser && !localIds.has(docSnap.id)) {
           console.log(`[DinoScript] 🧹 Purging deleted community dino "${data.name}" (${docSnap.id})`);
           db.collection('community_dinos').doc(docSnap.id).delete().catch(() => {});
@@ -3843,8 +3845,13 @@ async function loadCommunityDinos() {
     return;
   }
 
-  // Show login notice if not signed in
   const user = getArcadeUser();
+  const currentUserId = user.uid;
+  const currentUsername = user.username;
+  const localHybrids = loadSavedHybrids();
+  const localIds = new Set(localHybrids.map(h => h.id));
+
+  // Show login notice if not signed in
   document.getElementById('community-login-notice').style.display = user.uid ? 'none' : 'block';
 
   // Sync existing local hybrids to community leaderboard if logged in
@@ -3861,18 +3868,28 @@ async function loadCommunityDinos() {
   try {
     const snap = await window._dinoFirestore
       .collection('community_dinos')
-      .orderBy('totalStrength', 'desc')
-      .limit(20)
       .get();
 
-    _communityData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const rawList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     const activeVerifiedList = [];
 
-    // Auto-repair community records showing "Trainer" or missing photoURL & purge deleted/fused dinos
-    for (const d of _communityData) {
-      if (d.userId && d.userId !== 'guest') {
+    // Auto-repair community records & purge deleted/fused dinos across all users
+    for (const d of rawList) {
+      const dUser = d.username || '';
+      const dUserId = d.userId || '';
+      const isMyDino = (currentUserId && dUserId === currentUserId) || 
+                       (currentUsername && currentUsername !== 'Trainer' && dUser.toLowerCase() === currentUsername.toLowerCase());
+
+      if (isMyDino) {
+        if (!localIds.has(d.id)) {
+          // Stale dino belonging to current user -> purge immediately from Firestore database
+          console.log(`[DinoScript Database Cleanup] 🧹 Purging stale user dino "${d.name}" (${d.id})`);
+          window._dinoFirestore.collection('community_dinos').doc(d.id).delete().catch(() => {});
+          continue;
+        }
+      } else if (dUserId && dUserId !== 'guest') {
         try {
-          const uSnap = await window._dinoFirestore.collection('users').doc(d.userId).get();
+          const uSnap = await window._dinoFirestore.collection('users').doc(dUserId).get();
           if (!uSnap.exists) {
             // User account no longer exists in cloud -> purge orphaned dino
             window._dinoFirestore.collection('community_dinos').doc(d.id).delete().catch(()=>{});
@@ -3894,7 +3911,7 @@ async function loadCommunityDinos() {
           }
 
           // Verify if dinosaur still exists in user's active cloud save stable
-          const sSnap = await window._dinoFirestore.collection('users').doc(d.userId).collection('saves').doc('spelling_app').get();
+          const sSnap = await window._dinoFirestore.collection('users').doc(dUserId).collection('saves').doc('spelling_app').get();
           if (sSnap.exists) {
             const rawHybrids = sSnap.data().dino_hybrids;
             if (rawHybrids) {
@@ -3911,6 +3928,7 @@ async function loadCommunityDinos() {
           }
         } catch(e) {}
       }
+
       activeVerifiedList.push(d);
     }
 
