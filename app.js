@@ -319,8 +319,16 @@ async function launchGame(gameId) {
     const game = GAMES_REGISTRY.find(g => g.id === gameId);
     if (!game) return;
 
+    // Ensure identity keys are set in localStorage before game iframe loads
+    const user = window._arcadeUser;
+    if (user) {
+        const displayName = user.displayName || user.email.split('@')[0];
+        localStorage.setItem('arcade_username', displayName);
+        localStorage.setItem('arcade_uid', user.uid);
+    }
+
     // Pull latest cloud save into localStorage before launching (if logged in)
-    const uid = window._arcadeUser?.uid;
+    const uid = user?.uid;
     if (uid && GAME_SAVE_KEYS[gameId]) {
         await pullGameSave(uid, gameId);
     }

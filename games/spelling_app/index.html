@@ -3621,12 +3621,44 @@ updateLockUI();
 buildRewardsTable();
 updateStableBadge();
 
+// ── Helper: Get active arcade user from localStorage, parent window, or Firebase ─
+function getArcadeUser() {
+  let uid = localStorage.getItem('arcade_uid');
+  let username = localStorage.getItem('arcade_username');
+
+  try {
+    if (window.parent) {
+      if (window.parent._arcadeUser) {
+        const pUser = window.parent._arcadeUser;
+        uid = uid || pUser.uid;
+        username = username || pUser.displayName || (pUser.email ? pUser.email.split('@')[0] : 'Trainer');
+      }
+      if (window.parent.localStorage) {
+        uid = uid || window.parent.localStorage.getItem('arcade_uid');
+        username = username || window.parent.localStorage.getItem('arcade_username');
+      }
+    }
+  } catch (e) {}
+
+  if ((!uid || !username) && typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+    const fUser = firebase.auth().currentUser;
+    uid = uid || fUser.uid;
+    username = username || fUser.displayName || (fUser.email ? fUser.email.split('@')[0] : 'Trainer');
+  }
+
+  if (uid) localStorage.setItem('arcade_uid', uid);
+  if (username) localStorage.setItem('arcade_username', username);
+
+  return { uid: uid || null, username: username || 'Trainer' };
+}
+
 // ── Publish hybrid to Firestore community leaderboard ─────────────────────
 function publishToCommunity(hybrid) {
   if (!window._dinoFirestore) return;
   const db = window._dinoFirestore;
-  const username = localStorage.getItem('arcade_username') || 'Trainer';
-  const userId   = localStorage.getItem('arcade_uid') || 'guest';
+  const user = getArcadeUser();
+  const username = user.username;
+  const userId   = user.uid || 'guest';
   const totalStrength = (hybrid.stats.power || 0) + (hybrid.stats.defense || 0) + (hybrid.stats.speed || 0);
 
   const record = {
@@ -3662,8 +3694,16 @@ async function loadCommunityDinos() {
   }
 
   // Show login notice if not signed in
-  const uid = localStorage.getItem('arcade_uid');
-  document.getElementById('community-login-notice').style.display = uid ? 'none' : 'block';
+  const user = getArcadeUser();
+  document.getElementById('community-login-notice').style.display = user.uid ? 'none' : 'block';
+
+  // Sync existing local hybrids to community leaderboard if logged in
+  if (user.uid) {
+    try {
+      const hybrids = loadSavedHybrids();
+      hybrids.forEach(h => publishToCommunity(h));
+    } catch(e) {}
+  }
 
   document.getElementById('community-loading').style.display = 'block';
   document.getElementById('community-empty').style.display   = 'none';
@@ -3750,32 +3790,7 @@ function renderCommunityList() {
 }
 
 // ── Firebase init (compat CDN) — runs after page loads ─────────────────────
-(function initDinoFirebase() {
-  const cfg = {
-    apiKey:            'AIzaSyDnZOwSu_5hqAuzAqgd3gNimWcQg1IuyIc',
-    authDomain:        'eric-arcade.firebaseapp.com',
-    projectId:         'eric-arcade',
-    storageBucket:     'eric-arcade.firebasestorage.app',
-    messagingSenderId: '933974427341',
-    appId:             '1:933974427341:web:12c8a56664acf9e9c60b84'
-  };
-  // Only initialize if compat SDK is available (loaded via CDN)
-  if (typeof firebase !== 'undefined') {
-    if (!firebase.apps.length) firebase.initializeApp(cfg);
-    else firebase.app(); // use existing
-    window._dinoFirestore = firebase.firestore();
-    console.log('[DinoScript] 🔥 Firebase ready');
-  }
-})();
-</script>
-
-<!-- Firebase Compat SDK (for community leaderboard) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script>
-// Re-run init after compat SDKs load (they load after the main script block)
-(function retryDinoFirebase() {
-  if (window._dinoFirestore) return; // already done
+function setupDinoFirebase() {
   const cfg = {
     apiKey:            'AIzaSyDnZOwSu_5hqAuzAqgd3gNimWcQg1IuyIc',
     authDomain:        'eric-arcade.firebaseapp.com',
@@ -3788,9 +3803,30 @@ function renderCommunityList() {
     if (!firebase.apps.length) firebase.initializeApp(cfg);
     else firebase.app();
     window._dinoFirestore = firebase.firestore();
-    console.log('[DinoScript] 🔥 Firebase ready (retry)');
+
+    if (firebase.auth) {
+      firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+          localStorage.setItem('arcade_uid', user.uid);
+          localStorage.setItem('arcade_username', user.displayName || user.email.split('@')[0]);
+          const notice = document.getElementById('community-login-notice');
+          if (notice) notice.style.display = 'none';
+        }
+      });
+    }
+    console.log('[DinoScript] 🔥 Firebase & Auth ready');
   }
-})();
+}
+setupDinoFirebase();
+</script>
+
+<!-- Firebase Compat SDKs (for community leaderboard & auth sync) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+// Re-run init after compat SDKs load
+setupDinoFirebase();
 </script>
 </body>
 </html>
