@@ -90,6 +90,9 @@ export async function pushGameSave(uid, gameId) {
                         date: h.date || new Date().toISOString()
                     }, { merge: true });
                 }
+            } catch (err) {}
+        }
+
         // Auto-publish high score to global neon-snake leaderboard
         if (gameId === 'neon-snake' && saveData['neonSnakeHighScore']) {
             try {
