@@ -514,16 +514,18 @@ canvas.addEventListener('touchend', (e) => {
 // ==========================================================================
 const leaderboardScreen = document.getElementById('leaderboardScreen');
 const leaderboardToggleBtn = document.getElementById('leaderboardToggleBtn');
+const overlayLeaderboardBtn = document.getElementById('overlayLeaderboardBtn');
 const closeLeaderboardBtn = document.getElementById('closeLeaderboardBtn');
 
-if (leaderboardToggleBtn) {
-    leaderboardToggleBtn.addEventListener('click', () => {
-        if (leaderboardScreen) {
-            leaderboardScreen.classList.add('active');
-            loadSnakeLeaderboard();
-        }
-    });
-}
+const openLeaderboard = () => {
+    if (leaderboardScreen) {
+        leaderboardScreen.classList.add('active');
+        loadSnakeLeaderboard();
+    }
+};
+
+if (leaderboardToggleBtn) leaderboardToggleBtn.addEventListener('click', openLeaderboard);
+if (overlayLeaderboardBtn) overlayLeaderboardBtn.addEventListener('click', openLeaderboard);
 
 if (closeLeaderboardBtn) {
     closeLeaderboardBtn.addEventListener('click', () => {
