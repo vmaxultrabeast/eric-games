@@ -1,4 +1,10 @@
 // ==========================================================================
+// Firebase — Auth & Sync Imports
+// ==========================================================================
+import { onAuthChange, signInWithEmail, signUpWithEmail, signOutUser, getFriendlyError } from './firebase-auth.js';
+import { pullAllSaves, pullGameSave, pushGameSave, GAME_SAVE_KEYS } from './firebase-sync.js';
+
+// ==========================================================================
 // Games Registry (Metadata)
 // ==========================================================================
 const GAMES_REGISTRY = [
@@ -306,9 +312,20 @@ filterContainer.addEventListener('click', (e) => {
 // ==========================================================================
 // Modal Iframe Player Logic
 // ==========================================================================
-function launchGame(gameId) {
+// Track which game is currently open (for sync on close)
+let _activeGameId = null;
+
+async function launchGame(gameId) {
     const game = GAMES_REGISTRY.find(g => g.id === gameId);
     if (!game) return;
+
+    // Pull latest cloud save into localStorage before launching (if logged in)
+    const uid = window._arcadeUser?.uid;
+    if (uid && GAME_SAVE_KEYS[gameId]) {
+        await pullGameSave(uid, gameId);
+    }
+
+    _activeGameId = gameId;
 
     // Set modal content details
     modalGameTitle.textContent = game.title;
@@ -323,7 +340,14 @@ function launchGame(gameId) {
     document.body.style.overflow = 'hidden'; // Stop background scrolling
 }
 
-function closeGame() {
+async function closeGame() {
+    // Push latest localStorage save to Firestore before closing (if logged in)
+    const uid = window._arcadeUser?.uid;
+    if (uid && _activeGameId) {
+        await pushGameSave(uid, _activeGameId);
+    }
+    _activeGameId = null;
+
     gameModal.classList.remove('active');
     document.body.style.overflow = ''; // Restore scrolling
 
@@ -613,5 +637,155 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    initAuthModal();
 });
+
+// ES modules don't expose to window scope — expose manually for inline onclick handlers
+window.launchGame = launchGame;
+
+// ==========================================================================
+// Auth Modal — Login / Sign Up UI
+// ==========================================================================
+function initAuthModal() {
+    const authModal     = document.getElementById('authModal');
+    const authModalClose = document.getElementById('authModalClose');
+    const tabSignIn     = document.getElementById('tabSignIn');
+    const tabSignUp     = document.getElementById('tabSignUp');
+    const formSignIn    = document.getElementById('formSignIn');
+    const formSignUp    = document.getElementById('formSignUp');
+    const siError       = document.getElementById('siError');
+    const suError       = document.getElementById('suError');
+    const navLoginBtn   = document.getElementById('navLoginBtn');
+    const navUserChip   = document.getElementById('navUserChip');
+    const navUserAvatar = document.getElementById('navUserAvatar');
+    const navUserName   = document.getElementById('navUserName');
+    const navUserDropdown = document.getElementById('navUserDropdown');
+    const dropdownEmail = document.getElementById('dropdownEmail');
+    const dropdownSignOutBtn = document.getElementById('dropdownSignOutBtn');
+
+    // ── Modal Open / Close ────────────────────────────────────────────────
+    window.openAuthModal = function(tab = 'signin') {
+        authModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        switchTab(tab);
+    };
+
+    function closeAuthModal() {
+        authModal.classList.remove('active');
+        document.body.style.overflow = '';
+        clearErrors();
+    }
+
+    authModalClose.addEventListener('click', closeAuthModal);
+    authModal.addEventListener('click', e => {
+        if (e.target === authModal) closeAuthModal();
+    });
+
+    // ── Tab Switching ──────────────────────────────────────────────────────
+    function switchTab(tab) {
+        const isSignIn = (tab === 'signin');
+        tabSignIn.classList.toggle('active', isSignIn);
+        tabSignUp.classList.toggle('active', !isSignIn);
+        formSignIn.style.display = isSignIn ? '' : 'none';
+        formSignUp.style.display = isSignIn ? 'none' : '';
+        clearErrors();
+    }
+
+    tabSignIn.addEventListener('click', () => switchTab('signin'));
+    tabSignUp.addEventListener('click', () => switchTab('signup'));
+
+    // "Create an account" / "Sign in" switch links inside forms
+    document.querySelectorAll('.auth-switch-link').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.switch));
+    });
+
+    // ── Helper: set button loading state ──────────────────────────────────
+    function setLoading(btn, loading) {
+        btn.querySelector('.btn-text').style.display   = loading ? 'none' : '';
+        btn.querySelector('.btn-spinner').style.display = loading ? '' : 'none';
+        btn.disabled = loading;
+    }
+
+    function clearErrors() {
+        siError.textContent = '';
+        suError.textContent = '';
+    }
+
+    // ── Sign In Form ────────────────────────────────────────────────────────
+    formSignIn.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        siError.textContent = '';
+        const btn = document.getElementById('siBtnSubmit');
+        setLoading(btn, true);
+        try {
+            const email    = document.getElementById('siEmail').value.trim();
+            const password = document.getElementById('siPassword').value;
+            await signInWithEmail(email, password);
+            closeAuthModal();
+        } catch (err) {
+            siError.textContent = getFriendlyError(err.code);
+        } finally {
+            setLoading(btn, false);
+        }
+    });
+
+    // ── Sign Up Form ────────────────────────────────────────────────────────
+    formSignUp.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        suError.textContent = '';
+        const btn = document.getElementById('suBtnSubmit');
+        setLoading(btn, true);
+        try {
+            const name     = document.getElementById('suName').value.trim();
+            const email    = document.getElementById('suEmail').value.trim();
+            const password = document.getElementById('suPassword').value;
+            await signUpWithEmail(email, password, name);
+            closeAuthModal();
+        } catch (err) {
+            suError.textContent = getFriendlyError(err.code);
+        } finally {
+            setLoading(btn, false);
+        }
+    });
+
+    // ── User Chip Dropdown ────────────────────────────────────────────────
+    navUserChip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navUserDropdown.classList.toggle('open');
+    });
+    document.addEventListener('click', () => {
+        navUserDropdown.classList.remove('open');
+    });
+
+    // ── Sign Out ──────────────────────────────────────────────────────────
+    dropdownSignOutBtn.addEventListener('click', async () => {
+        navUserDropdown.classList.remove('open');
+        await signOutUser();
+    });
+
+    // ── Auth State Observer ───────────────────────────────────────────────
+    onAuthChange(async (user) => {
+        window._arcadeUser = user;
+
+        if (user) {
+            // Logged in — update nav
+            const displayName = user.displayName || user.email.split('@')[0];
+            navLoginBtn.style.display = 'none';
+            navUserChip.style.display = 'flex';
+            navUserAvatar.textContent = displayName.charAt(0).toUpperCase();
+            navUserName.textContent = displayName;
+            dropdownEmail.textContent = user.email;
+
+            // Pull all saves into localStorage
+            await pullAllSaves(user.uid);
+        } else {
+            // Logged out — reset nav
+            window._arcadeUser = null;
+            navLoginBtn.style.display = '';
+            navUserChip.style.display = 'none';
+        }
+    });
+}
+
 

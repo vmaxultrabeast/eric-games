@@ -32,6 +32,22 @@
                 <a href="https://github.com" target="_blank" class="github-btn" id="githubLink">
                     <i class="fa-brands fa-github"></i> GitHub Repo
                 </a>
+                <!-- Auth Nav Button -->
+                <div class="auth-nav-group" id="authNavGroup">
+                    <button class="nav-login-btn" id="navLoginBtn" onclick="window.openAuthModal()">
+                        <i class="fa-solid fa-user"></i> Login
+                    </button>
+                    <div class="nav-user-chip" id="navUserChip" style="display:none;">
+                        <span class="nav-user-avatar" id="navUserAvatar">E</span>
+                        <span class="nav-user-name" id="navUserName">Player</span>
+                        <div class="nav-user-dropdown" id="navUserDropdown">
+                            <div class="dropdown-email" id="dropdownEmail"></div>
+                            <button class="dropdown-signout-btn" id="dropdownSignOutBtn">
+                                <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </nav>
         </div>
     </header>
@@ -145,7 +161,80 @@
         </div>
     </div>
 
-    <!-- Main Logic Script -->
-    <script src="app.js?v=1.0.5"></script>
+    <!-- Auth Modal -->
+    <div class="auth-modal-overlay" id="authModal">
+        <div class="auth-modal">
+            <button class="auth-modal-close" id="authModalClose" aria-label="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <!-- Tabs -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tabSignIn" data-tab="signin">Sign In</button>
+                <button class="auth-tab" id="tabSignUp" data-tab="signup">Create Account</button>
+            </div>
+
+            <!-- Sign In Form -->
+            <form class="auth-form" id="formSignIn">
+                <div class="auth-logo">
+                    <i class="fa-solid fa-gamepad"></i>
+                    <span>Eric's <span class="accent-text">Arcade</span></span>
+                </div>
+                <p class="auth-subtitle">Sign in to sync your progress across devices.</p>
+
+                <div class="auth-field">
+                    <label for="siEmail">Email</label>
+                    <input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email" required>
+                </div>
+                <div class="auth-field">
+                    <label for="siPassword">Password</label>
+                    <input type="password" id="siPassword" placeholder="Your password" autocomplete="current-password" required>
+                </div>
+
+                <div class="auth-error" id="siError"></div>
+
+                <button type="submit" class="auth-submit-btn" id="siBtnSubmit">
+                    <span class="btn-text">Sign In</span>
+                    <span class="btn-spinner" style="display:none;"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
+                </button>
+
+                <p class="auth-switch">New here? <button type="button" class="auth-switch-link" data-switch="signup">Create an account</button></p>
+            </form>
+
+            <!-- Sign Up Form -->
+            <form class="auth-form" id="formSignUp" style="display:none;">
+                <div class="auth-logo">
+                    <i class="fa-solid fa-gamepad"></i>
+                    <span>Eric's <span class="accent-text">Arcade</span></span>
+                </div>
+                <p class="auth-subtitle">Create a free account to save your game progress.</p>
+
+                <div class="auth-field">
+                    <label for="suName">Display Name</label>
+                    <input type="text" id="suName" placeholder="Your name (e.g. Eric)" autocomplete="nickname" required>
+                </div>
+                <div class="auth-field">
+                    <label for="suEmail">Email</label>
+                    <input type="email" id="suEmail" placeholder="you@example.com" autocomplete="email" required>
+                </div>
+                <div class="auth-field">
+                    <label for="suPassword">Password</label>
+                    <input type="password" id="suPassword" placeholder="Min. 6 characters" autocomplete="new-password" required>
+                </div>
+
+                <div class="auth-error" id="suError"></div>
+
+                <button type="submit" class="auth-submit-btn" id="suBtnSubmit">
+                    <span class="btn-text">Create Account</span>
+                    <span class="btn-spinner" style="display:none;"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
+                </button>
+
+                <p class="auth-switch">Already have an account? <button type="button" class="auth-switch-link" data-switch="signin">Sign in</button></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Logic Script (ES Module) -->
+    <script type="module" src="app.js?v=1.0.6"></script>
 </body>
 </html>
