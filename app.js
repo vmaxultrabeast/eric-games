@@ -677,7 +677,8 @@ function initApp() {
         }).join('');
     }
 
-    renderOnlinePlayersWidget();
+    window.renderOnlinePlayersWidget = renderOnlinePlayersWidget;
+
     setInterval(() => updatePresence(window._arcadeUser), 40000);
     setInterval(() => renderOnlinePlayersWidget(), 15000);
 
@@ -855,6 +856,11 @@ function initAuthModal() {
 
             // Clear all game saves from localStorage so the next user starts clean
             Object.values(GAME_SAVE_KEYS).flat().forEach(key => localStorage.removeItem(key));
+        }
+
+        // Render online players lounge only AFTER Firebase Auth has fully resolved
+        if (typeof window.renderOnlinePlayersWidget === 'function') {
+            await window.renderOnlinePlayersWidget();
         }
     });
 
