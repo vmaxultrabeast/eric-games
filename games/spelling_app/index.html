@@ -3371,8 +3371,20 @@ function getHybridArtwork(headId, torsoId, limbsId, tailId, auraId) {
   if (headId === 'head_mecha_rex' || tailId === 'tail_titanium' || torsoId === 'torso_cyber_titanium') {
     return 'assets/dino_mecha_godzilla.png';
   }
-  // 4. Abyssal Leviathan Deep-Sea Nightmare & Water Dinosaurs
-  if (headId === 'head_abyss' || headId === 'head_mosasaurus' || headId === 'head_megalodon' || headId === 'head_dunkleosteus' || headId === 'head_plesiosaur' || torsoId === 'torso_mosasaurus' || torsoId === 'torso_abyssal_trench' || torsoId === 'torso_ichthyosaur' || limbsId === 'limbs_mosasaurus_flippers' || limbsId === 'limbs_plesiosaur_fins' || limbsId === 'limbs_tsunami_jets' || tailId === 'tail_mosasaurus_fluke' || tailId === 'tail_kraken_tentacle' || auraId === 'aura_hydro_vortex' || auraId === 'aura_tidal_god') {
+  // 4A. Mosasaurus Apex Ocean Predator
+  if (headId === 'head_mosasaurus' || torsoId === 'torso_mosasaurus' || limbsId === 'limbs_mosasaurus_flippers' || tailId === 'tail_mosasaurus_fluke' || auraId === 'aura_hydro_vortex') {
+    return 'assets/dino_mosasaurus_ocean.png';
+  }
+  // 4B. Megalodon & Dunkleosteus Abyssal Shark Leviathan
+  if (headId === 'head_megalodon' || headId === 'head_dunkleosteus' || torsoId === 'torso_abyssal_trench' || limbsId === 'limbs_tsunami_jets' || tailId === 'tail_kraken_tentacle' || auraId === 'aura_tidal_god') {
+    return 'assets/dino_megalodon_shark.png';
+  }
+  // 4C. Plesiosaurus & Ichthyosaur Ocean Serpent
+  if (headId === 'head_plesiosaur' || torsoId === 'torso_ichthyosaur' || limbsId === 'limbs_plesiosaur_fins' || tailId === 'tail_plesiosaur_paddle' || auraId === 'aura_abyssal_glow') {
+    return 'assets/dino_plesiosaur_sea.png';
+  }
+  // 4D. Abyssal Leviathan Deep-Sea Nightmare
+  if (headId === 'head_abyss') {
     return 'assets/dino_abyssal_leviathan.png';
   }
   // 5. Solar Phoenix Sun Crest of Rebirth
