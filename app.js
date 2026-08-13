@@ -602,8 +602,7 @@ function initConsoleGraphic() {
 // ==========================================================================
 // Initialization
 // ==========================================================================
-// Render game grid on start
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
     renderGames();
     initConsoleGraphic();
 
@@ -647,7 +646,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     initAuthModal();
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
 
 // ES modules don't expose to window scope — expose manually for inline onclick handlers
 window.launchGame = launchGame;
