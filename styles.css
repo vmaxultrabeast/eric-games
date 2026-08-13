@@ -1395,6 +1395,139 @@ footer {
 }
 
 /* ==========================================================================
+   Live Online Players Widget
+   ========================================================================== */
+.online-players-widget {
+    background: rgba(14, 16, 28, 0.75);
+    border: 1px solid rgba(0, 245, 255, 0.25);
+    border-radius: 16px;
+    padding: 14px 22px;
+    margin-bottom: 3rem;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 0 30px rgba(0, 245, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.online-header-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.online-pulse-dot {
+    width: 10px;
+    height: 10px;
+    background-color: #34d399;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 8px #34d399;
+    animation: pulseGreen 1.8s infinite;
+}
+
+@keyframes pulseGreen {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+
+.online-title {
+    font-family: var(--font-logo);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.online-badge {
+    background: rgba(52, 211, 153, 0.2);
+    color: #34d399;
+    border: 1px solid rgba(52, 211, 153, 0.4);
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 800;
+}
+
+.online-subtitle {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.online-players-list {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.online-player-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px 4px 5px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-main);
+    transition: var(--transition-fast);
+}
+
+.online-player-chip:hover {
+    background: rgba(0, 245, 255, 0.12);
+    border-color: rgba(0, 245, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+.online-chip-avatar {
+    position: relative;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-logo);
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    flex-shrink: 0;
+}
+
+.online-chip-avatar-img {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--neon-cyan);
+}
+
+.online-chip-dot {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 8px;
+    height: 8px;
+    background: #34d399;
+    border-radius: 50%;
+    border: 1.5px solid #0e101c;
+}
+
+.online-loading {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+/* ==========================================================================
    Auth Modal
    ========================================================================== */
 .auth-modal-overlay {

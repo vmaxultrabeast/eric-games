@@ -2,7 +2,7 @@
 // Firebase — Auth & Sync Imports
 // ==========================================================================
 import { onAuthChange, signInWithEmail, signUpWithEmail, signOutUser, getFriendlyError, updateProfile, updateUserEmail } from './firebase-auth.js';
-import { pullAllSaves, pullGameSave, pushGameSave, pushAllLocalSaves, saveUserProfile, GAME_SAVE_KEYS } from './firebase-sync.js';
+import { pullAllSaves, pullGameSave, pushGameSave, pushAllLocalSaves, saveUserProfile, updatePresence, getOnlinePlayers, GAME_SAVE_KEYS } from './firebase-sync.js';
 
 // ==========================================================================
 // Games Registry (Metadata)
@@ -642,8 +642,41 @@ function initApp() {
             if (link.getAttribute('href').slice(1) === current) {
                 link.classList.add('active');
             }
-        });
-    });
+    // ── Live Online Players Widget ───────────────────────────────────────────
+    async function renderOnlinePlayersWidget() {
+        const onlineCountBadge  = document.getElementById('onlineCountBadge');
+        const onlinePlayersList = document.getElementById('onlinePlayersList');
+        if (!onlinePlayersList) return;
+
+        // Heartbeat our presence first
+        await updatePresence(window._arcadeUser);
+
+        // Fetch players active in last 5 minutes
+        const online = await getOnlinePlayers();
+        if (onlineCountBadge) onlineCountBadge.textContent = online.length;
+
+        if (online.length === 0) {
+            onlinePlayersList.innerHTML = `<div class="online-loading">No active players right now</div>`;
+            return;
+        }
+
+        onlinePlayersList.innerHTML = online.map(p => {
+            const initial = (p.displayName || 'P').charAt(0).toUpperCase();
+            const avatarHtml = p.photoURL
+                ? `<div class="online-chip-avatar"><img src="${p.photoURL}" class="online-chip-avatar-img" alt="Avatar"><span class="online-chip-dot"></span></div>`
+                : `<div class="online-chip-avatar">${initial}<span class="online-chip-dot"></span></div>`;
+            const guestTag = p.isGuest ? ' <span style="font-size:0.7rem;color:var(--text-muted);">(Guest)</span>' : '';
+
+            return `<div class="online-player-chip" title="Active within last 5 minutes">
+                ${avatarHtml}
+                <span>${p.displayName}${guestTag}</span>
+            </div>`;
+        }).join('');
+    }
+
+    renderOnlinePlayersWidget();
+    setInterval(() => updatePresence(window._arcadeUser), 40000);
+    setInterval(() => renderOnlinePlayersWidget(), 15000);
 
     initAuthModal();
 }

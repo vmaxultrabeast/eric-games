@@ -228,3 +228,64 @@ export async function pushAllLocalSaves(uid) {
 
     console.log(`[Arcade Sync] ✅ Uploaded local saves for ${count} games to new account`);
 }
+
+// ── Live Online Presence ───────────────────────────────────────────────────
+/**
+ * Update current user presence timestamp (active within last 5 minutes).
+ */
+export async function updatePresence(user) {
+    try {
+        let uid = user?.uid || localStorage.getItem('arcade_guest_uid');
+        if (!uid) {
+            uid = 'guest_' + Math.random().toString(36).substring(2, 9);
+            localStorage.setItem('arcade_guest_uid', uid);
+        }
+
+        const displayName = user?.displayName || (user?.email ? user.email.split('@')[0] : null) || localStorage.getItem('arcade_username') || 'Guest Player';
+        const photoURL = user?.photoURL || localStorage.getItem('arcade_avatar') || '';
+
+        const ref = doc(db, 'presence', uid);
+        await setDoc(ref, {
+            displayName: displayName,
+            photoURL: photoURL,
+            lastSeen: new Date().toISOString(),
+            isGuest: !user
+        }, { merge: true });
+    } catch (e) {
+        console.warn('[Presence] Update failed:', e.message);
+    }
+}
+
+/**
+ * Fetch list of players active in the last 5 minutes.
+ */
+export async function getOnlinePlayers() {
+    try {
+        const col = collection(db, 'presence');
+        const snap = await getDocs(col);
+        const now = Date.now();
+        const FIVE_MINUTES_MS = 5 * 60 * 1000;
+        const online = [];
+
+        snap.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data.lastSeen) {
+                const lastSeenTime = new Date(data.lastSeen).getTime();
+                if (now - lastSeenTime <= FIVE_MINUTES_MS) {
+                    online.push({
+                        id: docSnap.id,
+                        displayName: data.displayName || 'Guest Player',
+                        photoURL: data.photoURL || '',
+                        isGuest: data.isGuest || false,
+                        lastSeen: data.lastSeen
+                    });
+                }
+            }
+        });
+
+        return online;
+    } catch (e) {
+        console.warn('[Presence] Fetch online players failed:', e.message);
+        return [];
+    }
+}
