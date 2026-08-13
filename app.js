@@ -1,7 +1,7 @@
 // ==========================================================================
 // Firebase — Auth & Sync Imports
 // ==========================================================================
-import { onAuthChange, signInWithEmail, signUpWithEmail, signOutUser, getFriendlyError, updateProfile } from './firebase-auth.js';
+import { onAuthChange, signInWithEmail, signUpWithEmail, signOutUser, getFriendlyError, updateProfile, updateUserEmail } from './firebase-auth.js';
 import { pullAllSaves, pullGameSave, pushGameSave, pushAllLocalSaves, saveUserProfile, GAME_SAVE_KEYS } from './firebase-sync.js';
 
 // ==========================================================================
@@ -822,7 +822,7 @@ function initAuthModal() {
         }
     });
 
-    // ── Custom Avatar Upload Handler ─────────────────────────────────────────
+    // ── Custom Avatar & Settings Handler ──────────────────────────────────
     const avatarFileInput         = document.getElementById('avatarFileInput');
     const avatarChipWrapper       = document.getElementById('avatarChipWrapper');
     const dropdownAvatarContainer = document.getElementById('dropdownAvatarContainer');
@@ -830,15 +830,63 @@ function initAuthModal() {
     const navUserAvatarImg        = document.getElementById('navUserAvatarImg');
     const dropdownAvatarLarge     = document.getElementById('dropdownAvatarLarge');
     const dropdownAvatarImgLarge  = document.getElementById('dropdownAvatarImgLarge');
+    const dropdownSettingsBtn     = document.getElementById('dropdownSettingsBtn');
 
+    // Settings Modal elements
+    const settingsModal           = document.getElementById('settingsModal');
+    const settingsModalClose      = document.getElementById('settingsModalClose');
+    const settingsAvatarPreviewBtn= document.getElementById('settingsAvatarPreviewBtn');
+    const settingsChangeAvatarBtn = document.getElementById('settingsChangeAvatarBtn');
+    const settingsAvatarInitial   = document.getElementById('settingsAvatarInitial');
+    const settingsAvatarImg       = document.getElementById('settingsAvatarImg');
+    const settingsEmailForm       = document.getElementById('settingsEmailForm');
+    const settingsEmailInput      = document.getElementById('settingsEmailInput');
+    const settingsError           = document.getElementById('settingsError');
+    const settingsSuccess         = document.getElementById('settingsSuccess');
+    const settingsEmailSubmitBtn  = document.getElementById('settingsEmailSubmitBtn');
+
+    // ── Open Settings Modal ──────────────────────────────────────────────
+    function openSettingsModal() {
+        if (!settingsModal) return;
+        navUserDropdown.classList.remove('open');
+        const user = window._arcadeUser;
+        if (user) {
+            settingsEmailInput.value = user.email || '';
+            const photoUrl = user.photoURL || localStorage.getItem('arcade_avatar');
+            const displayName = user.displayName || user.email.split('@')[0];
+            updateAvatarUI(photoUrl, displayName);
+        }
+        if (settingsError) settingsError.style.display = 'none';
+        if (settingsSuccess) settingsSuccess.style.display = 'none';
+        settingsModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSettingsModal() {
+        if (!settingsModal) return;
+        settingsModal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    if (dropdownSettingsBtn) dropdownSettingsBtn.addEventListener('click', openSettingsModal);
+    if (settingsModalClose) settingsModalClose.addEventListener('click', closeSettingsModal);
+    if (settingsModal) {
+        settingsModal.addEventListener('click', e => {
+            if (e.target === settingsModal) closeSettingsModal();
+        });
+    }
+
+    // ── Avatar trigger buttons ───────────────────────────────────────────
     function triggerAvatarSelect(e) {
-        e.stopPropagation();
+        if (e) e.stopPropagation();
         if (avatarFileInput) avatarFileInput.click();
     }
 
     if (avatarChipWrapper) avatarChipWrapper.addEventListener('click', triggerAvatarSelect);
     if (dropdownAvatarContainer) dropdownAvatarContainer.addEventListener('click', triggerAvatarSelect);
     if (uploadAvatarBtn) uploadAvatarBtn.addEventListener('click', triggerAvatarSelect);
+    if (settingsAvatarPreviewBtn) settingsAvatarPreviewBtn.addEventListener('click', triggerAvatarSelect);
+    if (settingsChangeAvatarBtn) settingsChangeAvatarBtn.addEventListener('click', triggerAvatarSelect);
 
     if (avatarFileInput) {
         avatarFileInput.addEventListener('change', async (e) => {
@@ -894,6 +942,62 @@ function initAuthModal() {
         });
     }
 
+    // ── Email Update Submit Handler ──────────────────────────────────────
+    if (settingsEmailForm) {
+        settingsEmailForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newEmail = settingsEmailInput.value.trim();
+            if (!newEmail) return;
+
+            const user = window._arcadeUser;
+            if (!user) return;
+            if (newEmail === user.email) {
+                if (settingsSuccess) {
+                    settingsSuccess.textContent = 'ℹ️ Email is unchanged.';
+                    settingsSuccess.style.display = 'block';
+                }
+                return;
+            }
+
+            const btnText = settingsEmailSubmitBtn.querySelector('.btn-text');
+            const btnSpinner = settingsEmailSubmitBtn.querySelector('.btn-spinner');
+
+            if (settingsError) settingsError.style.display = 'none';
+            if (settingsSuccess) settingsSuccess.style.display = 'none';
+            if (btnText) btnText.style.display = 'none';
+            if (btnSpinner) btnSpinner.style.display = 'inline-block';
+            settingsEmailSubmitBtn.disabled = true;
+
+            try {
+                await updateUserEmail(newEmail);
+                if (dropdownEmail) dropdownEmail.textContent = newEmail;
+                await saveUserProfile(window._arcadeUser);
+
+                if (settingsSuccess) {
+                    settingsSuccess.textContent = '✅ Email address updated successfully!';
+                    settingsSuccess.style.display = 'block';
+                }
+            } catch (err) {
+                let msg = err.message;
+                if (err.code === 'auth/requires-recent-login') {
+                    msg = '🔒 For security, please sign out and sign in again before changing your email address.';
+                } else if (err.code === 'auth/email-already-in-use') {
+                    msg = '❌ That email address is already in use by another account.';
+                } else if (err.code === 'auth/invalid-email') {
+                    msg = '❌ Invalid email format.';
+                }
+                if (settingsError) {
+                    settingsError.textContent = msg;
+                    settingsError.style.display = 'block';
+                }
+            } finally {
+                if (btnText) btnText.style.display = 'inline-block';
+                if (btnSpinner) btnSpinner.style.display = 'none';
+                settingsEmailSubmitBtn.disabled = false;
+            }
+        });
+    }
+
     function updateAvatarUI(photoUrl, displayName) {
         const initial = (displayName || 'P').charAt(0).toUpperCase();
         if (photoUrl) {
@@ -908,6 +1012,12 @@ function initAuthModal() {
                 dropdownAvatarImgLarge.style.display = 'block';
             }
             if (dropdownAvatarLarge) dropdownAvatarLarge.style.display = 'none';
+
+            if (settingsAvatarImg) {
+                settingsAvatarImg.src = photoUrl;
+                settingsAvatarImg.style.display = 'block';
+            }
+            if (settingsAvatarInitial) settingsAvatarInitial.style.display = 'none';
         } else {
             if (navUserAvatarImg) navUserAvatarImg.style.display = 'none';
             if (navUserAvatar) {
@@ -919,6 +1029,12 @@ function initAuthModal() {
             if (dropdownAvatarLarge) {
                 dropdownAvatarLarge.textContent = initial;
                 dropdownAvatarLarge.style.display = 'flex';
+            }
+
+            if (settingsAvatarImg) settingsAvatarImg.style.display = 'none';
+            if (settingsAvatarInitial) {
+                settingsAvatarInitial.textContent = initial;
+                settingsAvatarInitial.style.display = 'flex';
             }
         }
     }

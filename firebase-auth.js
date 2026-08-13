@@ -8,12 +8,22 @@ import {
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
-    updateProfile
+    updateProfile,
+    updateEmail
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
 export { updateProfile };
 
 // ── Public API ─────────────────────────────────────────────────────────────
+
+/**
+ * Update current user email address.
+ */
+export async function updateUserEmail(newEmail) {
+    if (!auth.currentUser) throw new Error('No user logged in.');
+    await updateEmail(auth.currentUser, newEmail);
+    return auth.currentUser;
+}
 
 /**
  * Create a new account. Optionally sets a display name.

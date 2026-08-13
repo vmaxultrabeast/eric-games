@@ -3736,12 +3736,14 @@ function getArcadeUser() {
 
 // ── Publish hybrid to Firestore community leaderboard ─────────────────────
 function publishToCommunity(hybrid) {
-  if (!window._dinoFirestore) return;
+  if (!window._dinoFirestore || !hybrid) return;
+
   const db = window._dinoFirestore;
   const user = getArcadeUser();
   const username = user.username;
   const userId   = user.uid || 'guest';
-  const totalStrength = (hybrid.stats.power || 0) + (hybrid.stats.defense || 0) + (hybrid.stats.speed || 0);
+  const userAvatar = localStorage.getItem('arcade_avatar') || '';
+  const totalStrength = (hybrid.stats?.power || 0) + (hybrid.stats?.defense || 0) + (hybrid.stats?.speed || 0);
 
   const record = {
     name:          hybrid.name,
@@ -3754,11 +3756,12 @@ function publishToCommunity(hybrid) {
     lineage:       hybrid.lineage || '',
     username:      username,
     userId:        userId,
+    userAvatar:    userAvatar,
     date:          hybrid.date || new Date().toISOString()
   };
 
   db.collection('community_dinos').doc(hybrid.id)
-    .set(record)
+    .set(record, { merge: true })
     .then(() => console.log('[DinoScript] ✅ Hybrid published to community'))
     .catch(e  => console.warn('[DinoScript] Community publish failed:', e.message));
 }
@@ -3800,22 +3803,27 @@ async function loadCommunityDinos() {
 
     _communityData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    // Auto-repair any community records showing "Trainer" by cross-referencing users profile
+    // Auto-repair community records showing "Trainer" or missing photoURL
     for (const d of _communityData) {
-      if (d.username === 'Trainer' || !d.username) {
-        if (d.userId && d.userId !== 'guest') {
-          try {
-            const uSnap = await window._dinoFirestore.collection('users').doc(d.userId).get();
-            if (uSnap.exists) {
-              const uData = uSnap.data();
-              const realName = uData.displayName || (uData.email ? uData.email.split('@')[0] : null);
-              if (realName) {
-                d.username = realName;
-                window._dinoFirestore.collection('community_dinos').doc(d.id).update({ username: realName }).catch(()=>{});
-              }
+      if (d.userId && d.userId !== 'guest') {
+        try {
+          const uSnap = await window._dinoFirestore.collection('users').doc(d.userId).get();
+          if (uSnap.exists) {
+            const uData = uSnap.data();
+            const updates = {};
+            if (uData.displayName && (d.username === 'Trainer' || !d.username)) {
+              d.username = uData.displayName;
+              updates.username = uData.displayName;
             }
-          } catch(e) {}
-        }
+            if (uData.photoURL && !d.userAvatar) {
+              d.userAvatar = uData.photoURL;
+              updates.userAvatar = uData.photoURL;
+            }
+            if (Object.keys(updates).length > 0) {
+              window._dinoFirestore.collection('community_dinos').doc(d.id).update(updates).catch(()=>{});
+            }
+          }
+        } catch(e) {}
       }
     }
 
@@ -3862,7 +3870,11 @@ function inspectCommunityDino(id) {
   if (nameEl) nameEl.textContent = dino.name || 'Dinosaur';
   
   const displayTrainer = (dino.username && dino.username !== 'Trainer') ? dino.username : 'Guest Trainer';
-  if (trainerEl) trainerEl.textContent = `👤 Trainer: ${displayTrainer}`;
+  const trainerAvatarBadge = dino.userAvatar
+    ? `<img src="${dino.userAvatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:6px;border:2px solid #fbbf24;box-shadow:0 0 8px rgba(251,191,36,0.5);">`
+    : `<span style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg, #e8a53a, #9d4edd);display:inline-flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:900;color:#fff;vertical-align:middle;margin-right:6px;border:1px solid rgba(255,255,255,0.3);">${displayTrainer.charAt(0).toUpperCase()}</span>`;
+
+  if (trainerEl) trainerEl.innerHTML = `${trainerAvatarBadge} <span style="font-weight:800;color:#fff;">${displayTrainer}</span>`;
   if (tierEl) tierEl.textContent = dino.geneticTier || 'Stable DNA 🧬';
   if (lineageEl) lineageEl.textContent = dino.lineage ? `Lineage: ${dino.lineage}` : '1st Generation Hybrid';
 
@@ -3911,13 +3923,16 @@ function renderCommunityList() {
           const totalStrength = (d.stats?.power || 0) + (d.stats?.defense || 0) + (d.stats?.speed || 0);
           const rowBg = i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent';
           const displayTrainer = (d.username && d.username !== 'Trainer') ? d.username : 'Guest Trainer';
+          const avatarBadge = d.userAvatar
+            ? `<img src="${d.userAvatar}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:6px;border:1.5px solid #fbbf24;box-shadow:0 0 6px rgba(251,191,36,0.4);">`
+            : `<span style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg, #e8a53a, #9d4edd);display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:900;color:#fff;vertical-align:middle;margin-right:6px;border:1px solid rgba(255,255,255,0.3);">${displayTrainer.charAt(0).toUpperCase()}</span>`;
           return `<tr onclick="inspectCommunityDino('${d.id}')" style="background:${rowBg};border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.15s;cursor:pointer;" onmouseover="this.style.background='rgba(232,165,58,0.15)'" onmouseout="this.style.background='${rowBg}'" title="Click to inspect ${d.name}">
             <td style="padding:10px 8px;text-align:center;font-weight:900;font-size:1rem;">${rank}</td>
             <td style="padding:10px 8px;">
               <div style="font-size:1.1rem;margin-bottom:2px;">${d.avatar || '🦕'}</div>
               <div style="font-weight:800;color:#fbbf24;">${d.name}${gen2}</div>
             </td>
-            <td style="padding:10px 8px;color:var(--text-light);font-size:0.82rem;">👤 ${displayTrainer}</td>
+            <td style="padding:10px 8px;font-size:0.85rem;white-space:nowrap;">${avatarBadge}<span style="font-weight:700;color:#fff;">${displayTrainer}</span></td>
             <td style="padding:10px 8px;text-align:center;font-weight:700;color:#f87171;">${d.stats?.power || 0}</td>
             <td style="padding:10px 8px;text-align:center;font-weight:700;color:#60a5fa;">${d.stats?.defense || 0}</td>
             <td style="padding:10px 8px;text-align:center;font-weight:700;color:#34d399;">${d.stats?.speed || 0}</td>

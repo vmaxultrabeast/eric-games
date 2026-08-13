@@ -87,6 +87,7 @@ export async function pushGameSave(uid, gameId) {
                         lineage: h.lineage || '',
                         username: username,
                         userId: uid,
+                        userAvatar: u?.photoURL || localStorage.getItem('arcade_avatar') || '',
                         date: h.date || new Date().toISOString()
                     }, { merge: true });
                 }

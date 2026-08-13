@@ -1350,6 +1350,29 @@ footer {
     margin-top: 4px;
 }
 
+.dropdown-item-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(0, 245, 255, 0.08);
+    border: 1px solid rgba(0, 245, 255, 0.2);
+    border-radius: 8px;
+    color: var(--neon-cyan);
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    margin-bottom: 8px;
+}
+.dropdown-item-btn:hover {
+    background: rgba(0, 245, 255, 0.18);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 10px var(--neon-cyan-glow);
+}
+
 .dropdown-signout-btn {
     width: 100%;
     display: flex;
