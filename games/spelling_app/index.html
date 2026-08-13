@@ -928,7 +928,10 @@
       <button class="community-sort-btn" id="csort-defense" onclick="sortCommunity('defense')">🛡️ Defense</button>
       <button class="community-sort-btn" id="csort-speed" onclick="sortCommunity('speed')">⚡ Speed</button>
       <button class="community-sort-btn" id="csort-name" onclick="sortCommunity('name')">🦕 Name</button>
-      <button class="btn btn-secondary" onclick="loadCommunityDinos()" style="margin-left:auto;padding:7px 16px;font-size:0.82rem;">🔄 Refresh</button>
+      <div style="margin-left:auto;display:flex;gap:6px;">
+        <button class="btn btn-secondary" onclick="cleanCommunityLeaderboardManual()" style="padding:7px 12px;font-size:0.82rem;color:#fbbf24;border-color:rgba(251,191,36,0.4);" title="Purge stale or deleted dinosaurs from cloud database">🧹 Clean DB</button>
+        <button class="btn btn-secondary" onclick="loadCommunityDinos()" style="padding:7px 14px;font-size:0.82rem;">🔄 Refresh</button>
+      </div>
     </div>
 
     <div id="community-loading" style="text-align:center;padding:30px;color:var(--text-light);display:none;">
@@ -3873,60 +3876,72 @@ async function loadCommunityDinos() {
     const rawList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     const activeVerifiedList = [];
 
-    // Auto-repair community records & purge deleted/fused dinos across all users
+    // Auto-repair community records & purge deleted/fused/guest dinos across all users
     for (const d of rawList) {
-      const dUser = d.username || '';
-      const dUserId = d.userId || '';
+      const dUser = (d.username || '').trim();
+      const dUserId = (d.userId || '').trim();
+
+      const isGuestDino = (!dUserId || dUserId === 'guest' || dUserId.startsWith('guest_') || dUser === 'Guest Player' || dUser === 'Trainer');
       const isMyDino = (currentUserId && dUserId === currentUserId) || 
                        (currentUsername && currentUsername !== 'Trainer' && dUser.toLowerCase() === currentUsername.toLowerCase());
 
-      if (isMyDino) {
+      let shouldPurge = false;
+
+      // Rule 1: Guest or default Trainer dinos that do NOT exist in current active local stable -> PURGE
+      if (isGuestDino) {
         if (!localIds.has(d.id)) {
-          // Stale dino belonging to current user -> purge immediately from Firestore database
-          console.log(`[DinoScript Database Cleanup] 🧹 Purging stale user dino "${d.name}" (${d.id})`);
-          window._dinoFirestore.collection('community_dinos').doc(d.id).delete().catch(() => {});
-          continue;
+          shouldPurge = true;
         }
-      } else if (dUserId && dUserId !== 'guest') {
+      }
+      // Rule 2: Current user dinos that do NOT exist in current active local stable -> PURGE
+      else if (isMyDino) {
+        if (!localIds.has(d.id)) {
+          shouldPurge = true;
+        }
+      }
+      // Rule 3: Other registered users -> check their Firestore cloud save file
+      else if (dUserId && !dUserId.startsWith('guest_')) {
         try {
           const uSnap = await window._dinoFirestore.collection('users').doc(dUserId).get();
           if (!uSnap.exists) {
-            // User account no longer exists in cloud -> purge orphaned dino
-            window._dinoFirestore.collection('community_dinos').doc(d.id).delete().catch(()=>{});
-            continue;
-          }
+            shouldPurge = true;
+          } else {
+            const uData = uSnap.data();
+            const updates = {};
+            if (uData.displayName && (d.username === 'Trainer' || !d.username)) {
+              d.username = uData.displayName;
+              updates.username = uData.displayName;
+            }
+            if (uData.photoURL && !d.userAvatar) {
+              d.userAvatar = uData.photoURL;
+              updates.userAvatar = uData.photoURL;
+            }
+            if (Object.keys(updates).length > 0) {
+              window._dinoFirestore.collection('community_dinos').doc(d.id).update(updates).catch(()=>{});
+            }
 
-          const uData = uSnap.data();
-          const updates = {};
-          if (uData.displayName && (d.username === 'Trainer' || !d.username)) {
-            d.username = uData.displayName;
-            updates.username = uData.displayName;
-          }
-          if (uData.photoURL && !d.userAvatar) {
-            d.userAvatar = uData.photoURL;
-            updates.userAvatar = uData.photoURL;
-          }
-          if (Object.keys(updates).length > 0) {
-            window._dinoFirestore.collection('community_dinos').doc(d.id).update(updates).catch(()=>{});
-          }
-
-          // Verify if dinosaur still exists in user's active cloud save stable
-          const sSnap = await window._dinoFirestore.collection('users').doc(dUserId).collection('saves').doc('spelling_app').get();
-          if (sSnap.exists) {
-            const rawHybrids = sSnap.data().dino_hybrids;
-            if (rawHybrids) {
-              try {
+            const sSnap = await window._dinoFirestore.collection('users').doc(dUserId).collection('saves').doc('spelling_app').get();
+            if (sSnap.exists) {
+              const rawHybrids = sSnap.data().dino_hybrids;
+              if (rawHybrids) {
                 const list = typeof rawHybrids === 'string' ? JSON.parse(rawHybrids) : rawHybrids;
                 if (Array.isArray(list) && !list.some(h => h.id === d.id)) {
-                  // Dinosaur was deleted or fused into Gen-2 -> purge from community leaderboard
-                  console.log(`[DinoScript Database Cleanup] 🧹 Purging stale dino "${d.name}" (${d.id})`);
-                  window._dinoFirestore.collection('community_dinos').doc(d.id).delete().catch(()=>{});
-                  continue;
+                  shouldPurge = true;
                 }
-              } catch(e) {}
+              } else {
+                shouldPurge = true;
+              }
+            } else {
+              shouldPurge = true;
             }
           }
         } catch(e) {}
+      }
+
+      if (shouldPurge) {
+        console.log(`[DinoScript Database Cleanup] 🧹 Purging stale dino "${d.name}" (${d.id}) [User: ${dUser}, UID: ${dUserId}]`);
+        window._dinoFirestore.collection('community_dinos').doc(d.id).delete().catch(() => {});
+        continue; // Exclude from active leaderboard view
       }
 
       activeVerifiedList.push(d);
@@ -3947,6 +3962,15 @@ async function loadCommunityDinos() {
       `<p style="text-align:center;color:#f87171;">⚠️ Could not load leaderboard: ${e.message}</p>`;
   }
 }
+
+async function cleanCommunityLeaderboardManual() {
+  if (!confirm('Run a complete database audit to purge all deleted, fused, and legacy guest dinosaurs?')) return;
+  document.getElementById('community-loading').style.display = 'block';
+  await loadCommunityDinos();
+  alert('✅ Database audit complete! All deleted and legacy guest dinosaurs have been purged from the community leaderboard.');
+}
+
+window.cleanCommunityLeaderboardManual = cleanCommunityLeaderboardManual;
 
 function sortCommunity(field) {
   _communitySort = field;
