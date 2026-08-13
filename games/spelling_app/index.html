@@ -3764,10 +3764,13 @@ function getArcadeUser() {
 function publishToCommunity(hybrid) {
   if (!window._dinoFirestore || !hybrid) return;
 
-  const db = window._dinoFirestore;
   const user = getArcadeUser();
+  // Require valid registered user (no guest publishing)
+  if (!user || !user.uid || user.uid === 'guest' || user.uid.startsWith('guest_')) return;
+
+  const db = window._dinoFirestore;
   const username = user.username;
-  const userId   = user.uid || 'guest';
+  const userId   = user.uid;
   const userAvatar = localStorage.getItem('arcade_avatar') || '';
   const totalStrength = (hybrid.stats?.power || 0) + (hybrid.stats?.defense || 0) + (hybrid.stats?.speed || 0);
 
@@ -3813,6 +3816,9 @@ function syncCommunityWithLocalHybrids() {
   const user = getArcadeUser();
   const userId = user.uid;
   const username = user.username;
+
+  if (!userId || userId === 'guest' || userId.startsWith('guest_')) return;
+
   const localHybrids = loadSavedHybrids();
   const localIds = new Set(localHybrids.map(h => h.id));
 
@@ -3820,20 +3826,18 @@ function syncCommunityWithLocalHybrids() {
   localHybrids.forEach(h => publishToCommunity(h));
 
   // 2. Remove any old community dinosaurs for this user that no longer exist in local Stable
-  if (userId || (username && username !== 'Trainer')) {
-    db.collection('community_dinos').get().then(snap => {
-      snap.forEach(docSnap => {
-        const data = docSnap.data();
-        const dUser = data.username || '';
-        const dUserId = data.userId || '';
-        const matchesUser = (userId && dUserId === userId) || (username && username !== 'Trainer' && dUser.toLowerCase() === username.toLowerCase());
-        if (matchesUser && !localIds.has(docSnap.id)) {
-          console.log(`[DinoScript] 🧹 Purging deleted community dino "${data.name}" (${docSnap.id})`);
-          db.collection('community_dinos').doc(docSnap.id).delete().catch(() => {});
-        }
-      });
-    }).catch(() => {});
-  }
+  db.collection('community_dinos').get().then(snap => {
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      const dUser = data.username || '';
+      const dUserId = data.userId || '';
+      const matchesUser = (dUserId === userId) || (username && username !== 'Trainer' && dUser.toLowerCase() === username.toLowerCase());
+      if (matchesUser && !localIds.has(docSnap.id)) {
+        console.log(`[DinoScript] 🧹 Purging deleted community dino "${data.name}" (${docSnap.id})`);
+        db.collection('community_dinos').doc(docSnap.id).delete().catch(() => {});
+      }
+    });
+  }).catch(() => {});
 }
 
 // ── Community Leaderboard ──────────────────────────────────────────────────
@@ -3885,63 +3889,46 @@ async function loadCommunityDinos() {
       const isMyDino = (currentUserId && dUserId === currentUserId) || 
                        (currentUsername && currentUsername !== 'Trainer' && dUser.toLowerCase() === currentUsername.toLowerCase());
 
-      let shouldPurge = false;
-
-      // Rule 1: Guest or default Trainer dinos that do NOT exist in current active local stable -> PURGE
+      // REQUIREMENT: Purge all guest dinos completely. Only registered users show up.
       if (isGuestDino) {
+        console.log(`[DinoScript] 🧹 Purging guest dino "${d.name}" (${d.id})`);
+        window._dinoFirestore.collection('community_dinos').doc(d.id).delete().catch(() => {});
+        continue;
+      }
+
+      // Check current user's dinosaurs against active local stable
+      if (isMyDino) {
         if (!localIds.has(d.id)) {
-          shouldPurge = true;
+          console.log(`[DinoScript] 🧹 Purging deleted user dino "${d.name}" (${d.id})`);
+          window._dinoFirestore.collection('community_dinos').doc(d.id).delete().catch(() => {});
+          continue;
         }
       }
-      // Rule 2: Current user dinos that do NOT exist in current active local stable -> PURGE
-      else if (isMyDino) {
-        if (!localIds.has(d.id)) {
-          shouldPurge = true;
-        }
-      }
-      // Rule 3: Other registered users -> check their Firestore cloud save file
-      else if (dUserId && !dUserId.startsWith('guest_')) {
+
+      // For registered users, verify user profile doc exists and enrich photoURL/username
+      if (dUserId && !dUserId.startsWith('guest_')) {
         try {
           const uSnap = await window._dinoFirestore.collection('users').doc(dUserId).get();
           if (!uSnap.exists) {
-            shouldPurge = true;
-          } else {
-            const uData = uSnap.data();
-            const updates = {};
-            if (uData.displayName && (d.username === 'Trainer' || !d.username)) {
-              d.username = uData.displayName;
-              updates.username = uData.displayName;
-            }
-            if (uData.photoURL && !d.userAvatar) {
-              d.userAvatar = uData.photoURL;
-              updates.userAvatar = uData.photoURL;
-            }
-            if (Object.keys(updates).length > 0) {
-              window._dinoFirestore.collection('community_dinos').doc(d.id).update(updates).catch(()=>{});
-            }
+            console.log(`[DinoScript] 🧹 Purging dino with no user account "${d.name}" (${d.id})`);
+            window._dinoFirestore.collection('community_dinos').doc(d.id).delete().catch(() => {});
+            continue;
+          }
 
-            const sSnap = await window._dinoFirestore.collection('users').doc(dUserId).collection('saves').doc('spelling_app').get();
-            if (sSnap.exists) {
-              const rawHybrids = sSnap.data().dino_hybrids;
-              if (rawHybrids) {
-                const list = typeof rawHybrids === 'string' ? JSON.parse(rawHybrids) : rawHybrids;
-                if (Array.isArray(list) && !list.some(h => h.id === d.id)) {
-                  shouldPurge = true;
-                }
-              } else {
-                shouldPurge = true;
-              }
-            } else {
-              shouldPurge = true;
-            }
+          const uData = uSnap.data();
+          const updates = {};
+          if (uData.displayName && (d.username === 'Trainer' || !d.username)) {
+            d.username = uData.displayName;
+            updates.username = uData.displayName;
+          }
+          if (uData.photoURL && !d.userAvatar) {
+            d.userAvatar = uData.photoURL;
+            updates.userAvatar = uData.photoURL;
+          }
+          if (Object.keys(updates).length > 0) {
+            window._dinoFirestore.collection('community_dinos').doc(d.id).update(updates).catch(() => {});
           }
         } catch(e) {}
-      }
-
-      if (shouldPurge) {
-        console.log(`[DinoScript Database Cleanup] 🧹 Purging stale dino "${d.name}" (${d.id}) [User: ${dUser}, UID: ${dUserId}]`);
-        window._dinoFirestore.collection('community_dinos').doc(d.id).delete().catch(() => {});
-        continue; // Exclude from active leaderboard view
       }
 
       activeVerifiedList.push(d);
