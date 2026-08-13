@@ -3543,9 +3543,53 @@ function renderStable() {
         <span>🛡️ ${h.stats.defense}</span>
         <span>⚡ ${h.stats.speed}</span>
       </div>
-      <div style="font-size:0.75rem;font-weight:800;color:var(--success);padding:6px;background:rgba(93,171,124,0.15);border-radius:8px;border:1px solid rgba(93,171,124,0.3);">🏆 Permanent Hybrid Trophy</div>
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        <button class="btn btn-secondary" onclick="renameHybrid('${h.id}')" style="flex:1;padding:6px 10px;font-size:0.78rem;border-radius:8px;font-weight:800;">
+          ✏️ Rename (10 🪙)
+        </button>
+        <button class="btn btn-secondary" onclick="deleteHybrid('${h.id}')" style="padding:6px 10px;font-size:0.78rem;border-radius:8px;color:#f87171;border-color:rgba(248,113,113,0.3);" title="Release Dinosaur">
+          🗑️
+        </button>
+      </div>
     </div>`;
   }).join('');
+}
+
+function renameHybrid(id) {
+  const RENAME_COST = 10;
+  const currentCoins = loadCoins();
+
+  if (currentCoins < RENAME_COST) {
+    alert(`❌ You need at least ${RENAME_COST} DNA coins to rename your dinosaur! Practice spelling or math to earn more coins.`);
+    return;
+  }
+
+  const hybrids = loadSavedHybrids();
+  const hybrid = hybrids.find(h => h.id === id);
+  if (!hybrid) return;
+
+  const newName = prompt(`Rename "${hybrid.name}" (Cost: ${RENAME_COST} DNA Coins):`, hybrid.name);
+  if (newName === null) return; // User cancelled
+  const trimmed = newName.trim();
+  if (!trimmed) {
+    alert('❌ Dinosaur name cannot be empty.');
+    return;
+  }
+
+  if (trimmed === hybrid.name) return; // Unchanged
+
+  // Deduct 10 coins & update hybrid name
+  addCoins(-RENAME_COST);
+  hybrid.name = trimmed;
+  saveHybrids(hybrids);
+
+  // Sync updated name to global community leaderboard
+  if (typeof publishToCommunity === 'function') {
+    publishToCommunity(hybrid);
+  }
+
+  renderStable();
+  spawnConfetti(20);
 }
 
 function deleteHybrid(id) {
