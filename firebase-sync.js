@@ -9,7 +9,8 @@ import {
     setDoc,
     getDoc,
     collection,
-    getDocs
+    getDocs,
+    deleteDoc
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 // ── localStorage key registry per game ID ──────────────────────────────────
@@ -232,32 +233,48 @@ export async function pushAllLocalSaves(uid) {
 // ── Live Online Presence ───────────────────────────────────────────────────
 /**
  * Update current user presence timestamp (active within last 5 minutes).
+ * Cleans up guest presence records when signing in.
  */
 export async function updatePresence(user) {
     try {
-        let uid = user?.uid || localStorage.getItem('arcade_guest_uid');
-        if (!uid) {
-            uid = 'guest_' + Math.random().toString(36).substring(2, 9);
-            localStorage.setItem('arcade_guest_uid', uid);
+        if (user) {
+            // Delete any guest session record left over for this device
+            const guestUid = localStorage.getItem('arcade_guest_uid');
+            if (guestUid) {
+                deleteDoc(doc(db, 'presence', guestUid)).catch(() => {});
+                localStorage.removeItem('arcade_guest_uid');
+            }
+
+            const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'Player');
+            const photoURL = user.photoURL || localStorage.getItem('arcade_avatar') || '';
+            const ref = doc(db, 'presence', user.uid);
+            await setDoc(ref, {
+                displayName: displayName,
+                photoURL: photoURL,
+                lastSeen: new Date().toISOString(),
+                isGuest: false
+            }, { merge: true });
+        } else {
+            let guestUid = localStorage.getItem('arcade_guest_uid');
+            if (!guestUid) {
+                guestUid = 'guest_' + Math.random().toString(36).substring(2, 9);
+                localStorage.setItem('arcade_guest_uid', guestUid);
+            }
+            const ref = doc(db, 'presence', guestUid);
+            await setDoc(ref, {
+                displayName: 'Guest Player',
+                photoURL: '',
+                lastSeen: new Date().toISOString(),
+                isGuest: true
+            }, { merge: true });
         }
-
-        const displayName = user?.displayName || (user?.email ? user.email.split('@')[0] : null) || localStorage.getItem('arcade_username') || 'Guest Player';
-        const photoURL = user?.photoURL || localStorage.getItem('arcade_avatar') || '';
-
-        const ref = doc(db, 'presence', uid);
-        await setDoc(ref, {
-            displayName: displayName,
-            photoURL: photoURL,
-            lastSeen: new Date().toISOString(),
-            isGuest: !user
-        }, { merge: true });
     } catch (e) {
         console.warn('[Presence] Update failed:', e.message);
     }
 }
 
 /**
- * Fetch list of players active in the last 5 minutes.
+ * Fetch list of players active in the last 5 minutes (deduplicated by identity).
  */
 export async function getOnlinePlayers() {
     try {
@@ -265,25 +282,38 @@ export async function getOnlinePlayers() {
         const snap = await getDocs(col);
         const now = Date.now();
         const FIVE_MINUTES_MS = 5 * 60 * 1000;
-        const online = [];
+        const playerMap = new Map();
 
         snap.forEach(docSnap => {
             const data = docSnap.data();
             if (data.lastSeen) {
                 const lastSeenTime = new Date(data.lastSeen).getTime();
                 if (now - lastSeenTime <= FIVE_MINUTES_MS) {
-                    online.push({
+                    const record = {
                         id: docSnap.id,
                         displayName: data.displayName || 'Guest Player',
                         photoURL: data.photoURL || '',
-                        isGuest: data.isGuest || false,
-                        lastSeen: data.lastSeen
-                    });
+                        isGuest: data.isGuest !== undefined ? data.isGuest : true,
+                        lastSeenTime: lastSeenTime
+                    };
+
+                    // For guests, use document ID as key. For signed-in users, deduplicate by display name.
+                    const key = record.isGuest ? record.id : record.displayName.toLowerCase();
+
+                    if (!playerMap.has(key)) {
+                        playerMap.set(key, record);
+                    } else {
+                        const existing = playerMap.get(key);
+                        // Registered account takes priority over guest; otherwise pick most recent lastSeen
+                        if ((!record.isGuest && existing.isGuest) || (record.lastSeenTime > existing.lastSeenTime)) {
+                            playerMap.set(key, record);
+                        }
+                    }
                 }
             }
         });
 
-        return online;
+        return Array.from(playerMap.values());
     } catch (e) {
         console.warn('[Presence] Fetch online players failed:', e.message);
         return [];
