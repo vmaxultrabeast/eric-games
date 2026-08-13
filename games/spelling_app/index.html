@@ -2533,12 +2533,21 @@ function generateMathPool(grade) {
       questionText = `${a} × ${b} = ?`;
       detailText = `Calculate ${a} × ${b}`;
     } else if (category === '3') {
-      // Grade 3: Multiplication tables up to 12x12
-      const a = Math.floor(Math.random() * 12) + 1;
-      const b = Math.floor(Math.random() * 12) + 1;
-      ans = a * b;
-      questionText = `${a} × ${b} = ?`;
-      detailText = `Calculate ${a} × ${b}`;
+      // Grade 3: Multiplication tables up to 12x12 & Easy Division with single digit result (1..9)
+      const isMult = Math.random() > 0.5;
+      if (isMult) {
+        const a = Math.floor(Math.random() * 12) + 1;
+        const b = Math.floor(Math.random() * 12) + 1;
+        ans = a * b;
+        questionText = `${a} × ${b} = ?`;
+        detailText = `Calculate ${a} × ${b}`;
+      } else {
+        ans = Math.floor(Math.random() * 9) + 1; // Single digit result 1..9
+        const b = Math.floor(Math.random() * 9) + 1;  // Divisor 1..9
+        const a = ans * b;                           // Dividend
+        questionText = `${a} ÷ ${b} = ?`;
+        detailText = `Calculate ${a} ÷ ${b}`;
+      }
     } else if (category === '4') {
       // Grade 4: Up to 20x20 multiplication tables
       const a = Math.floor(Math.random() * 10) + 11;
