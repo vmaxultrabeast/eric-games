@@ -172,8 +172,10 @@ export async function pullAllSaves(uid) {
         });
         // Pull user profile doc for avatar
         const uSnap = await getDoc(doc(db, 'users', uid));
-        if (uSnap.exists() && uSnap.data().photoURL) {
-            localStorage.setItem('arcade_avatar', uSnap.data().photoURL);
+        if (uSnap.exists()) {
+            const uData = uSnap.data();
+            if (uData.photoURL) localStorage.setItem('arcade_avatar', uData.photoURL);
+            if (uData.highResPhotoURL) localStorage.setItem('arcade_avatar_high', uData.highResPhotoURL);
         }
         console.log(`[Arcade Sync] ✅ Pulled all saves (${count} games)`);
     } catch (e) {
@@ -187,11 +189,13 @@ export async function saveUserProfile(user) {
     try {
         const displayName = user.displayName || user.email.split('@')[0];
         const photoURL = user.photoURL || localStorage.getItem('arcade_avatar') || '';
+        const highResPhotoURL = localStorage.getItem('arcade_avatar_high') || photoURL;
         const ref = doc(db, 'users', user.uid);
         await setDoc(ref, {
             displayName: displayName,
             email: user.email,
             photoURL: photoURL,
+            highResPhotoURL: highResPhotoURL,
             lastLogin: new Date().toISOString()
         }, { merge: true });
     } catch (e) {
@@ -252,14 +256,22 @@ export async function updatePresence(user) {
 
             const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'Player');
             let photoURL = user.photoURL || localStorage.getItem('arcade_avatar') || '';
+            let highResPhotoURL = localStorage.getItem('arcade_avatar_high') || photoURL;
 
             // If photoURL is not available in local session, fetch from Firestore users doc
-            if (!photoURL) {
+            if (!photoURL || !highResPhotoURL) {
                 try {
                     const userDoc = await getDoc(doc(db, 'users', user.uid));
-                    if (userDoc.exists() && userDoc.data().photoURL) {
-                        photoURL = userDoc.data().photoURL;
-                        localStorage.setItem('arcade_avatar', photoURL);
+                    if (userDoc.exists()) {
+                        const uData = userDoc.data();
+                        if (uData.photoURL && !photoURL) {
+                            photoURL = uData.photoURL;
+                            localStorage.setItem('arcade_avatar', photoURL);
+                        }
+                        if (uData.highResPhotoURL) {
+                            highResPhotoURL = uData.highResPhotoURL;
+                            localStorage.setItem('arcade_avatar_high', highResPhotoURL);
+                        }
                     }
                 } catch (err) {}
             }
@@ -268,6 +280,7 @@ export async function updatePresence(user) {
             await setDoc(ref, {
                 displayName: displayName,
                 photoURL: photoURL,
+                highResPhotoURL: highResPhotoURL || photoURL,
                 lastSeen: new Date().toISOString(),
                 isGuest: false
             }, { merge: true });
@@ -281,6 +294,7 @@ export async function updatePresence(user) {
             await setDoc(ref, {
                 displayName: 'Guest Player',
                 photoURL: '',
+                highResPhotoURL: '',
                 lastSeen: new Date().toISOString(),
                 isGuest: true
             }, { merge: true });
@@ -307,22 +321,28 @@ export async function getOnlinePlayers() {
                 const lastSeenTime = new Date(data.lastSeen).getTime();
                 if (now - lastSeenTime <= FIVE_MINUTES_MS) {
                     let photoURL = data.photoURL || '';
+                    let highResPhotoURL = data.highResPhotoURL || photoURL;
                     const isGuest = data.isGuest !== undefined ? data.isGuest : true;
 
                     // If registered user and photoURL is missing in presence record, look up profile
-                    if (!isGuest && !photoURL && docSnap.id && !docSnap.id.startsWith('guest_')) {
-                        try {
-                            const userDoc = await getDoc(doc(db, 'users', docSnap.id));
-                            if (userDoc.exists() && userDoc.data().photoURL) {
-                                photoURL = userDoc.data().photoURL;
-                            }
-                        } catch (err) {}
+                    if (!isGuest && docSnap.id && !docSnap.id.startsWith('guest_')) {
+                        if (!photoURL || !highResPhotoURL) {
+                            try {
+                                const userDoc = await getDoc(doc(db, 'users', docSnap.id));
+                                if (userDoc.exists()) {
+                                    const uData = userDoc.data();
+                                    if (uData.photoURL) photoURL = uData.photoURL;
+                                    if (uData.highResPhotoURL) highResPhotoURL = uData.highResPhotoURL;
+                                }
+                            } catch (err) {}
+                        }
                     }
 
                     const record = {
                         id: docSnap.id,
                         displayName: data.displayName || 'Guest Player',
                         photoURL: photoURL,
+                        highResPhotoURL: highResPhotoURL || photoURL,
                         isGuest: isGuest,
                         lastSeenTime: lastSeenTime
                     };

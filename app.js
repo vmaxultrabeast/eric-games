@@ -706,10 +706,12 @@ function initApp() {
         if (inspectPlayerChatBtnName) inspectPlayerChatBtnName.textContent = p.displayName;
 
         const initial = (p.displayName || 'P').charAt(0).toUpperCase();
+        const avatarUrl = p.highResPhotoURL || p.photoURL;
 
-        if (p.photoURL) {
+        if (avatarUrl) {
             if (inspectPlayerAvatarImg) {
-                inspectPlayerAvatarImg.src = p.photoURL;
+                inspectPlayerAvatarImg.src = avatarUrl;
+                inspectPlayerAvatarImg.setAttribute('data-highres', p.highResPhotoURL || avatarUrl);
                 inspectPlayerAvatarImg.style.display = 'block';
             }
             if (inspectPlayerAvatarInitial) inspectPlayerAvatarInitial.style.display = 'none';
@@ -797,7 +799,7 @@ function initApp() {
 
     if (inspectAvatarContainer) {
         inspectAvatarContainer.addEventListener('click', () => {
-            const photoUrl = (inspectPlayerAvatarImg && inspectPlayerAvatarImg.style.display !== 'none') ? inspectPlayerAvatarImg.src : null;
+            const photoUrl = (inspectPlayerAvatarImg && inspectPlayerAvatarImg.style.display !== 'none') ? (inspectPlayerAvatarImg.getAttribute('data-highres') || inspectPlayerAvatarImg.src) : null;
             const name = inspectPlayerName ? inspectPlayerName.textContent : 'Player';
             openAvatarLightbox(photoUrl, name);
         });
@@ -1351,44 +1353,71 @@ function initAuthModal() {
             reader.onload = (evt) => {
                 const img = new Image();
                 img.onload = async () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_SIZE = 128;
-                    let width = img.width;
-                    let height = img.height;
+                    // 1. Generate High-Res crisp image (max 640px @ 0.92 quality for full view & modal inspection)
+                    const canvasHigh = document.createElement('canvas');
+                    const MAX_HIGH = 640;
+                    let wHigh = img.width;
+                    let hHigh = img.height;
 
-                    if (width > height) {
-                        if (width > MAX_SIZE) {
-                            height = Math.round((height * MAX_SIZE) / width);
-                            width = MAX_SIZE;
+                    if (wHigh > hHigh) {
+                        if (wHigh > MAX_HIGH) {
+                            hHigh = Math.round((hHigh * MAX_HIGH) / wHigh);
+                            wHigh = MAX_HIGH;
                         }
                     } else {
-                        if (height > MAX_SIZE) {
-                            width = Math.round((width * MAX_SIZE) / height);
-                            height = MAX_SIZE;
+                        if (hHigh > MAX_HIGH) {
+                            wHigh = Math.round((wHigh * MAX_HIGH) / hHigh);
+                            hHigh = MAX_HIGH;
                         }
                     }
 
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
+                    canvasHigh.width = wHigh;
+                    canvasHigh.height = hHigh;
+                    const ctxHigh = canvasHigh.getContext('2d');
+                    ctxHigh.drawImage(img, 0, 0, wHigh, hHigh);
+                    const highResDataUrl = canvasHigh.toDataURL('image/jpeg', 0.92);
 
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                    // 2. Generate Low-Res thumbnail (max 128px @ 0.70 quality for list chips & chat)
+                    const canvasLow = document.createElement('canvas');
+                    const MAX_LOW = 128;
+                    let wLow = img.width;
+                    let hLow = img.height;
 
-                    localStorage.setItem('arcade_avatar', dataUrl);
+                    if (wLow > hLow) {
+                        if (wLow > MAX_LOW) {
+                            hLow = Math.round((hLow * MAX_LOW) / wLow);
+                            wLow = MAX_LOW;
+                        }
+                    } else {
+                        if (hLow > MAX_LOW) {
+                            wLow = Math.round((wLow * MAX_LOW) / hLow);
+                            hLow = MAX_LOW;
+                        }
+                    }
+
+                    canvasLow.width = wLow;
+                    canvasLow.height = hLow;
+                    const ctxLow = canvasLow.getContext('2d');
+                    ctxLow.drawImage(img, 0, 0, wLow, hLow);
+                    const lowResDataUrl = canvasLow.toDataURL('image/jpeg', 0.70);
+
+                    // Store both local versions
+                    localStorage.setItem('arcade_avatar', lowResDataUrl);
+                    localStorage.setItem('arcade_avatar_high', highResDataUrl);
 
                     const user = window._arcadeUser;
                     if (user) {
                         try {
-                            await updateProfile(user, { photoURL: dataUrl });
+                            await updateProfile(user, { photoURL: lowResDataUrl });
                             await saveUserProfile(user);
+                            await updatePresence(user);
                         } catch (err) {
                             console.warn('[Avatar Upload] Profile update error:', err.message);
                         }
                     }
 
                     const displayName = user ? (user.displayName || user.email.split('@')[0]) : 'Player';
-                    updateAvatarUI(dataUrl, displayName);
+                    updateAvatarUI(lowResDataUrl, displayName);
                 };
                 img.src = evt.target.result;
             };
