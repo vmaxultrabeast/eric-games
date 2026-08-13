@@ -1659,9 +1659,28 @@ footer {
 }
 
 .chat-chan-btn.active {
-    background: rgba(0, 245, 255, 0.2);
-    border-color: var(--neon-cyan);
-    color: var(--neon-cyan);
+    background: rgba(16, 185, 129, 0.25) !important;
+    border-color: #10b981 !important;
+    color: #34d399 !important;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.chat-chan-btn.has-unread-tab {
+    background: #ef4444 !important;
+    border-color: #f87171 !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.7);
+    animation: tabPulseRed 1.2s infinite alternate ease-in-out;
+}
+
+@keyframes tabPulseRed {
+    from {
+        box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+    }
+    to {
+        box-shadow: 0 0 18px rgba(239, 68, 68, 0.95);
+    }
 }
 
 .chat-tab-avatar-img {
@@ -1669,7 +1688,7 @@ footer {
     height: 18px;
     border-radius: 50%;
     object-fit: cover;
-    border: 1px solid var(--neon-cyan);
+    border: 1px solid currentColor;
     flex-shrink: 0;
 }
 

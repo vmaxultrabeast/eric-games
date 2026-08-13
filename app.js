@@ -897,8 +897,8 @@ function initApp() {
 
             html += `<button type="button" class="chat-chan-btn ${isActive ? 'active' : ''} ${isTabUnread ? 'has-unread-tab' : ''}" data-channel="${escapeHtml(name)}" style="display:inline-flex;align-items:center;gap:6px;">
                 ${avatarHtml}
-                <span>${escapeHtml(name)}</span> ${isTabUnread ? '🔴' : ''}
-                <span class="tab-close-btn" data-close="${escapeHtml(name)}" style="opacity:0.7;padding:0 2px;margin-left:2px;font-size:0.7rem;">✕</span>
+                <span>${escapeHtml(name)}</span>
+                <span class="tab-close-btn" data-close="${escapeHtml(name)}" style="opacity:0.8;padding:0 2px;margin-left:2px;font-size:0.75rem;">✕</span>
             </button>`;
         });
 
