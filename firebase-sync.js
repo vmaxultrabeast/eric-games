@@ -190,14 +190,18 @@ export async function saveUserProfile(user) {
         const displayName = user.displayName || user.email.split('@')[0];
         const photoURL = user.photoURL || localStorage.getItem('arcade_avatar') || '';
         const highResPhotoURL = localStorage.getItem('arcade_avatar_high') || photoURL;
-        const ref = doc(db, 'users', user.uid);
-        await setDoc(ref, {
+
+        const payload = {
             displayName: displayName,
             email: user.email,
-            photoURL: photoURL,
-            highResPhotoURL: highResPhotoURL,
             lastLogin: new Date().toISOString()
-        }, { merge: true });
+        };
+
+        if (photoURL) payload.photoURL = photoURL;
+        if (highResPhotoURL) payload.highResPhotoURL = highResPhotoURL;
+
+        const ref = doc(db, 'users', user.uid);
+        await setDoc(ref, payload, { merge: true });
     } catch (e) {
         console.warn('[Arcade Sync] ⚠️ Profile save failed:', e.message);
     }

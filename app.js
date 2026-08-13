@@ -1245,15 +1245,16 @@ function initAuthModal() {
             localStorage.setItem('arcade_username', displayName);
             localStorage.setItem('arcade_uid', user.uid);
 
-            // Sync user profile to Firestore
-            await saveUserProfile(user);
-
-            // Pull all saves into localStorage
+            // Pull all saves AND avatar profile doc from Firestore into localStorage FIRST
             await pullAllSaves(user.uid);
 
-            // Update avatar display
-            const photoUrl = user.photoURL || localStorage.getItem('arcade_avatar');
+            // Update avatar display with retrieved photoURL
+            const photoUrl = localStorage.getItem('arcade_avatar') || user.photoURL;
             updateAvatarUI(photoUrl, displayName);
+
+            // Sync user profile & presence to Firestore without overwriting valid photoURL
+            await saveUserProfile(user);
+            await updatePresence(user);
         } else {
             // Logged out — reset nav and wipe local game saves
             window._arcadeUser = null;
@@ -1264,6 +1265,7 @@ function initAuthModal() {
             localStorage.removeItem('arcade_username');
             localStorage.removeItem('arcade_uid');
             localStorage.removeItem('arcade_avatar');
+            localStorage.removeItem('arcade_avatar_high');
             updateAvatarUI(null, 'P');
 
             // Clear all game saves from localStorage so the next user starts clean
