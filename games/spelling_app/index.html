@@ -3531,6 +3531,7 @@ function fuseHybridDino() {
   hybrids.push(hybrid);
   saveHybrids(hybrids);
   publishToCommunity(hybrid); // submit to global leaderboard
+  syncCommunityWithLocalHybrids(); // remove any replaced/deleted dinos for this user
   spawnConfetti(35);
 
   showTab('stable');
@@ -3622,6 +3623,11 @@ function deleteHybrid(id) {
   let hybrids = loadSavedHybrids();
   hybrids = hybrids.filter(h => h.id !== id);
   saveHybrids(hybrids);
+
+  // Immediately remove from Firestore community leaderboard & purge stale records
+  deleteFromCommunity(id);
+  syncCommunityWithLocalHybrids();
+
   renderStable();
 }
 
@@ -3766,6 +3772,48 @@ function publishToCommunity(hybrid) {
     .catch(e  => console.warn('[DinoScript] Community publish failed:', e.message));
 }
 
+// ── Delete dinosaur from Firestore community leaderboard ──────────────────
+function deleteFromCommunity(hybridId) {
+  if (!window._dinoFirestore || !hybridId) return;
+  window._dinoFirestore.collection('community_dinos').doc(hybridId).delete()
+    .then(() => {
+      console.log(`[DinoScript] 🗑️ Hybrid ${hybridId} deleted from community leaderboard`);
+      if (typeof loadCommunityDinos === 'function') {
+        setTimeout(loadCommunityDinos, 300);
+      }
+    })
+    .catch(e => console.warn('[DinoScript] Community delete failed:', e.message));
+}
+
+// ── Sync user's active local hybrids with Firestore community ────────────
+function syncCommunityWithLocalHybrids() {
+  if (!window._dinoFirestore) return;
+
+  const db = window._dinoFirestore;
+  const user = getArcadeUser();
+  const userId = user.uid;
+  const username = user.username;
+  const localHybrids = loadSavedHybrids();
+  const localIds = new Set(localHybrids.map(h => h.id));
+
+  // 1. Publish all current local hybrids
+  localHybrids.forEach(h => publishToCommunity(h));
+
+  // 2. Remove any old community dinosaurs for this user that no longer exist in local Stable
+  if (userId || (username && username !== 'Trainer')) {
+    db.collection('community_dinos').get().then(snap => {
+      snap.forEach(docSnap => {
+        const data = docSnap.data();
+        const matchesUser = (userId && data.userId === userId) || (username && username !== 'Trainer' && data.username === username);
+        if (matchesUser && !localIds.has(docSnap.id)) {
+          console.log(`[DinoScript] 🧹 Purging deleted community dino "${data.name}" (${docSnap.id})`);
+          db.collection('community_dinos').doc(docSnap.id).delete().catch(() => {});
+        }
+      });
+    }).catch(() => {});
+  }
+}
+
 // ── Community Leaderboard ──────────────────────────────────────────────────
 let _communityData = [];
 let _communitySort = 'strength';
@@ -3785,8 +3833,7 @@ async function loadCommunityDinos() {
   // Sync existing local hybrids to community leaderboard if logged in
   if (user.uid) {
     try {
-      const hybrids = loadSavedHybrids();
-      hybrids.forEach(h => publishToCommunity(h));
+      syncCommunityWithLocalHybrids();
     } catch(e) {}
   }
 
