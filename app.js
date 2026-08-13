@@ -663,6 +663,8 @@ function initApp() {
             return;
         }
 
+        window._onlinePlayersCache = online;
+
         onlinePlayersList.innerHTML = online.map(p => {
             const initial = (p.displayName || 'P').charAt(0).toUpperCase();
             const avatarInner = p.photoURL
@@ -672,7 +674,7 @@ function initApp() {
 
             const guestTag = p.isGuest ? ' <span style="font-size:0.7rem;color:var(--text-muted);">(Guest)</span>' : '';
 
-            return `<div class="online-player-chip" onclick="initiateDirectChat('${escapeHtml(p.displayName)}')" style="cursor:pointer;" title="Click to chat with ${escapeHtml(p.displayName)}">
+            return `<div class="online-player-chip" onclick="window.inspectPlayerByName('${escapeHtml(p.displayName)}')" style="cursor:pointer;" title="Click to view ${escapeHtml(p.displayName)} profile">
                 <div class="online-chip-avatar">
                     ${avatarInner}
                     <span class="online-chip-dot"></span>
@@ -683,6 +685,72 @@ function initApp() {
     }
 
     window.renderOnlinePlayersWidget = renderOnlinePlayersWidget;
+
+    // ── Player Profile Inspector Modal ───────────────────────────────────────
+    const playerProfileModal         = document.getElementById('playerProfileModal');
+    const playerProfileModalClose    = document.getElementById('playerProfileModalClose');
+    const inspectPlayerName          = document.getElementById('inspectPlayerName');
+    const inspectPlayerBadge         = document.getElementById('inspectPlayerBadge');
+    const inspectPlayerType          = document.getElementById('inspectPlayerType');
+    const inspectPlayerAvatarImg     = document.getElementById('inspectPlayerAvatarImg');
+    const inspectPlayerAvatarInitial = document.getElementById('inspectPlayerAvatarInitial');
+    const inspectPlayerChatBtn       = document.getElementById('inspectPlayerChatBtn');
+    const inspectPlayerChatBtnName   = document.getElementById('inspectPlayerChatBtnName');
+
+    function openPlayerProfileModal(p) {
+        if (!playerProfileModal) return;
+
+        if (inspectPlayerName) inspectPlayerName.textContent = p.displayName;
+        if (inspectPlayerBadge) inspectPlayerBadge.textContent = p.isGuest ? 'Guest Player 🕹️' : 'Registered Player 🏆';
+        if (inspectPlayerType) inspectPlayerType.textContent = p.isGuest ? 'Guest Session' : 'Verified Account';
+        if (inspectPlayerChatBtnName) inspectPlayerChatBtnName.textContent = p.displayName;
+
+        const initial = (p.displayName || 'P').charAt(0).toUpperCase();
+
+        if (p.photoURL) {
+            if (inspectPlayerAvatarImg) {
+                inspectPlayerAvatarImg.src = p.photoURL;
+                inspectPlayerAvatarImg.style.display = 'block';
+            }
+            if (inspectPlayerAvatarInitial) inspectPlayerAvatarInitial.style.display = 'none';
+        } else {
+            if (inspectPlayerAvatarInitial) {
+                inspectPlayerAvatarInitial.textContent = initial;
+                inspectPlayerAvatarInitial.style.display = 'flex';
+            }
+            if (inspectPlayerAvatarImg) inspectPlayerAvatarImg.style.display = 'none';
+        }
+
+        if (inspectPlayerChatBtn) {
+            inspectPlayerChatBtn.onclick = () => {
+                closePlayerProfileModal();
+                window.initiateDirectChat(p.displayName);
+            };
+        }
+
+        playerProfileModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closePlayerProfileModal() {
+        if (playerProfileModal) {
+            playerProfileModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    if (playerProfileModalClose) playerProfileModalClose.addEventListener('click', closePlayerProfileModal);
+    if (playerProfileModal) {
+        playerProfileModal.addEventListener('click', (e) => {
+            if (e.target === playerProfileModal) closePlayerProfileModal();
+        });
+    }
+
+    window.openPlayerProfileModal = openPlayerProfileModal;
+    window.inspectPlayerByName = function(name) {
+        const p = (window._onlinePlayersCache || []).find(player => player.displayName === name) || { displayName: name, isGuest: false };
+        openPlayerProfileModal(p);
+    };
 
     setInterval(() => updatePresence(window._arcadeUser), 40000);
     setInterval(() => renderOnlinePlayersWidget(), 15000);

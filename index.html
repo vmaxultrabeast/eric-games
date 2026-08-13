@@ -304,6 +304,40 @@
         </div>
     </div>
 
+    <!-- Player Profile Inspector Modal -->
+    <div class="auth-modal-overlay" id="playerProfileModal">
+        <div class="auth-modal" style="max-width:380px;text-align:center;">
+            <button class="auth-modal-close" id="playerProfileModalClose" aria-label="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <!-- Large Avatar -->
+            <div style="position:relative;width:86px;height:86px;margin:0.5rem auto 1rem;">
+                <span class="nav-user-avatar" id="inspectPlayerAvatarInitial" style="width:86px;height:86px;font-size:2.4rem;display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 0 20px rgba(0,245,255,0.2);">P</span>
+                <img id="inspectPlayerAvatarImg" style="display:none;width:86px;height:86px;border-radius:50%;object-fit:cover;border:3px solid var(--neon-cyan);box-shadow:0 0 20px var(--neon-cyan-glow);" alt="Player Avatar">
+                <div style="position:absolute;bottom:2px;right:2px;background:#34d399;width:16px;height:16px;border-radius:50%;border:3px solid #0e101c;box-shadow:0 0 8px #34d399;" title="Online Now"></div>
+            </div>
+
+            <h3 id="inspectPlayerName" style="font-family:var(--font-logo);font-size:1.35rem;color:#fff;margin-bottom:4px;">Player Name</h3>
+            <span class="online-badge" id="inspectPlayerBadge" style="display:inline-block;margin-bottom:1.25rem;">Registered Player</span>
+
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;margin-bottom:1.5rem;text-align:left;font-size:0.85rem;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;color:var(--text-muted);">
+                    <span>Status:</span>
+                    <strong style="color:#34d399;">🟢 Online Now</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;color:var(--text-muted);">
+                    <span>Membership:</span>
+                    <strong id="inspectPlayerType" style="color:var(--neon-cyan);">Registered Account</strong>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-primary" id="inspectPlayerChatBtn" style="width:100%;justify-content:center;padding:12px;font-size:0.92rem;border-radius:10px;">
+                <i class="fa-solid fa-comments"></i> Chat with <span id="inspectPlayerChatBtnName">Player</span>
+            </button>
+        </div>
+    </div>
+
     <!-- Floating Live Arcade Chat Popup (Bottom Right) -->
     <div class="chat-widget" id="chatWidget">
         <!-- Collapsed Floating Launcher Button -->
@@ -349,6 +383,6 @@
     </div>
 
     <!-- Main Logic Script (ES Module) -->
-    <script type="module" src="app.js?v=1.3.5"></script>
+    <script type="module" src="app.js?v=1.4.0"></script>
 </body>
 </html>
