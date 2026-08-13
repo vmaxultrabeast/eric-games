@@ -163,6 +163,11 @@ export async function pullAllSaves(uid) {
             });
             count++;
         });
+        // Pull user profile doc for avatar
+        const uSnap = await getDoc(doc(db, 'users', uid));
+        if (uSnap.exists() && uSnap.data().photoURL) {
+            localStorage.setItem('arcade_avatar', uSnap.data().photoURL);
+        }
         console.log(`[Arcade Sync] ✅ Pulled all saves (${count} games)`);
     } catch (e) {
         console.warn('[Arcade Sync] ⚠️ Pull all failed:', e.message);
@@ -174,10 +179,12 @@ export async function saveUserProfile(user) {
     if (!user) return;
     try {
         const displayName = user.displayName || user.email.split('@')[0];
+        const photoURL = user.photoURL || localStorage.getItem('arcade_avatar') || '';
         const ref = doc(db, 'users', user.uid);
         await setDoc(ref, {
             displayName: displayName,
             email: user.email,
+            photoURL: photoURL,
             lastLogin: new Date().toISOString()
         }, { merge: true });
     } catch (e) {

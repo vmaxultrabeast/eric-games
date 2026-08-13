@@ -1,7 +1,7 @@
 // ==========================================================================
 // Firebase — Auth & Sync Imports
 // ==========================================================================
-import { onAuthChange, signInWithEmail, signUpWithEmail, signOutUser, getFriendlyError } from './firebase-auth.js';
+import { onAuthChange, signInWithEmail, signUpWithEmail, signOutUser, getFriendlyError, updateProfile } from './firebase-auth.js';
 import { pullAllSaves, pullGameSave, pushGameSave, pushAllLocalSaves, saveUserProfile, GAME_SAVE_KEYS } from './firebase-sync.js';
 
 // ==========================================================================
@@ -801,6 +801,10 @@ function initAuthModal() {
 
             // Pull all saves into localStorage
             await pullAllSaves(user.uid);
+
+            // Update avatar display
+            const photoUrl = user.photoURL || localStorage.getItem('arcade_avatar');
+            updateAvatarUI(photoUrl, displayName);
         } else {
             // Logged out — reset nav and wipe local game saves
             window._arcadeUser = null;
@@ -810,11 +814,115 @@ function initAuthModal() {
             // Clear identity keys used by iframed games
             localStorage.removeItem('arcade_username');
             localStorage.removeItem('arcade_uid');
+            localStorage.removeItem('arcade_avatar');
+            updateAvatarUI(null, 'P');
 
             // Clear all game saves from localStorage so the next user starts clean
             Object.values(GAME_SAVE_KEYS).flat().forEach(key => localStorage.removeItem(key));
         }
     });
+
+    // ── Custom Avatar Upload Handler ─────────────────────────────────────────
+    const avatarFileInput         = document.getElementById('avatarFileInput');
+    const avatarChipWrapper       = document.getElementById('avatarChipWrapper');
+    const dropdownAvatarContainer = document.getElementById('dropdownAvatarContainer');
+    const uploadAvatarBtn         = document.getElementById('uploadAvatarBtn');
+    const navUserAvatar           = document.getElementById('navUserAvatar');
+    const navUserAvatarImg        = document.getElementById('navUserAvatarImg');
+    const dropdownAvatarLarge     = document.getElementById('dropdownAvatarLarge');
+    const dropdownAvatarImgLarge  = document.getElementById('dropdownAvatarImgLarge');
+
+    function triggerAvatarSelect(e) {
+        e.stopPropagation();
+        if (avatarFileInput) avatarFileInput.click();
+    }
+
+    if (avatarChipWrapper) avatarChipWrapper.addEventListener('click', triggerAvatarSelect);
+    if (dropdownAvatarContainer) dropdownAvatarContainer.addEventListener('click', triggerAvatarSelect);
+    if (uploadAvatarBtn) uploadAvatarBtn.addEventListener('click', triggerAvatarSelect);
+
+    if (avatarFileInput) {
+        avatarFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const img = new Image();
+                img.onload = async () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_SIZE = 128;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_SIZE) {
+                            height = Math.round((height * MAX_SIZE) / width);
+                            width = MAX_SIZE;
+                        }
+                    } else {
+                        if (height > MAX_SIZE) {
+                            width = Math.round((width * MAX_SIZE) / height);
+                            height = MAX_SIZE;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+                    localStorage.setItem('arcade_avatar', dataUrl);
+
+                    const user = window._arcadeUser;
+                    if (user) {
+                        try {
+                            await updateProfile(user, { photoURL: dataUrl });
+                            await saveUserProfile(user);
+                        } catch (err) {
+                            console.warn('[Avatar Upload] Profile update error:', err.message);
+                        }
+                    }
+
+                    const displayName = user ? (user.displayName || user.email.split('@')[0]) : 'Player';
+                    updateAvatarUI(dataUrl, displayName);
+                };
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function updateAvatarUI(photoUrl, displayName) {
+        const initial = (displayName || 'P').charAt(0).toUpperCase();
+        if (photoUrl) {
+            if (navUserAvatarImg) {
+                navUserAvatarImg.src = photoUrl;
+                navUserAvatarImg.style.display = 'block';
+            }
+            if (navUserAvatar) navUserAvatar.style.display = 'none';
+
+            if (dropdownAvatarImgLarge) {
+                dropdownAvatarImgLarge.src = photoUrl;
+                dropdownAvatarImgLarge.style.display = 'block';
+            }
+            if (dropdownAvatarLarge) dropdownAvatarLarge.style.display = 'none';
+        } else {
+            if (navUserAvatarImg) navUserAvatarImg.style.display = 'none';
+            if (navUserAvatar) {
+                navUserAvatar.textContent = initial;
+                navUserAvatar.style.display = 'flex';
+            }
+
+            if (dropdownAvatarImgLarge) dropdownAvatarImgLarge.style.display = 'none';
+            if (dropdownAvatarLarge) {
+                dropdownAvatarLarge.textContent = initial;
+                dropdownAvatarLarge.style.display = 'flex';
+            }
+        }
+    }
 }
 
 

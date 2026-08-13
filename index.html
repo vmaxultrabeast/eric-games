@@ -38,10 +38,23 @@
                         <i class="fa-solid fa-user"></i> Login
                     </button>
                     <div class="nav-user-chip" id="navUserChip" style="display:none;">
-                        <span class="nav-user-avatar" id="navUserAvatar">E</span>
+                        <div class="avatar-chip-wrapper" id="avatarChipWrapper" title="Click to change avatar">
+                            <span class="nav-user-avatar" id="navUserAvatar">P</span>
+                            <img class="nav-user-avatar-img" id="navUserAvatarImg" style="display:none;" alt="Avatar">
+                        </div>
                         <span class="nav-user-name" id="navUserName">Player</span>
                         <div class="nav-user-dropdown" id="navUserDropdown">
-                            <div class="dropdown-email" id="dropdownEmail"></div>
+                            <div class="dropdown-profile-header">
+                                <div class="dropdown-avatar-container" id="dropdownAvatarContainer" title="Click to upload avatar">
+                                    <span class="nav-user-avatar large-avatar" id="dropdownAvatarLarge">P</span>
+                                    <img id="dropdownAvatarImgLarge" class="large-avatar-img" style="display:none;" alt="Avatar">
+                                    <div class="avatar-camera-badge"><i class="fa-solid fa-camera"></i></div>
+                                </div>
+                                <div class="dropdown-email" id="dropdownEmail"></div>
+                                <button type="button" class="upload-avatar-btn" id="uploadAvatarBtn">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload Avatar
+                                </button>
+                            </div>
                             <button class="dropdown-signout-btn" id="dropdownSignOutBtn">
                                 <i class="fa-solid fa-right-from-bracket"></i> Sign Out
                             </button>
@@ -51,6 +64,9 @@
             </nav>
         </div>
     </header>
+
+    <!-- Hidden file input for custom avatar upload -->
+    <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
 
     <!-- Hero Section -->
     <section class="hero">
@@ -235,6 +251,6 @@
     </div>
 
     <!-- Main Logic Script (ES Module) -->
-    <script type="module" src="app.js?v=1.0.8"></script>
+    <script type="module" src="app.js?v=1.0.9"></script>
 </body>
 </html>
