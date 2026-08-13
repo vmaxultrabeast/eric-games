@@ -811,6 +811,21 @@ function initApp() {
         const myName = getMyDisplayName();
         const currentUserId = window._arcadeUser?.uid || localStorage.getItem('arcade_guest_uid');
 
+        // Automatically open private tab if an incoming private message is addressed to current user
+        let newPrivateTabAdded = false;
+        cachedAllMessages.forEach(msg => {
+            if (msg.recipientName && msg.recipientName.toLowerCase() === myName.toLowerCase() && msg.senderName && msg.senderName.toLowerCase() !== myName.toLowerCase()) {
+                if (!openPrivateTabs.has(msg.senderName)) {
+                    openPrivateTabs.add(msg.senderName);
+                    newPrivateTabAdded = true;
+                }
+            }
+        });
+
+        if (newPrivateTabAdded) {
+            renderChannelsBar();
+        }
+
         // Filter messages for current active channel / private room
         let filtered = [];
         if (activeChannel === 'global') {
