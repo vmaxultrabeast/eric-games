@@ -2533,9 +2533,9 @@ function generateMathPool(grade) {
       questionText = `${a} × ${b} = ?`;
       detailText = `Calculate ${a} × ${b}`;
     } else if (category === '3') {
-      // Grade 3: Up to 15x15 multiplication tables
-      const a = Math.floor(Math.random() * 10) + 6;
-      const b = Math.floor(Math.random() * 15) + 1;
+      // Grade 3: Multiplication tables up to 12x12
+      const a = Math.floor(Math.random() * 12) + 1;
+      const b = Math.floor(Math.random() * 12) + 1;
       ans = a * b;
       questionText = `${a} × ${b} = ?`;
       detailText = `Calculate ${a} × ${b}`;
