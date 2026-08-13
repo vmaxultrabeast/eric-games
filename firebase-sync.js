@@ -10,7 +10,12 @@ import {
     getDoc,
     collection,
     getDocs,
-    deleteDoc
+    deleteDoc,
+    addDoc,
+    onSnapshot,
+    query,
+    orderBy,
+    limit
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 // ── localStorage key registry per game ID ──────────────────────────────────
@@ -317,5 +322,57 @@ export async function getOnlinePlayers() {
     } catch (e) {
         console.warn('[Presence] Fetch online players failed:', e.message);
         return [];
+    }
+}
+
+// ── Real-time Arcade Chat ──────────────────────────────────────────────────
+/**
+ * Send a chat message to Firestore.
+ */
+export async function sendChatMessage(text, recipient = null) {
+    if (!text || !text.trim()) return;
+
+    try {
+        const u = auth.currentUser;
+        const senderName = u?.displayName || (u?.email ? u.email.split('@')[0] : null) || localStorage.getItem('arcade_username') || 'Guest Player';
+        const senderAvatar = u?.photoURL || localStorage.getItem('arcade_avatar') || '';
+        const senderId = u?.uid || localStorage.getItem('arcade_guest_uid') || 'guest';
+
+        const col = collection(db, 'chat_messages');
+        await addDoc(col, {
+            senderId: senderId,
+            senderName: senderName,
+            senderAvatar: senderAvatar,
+            recipientId: recipient?.id || 'global',
+            recipientName: recipient?.displayName || null,
+            text: text.trim(),
+            timestamp: new Date().toISOString()
+        });
+    } catch (e) {
+        console.warn('[Chat] Send failed:', e.message);
+    }
+}
+
+/**
+ * Subscribe to real-time chat messages.
+ */
+export function subscribeToChatMessages(callback) {
+    try {
+        const col = collection(db, 'chat_messages');
+        const q = query(col, orderBy('timestamp', 'desc'), limit(50));
+        
+        return onSnapshot(q, (snapshot) => {
+            const messages = [];
+            snapshot.forEach(docSnap => {
+                messages.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            messages.reverse();
+            callback(messages);
+        }, (error) => {
+            console.warn('[Chat] Real-time listener error:', error.message);
+        });
+    } catch (e) {
+        console.warn('[Chat] Subscription failed:', e.message);
+        return () => {};
     }
 }

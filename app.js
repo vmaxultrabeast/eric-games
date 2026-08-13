@@ -2,7 +2,7 @@
 // Firebase — Auth & Sync Imports
 // ==========================================================================
 import { onAuthChange, signInWithEmail, signUpWithEmail, signOutUser, getFriendlyError, updateProfile, updateUserEmail } from './firebase-auth.js';
-import { pullAllSaves, pullGameSave, pushGameSave, pushAllLocalSaves, saveUserProfile, updatePresence, getOnlinePlayers, GAME_SAVE_KEYS } from './firebase-sync.js';
+import { pullAllSaves, pullGameSave, pushGameSave, pushAllLocalSaves, saveUserProfile, updatePresence, getOnlinePlayers, sendChatMessage, subscribeToChatMessages, GAME_SAVE_KEYS } from './firebase-sync.js';
 
 // ==========================================================================
 // Games Registry (Metadata)
@@ -670,7 +670,7 @@ function initApp() {
                 : `<div class="online-chip-avatar">${initial}<span class="online-chip-dot"></span></div>`;
             const guestTag = p.isGuest ? ' <span style="font-size:0.7rem;color:var(--text-muted);">(Guest)</span>' : '';
 
-            return `<div class="online-player-chip" title="Active within last 5 minutes">
+            return `<div class="online-player-chip" onclick="initiateDirectChat('${p.displayName}')" style="cursor:pointer;" title="Click to chat with ${p.displayName}">
                 ${avatarHtml}
                 <span>${p.displayName}${guestTag}</span>
             </div>`;
@@ -681,6 +681,154 @@ function initApp() {
 
     setInterval(() => updatePresence(window._arcadeUser), 40000);
     setInterval(() => renderOnlinePlayersWidget(), 15000);
+
+    // ── Live Arcade Chat Logic ───────────────────────────────────────────────
+    const chatLauncher    = document.getElementById('chatLauncher');
+    const chatBox         = document.getElementById('chatBox');
+    const chatMinimizeBtn = document.getElementById('chatMinimizeBtn');
+    const chatMessages    = document.getElementById('chatMessages');
+    const chatForm        = document.getElementById('chatForm');
+    const chatInput       = document.getElementById('chatInput');
+    const chatUnreadBadge = document.getElementById('chatUnreadBadge');
+    const chatTargetName  = document.getElementById('chatTargetName');
+    const chanGlobalBtn   = document.getElementById('chanGlobalBtn');
+    const chanDirectBtn   = document.getElementById('chanDirectBtn');
+
+    let isChatOpen = false;
+    let unreadCount = 0;
+    let activeRecipient = null; // null = global
+
+    function toggleChat(open) {
+        isChatOpen = (open !== undefined) ? open : !isChatOpen;
+        if (isChatOpen) {
+            chatLauncher.classList.add('hidden');
+            chatBox.classList.remove('hidden');
+            unreadCount = 0;
+            if (chatUnreadBadge) {
+                chatUnreadBadge.textContent = '0';
+                chatUnreadBadge.classList.add('hidden');
+            }
+            if (chatInput) chatInput.focus();
+            scrollChatToBottom();
+        } else {
+            chatBox.classList.add('hidden');
+            chatLauncher.classList.remove('hidden');
+        }
+    }
+
+    if (chatLauncher) chatLauncher.addEventListener('click', () => toggleChat(true));
+    if (chatMinimizeBtn) chatMinimizeBtn.addEventListener('click', () => toggleChat(false));
+
+    window.initiateDirectChat = function(targetName) {
+        if (!targetName) return;
+        toggleChat(true);
+        activeRecipient = targetName;
+        if (chatTargetName) chatTargetName.textContent = `@${targetName}`;
+        if (chanDirectBtn) {
+            chanDirectBtn.textContent = `👤 @${targetName}`;
+            chanDirectBtn.classList.remove('hidden');
+            chanDirectBtn.classList.add('active');
+        }
+        if (chanGlobalBtn) chanGlobalBtn.classList.remove('active');
+        if (chatInput) {
+            chatInput.value = `@${targetName} `;
+            chatInput.focus();
+        }
+    };
+
+    if (chanGlobalBtn) {
+        chanGlobalBtn.addEventListener('click', () => {
+            activeRecipient = null;
+            if (chatTargetName) chatTargetName.textContent = 'Global Lounge';
+            chanGlobalBtn.classList.add('active');
+            if (chanDirectBtn) chanDirectBtn.classList.remove('active');
+            if (chatInput) chatInput.value = '';
+        });
+    }
+
+    if (chanDirectBtn) {
+        chanDirectBtn.addEventListener('click', () => {
+            if (activeRecipient) {
+                if (chatTargetName) chatTargetName.textContent = `@${activeRecipient}`;
+                chanDirectBtn.classList.add('active');
+                if (chanGlobalBtn) chanGlobalBtn.classList.remove('active');
+            }
+        });
+    }
+
+    function formatTime(isoStr) {
+        if (!isoStr) return '';
+        const d = new Date(isoStr);
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function scrollChatToBottom() {
+        if (chatMessages) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
+
+    function renderChatMessages(messages) {
+        if (!chatMessages) return;
+        const currentUserId = window._arcadeUser?.uid || localStorage.getItem('arcade_guest_uid');
+
+        if (messages.length === 0) {
+            chatMessages.innerHTML = `<div class="chat-loading">No messages yet. Say hello! 👋</div>`;
+            return;
+        }
+
+        chatMessages.innerHTML = messages.map(msg => {
+            const isMine = (currentUserId && msg.senderId === currentUserId) || 
+                           (msg.senderName === (window._arcadeUser?.displayName || localStorage.getItem('arcade_username')));
+            const rowClass = isMine ? 'chat-msg-row mine' : 'chat-msg-row';
+            const initial = (msg.senderName || 'P').charAt(0).toUpperCase();
+
+            const avatarHtml = msg.senderAvatar
+                ? `<img src="${msg.senderAvatar}" class="chat-msg-avatar-img" alt="Avatar">`
+                : `<div class="chat-msg-avatar">${initial}</div>`;
+
+            const timeStr = formatTime(msg.timestamp);
+
+            return `<div class="${rowClass}">
+                ${avatarHtml}
+                <div class="chat-msg-bubble">
+                    <div class="chat-msg-author">
+                        <span>${msg.senderName}</span>
+                        <span class="chat-msg-time">${timeStr}</span>
+                    </div>
+                    <div class="chat-msg-text">${escapeHtml(msg.text)}</div>
+                </div>
+            </div>`;
+        }).join('');
+
+        scrollChatToBottom();
+
+        if (!isChatOpen && messages.length > 0) {
+            unreadCount++;
+            if (chatUnreadBadge) {
+                chatUnreadBadge.textContent = unreadCount;
+                chatUnreadBadge.classList.remove('hidden');
+            }
+        }
+    }
+
+    function escapeHtml(str) {
+        return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    if (chatForm) {
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            chatInput.value = '';
+            await sendChatMessage(text, activeRecipient ? { displayName: activeRecipient } : null);
+        });
+    }
+
+    // Subscribe to Firestore real-time chat updates
+    subscribeToChatMessages(renderChatMessages);
 
     initAuthModal();
 }

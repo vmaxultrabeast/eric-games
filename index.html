@@ -302,10 +302,51 @@
                     </button>
                 </form>
             </div>
+    <!-- Floating Live Arcade Chat Popup (Bottom Right) -->
+    <div class="chat-widget" id="chatWidget">
+        <!-- Collapsed Floating Launcher Button -->
+        <button class="chat-launcher" id="chatLauncher" title="Open Arcade Live Chat">
+            <span class="chat-pulse-dot"></span>
+            <i class="fa-solid fa-comments"></i>
+            <span class="chat-launcher-title">Arcade Chat</span>
+            <span class="chat-unread-badge hidden" id="chatUnreadBadge">0</span>
+        </button>
+
+        <!-- Expanded Chat Box -->
+        <div class="chat-box hidden" id="chatBox">
+            <div class="chat-header">
+                <div class="chat-header-title" id="chatHeaderTitle">
+                    <span class="chat-pulse-dot"></span>
+                    <i class="fa-solid fa-earth-americas" id="chatChannelIcon"></i>
+                    <span id="chatTargetName">Global Lounge</span>
+                </div>
+                <div class="chat-header-actions">
+                    <button class="chat-hdr-btn" id="chatMinimizeBtn" title="Minimize Chat"><i class="fa-solid fa-minus"></i></button>
+                </div>
+            </div>
+
+            <!-- Chat Channel Bar -->
+            <div class="chat-channels">
+                <button class="chat-chan-btn active" id="chanGlobalBtn">🌍 Global</button>
+                <button class="chat-chan-btn hidden" id="chanDirectBtn">👤 Direct</button>
+            </div>
+
+            <!-- Messages Container -->
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Connecting to live chat...</div>
+            </div>
+
+            <!-- Input Form Bar -->
+            <form class="chat-input-bar" id="chatForm">
+                <input type="text" id="chatInput" placeholder="Type a message..." maxlength="250" autocomplete="off" required>
+                <button type="submit" id="chatSendBtn" title="Send Message">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
         </div>
     </div>
 
     <!-- Main Logic Script (ES Module) -->
-    <script type="module" src="app.js?v=1.2.3"></script>
+    <script type="module" src="app.js?v=1.3.0"></script>
 </body>
 </html>
