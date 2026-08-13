@@ -3,7 +3,7 @@
 // Syncs game localStorage saves ↔ Firestore per authenticated user.
 // Zero changes required in individual game files.
 // ==========================================================================
-import { db } from './firebase-config.js';
+import { auth, db } from './firebase-config.js';
 import {
     doc,
     setDoc,
@@ -70,7 +70,8 @@ export async function pushGameSave(uid, gameId) {
         // Auto-publish hybrids to global community leaderboard if saving DinoScript Lab
         if (gameId === 'spelling_app' && saveData['dinoscript_hybrids']) {
             try {
-                const username = localStorage.getItem('arcade_username') || 'Trainer';
+                const u = auth.currentUser;
+                const username = u?.displayName || (u?.email ? u.email.split('@')[0] : null) || localStorage.getItem('arcade_username') || 'Trainer';
                 const hybrids = JSON.parse(saveData['dinoscript_hybrids']);
                 for (const h of hybrids) {
                     const totalStrength = (h.stats?.power || 0) + (h.stats?.defense || 0) + (h.stats?.speed || 0);
