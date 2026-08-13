@@ -2824,8 +2824,25 @@ function loadSavedHybrids() {
 }
 
 function saveHybrids(hybrids) {
-  localStorage.setItem('dinoscript_hybrids', JSON.stringify(hybrids));
+  const jsonStr = JSON.stringify(hybrids);
+  localStorage.setItem('dinoscript_hybrids', jsonStr);
   updateStableBadge();
+
+  // Immediately push updated stable & Gen-2 hybrids to Firestore cloud save
+  if (window._dinoFirestore) {
+    const user = getArcadeUser();
+    if (user && user.uid) {
+      try {
+        window._dinoFirestore.collection('users').doc(user.uid).collection('saves').doc('spelling_app').set({
+          dinoscript_hybrids: jsonStr,
+          dinoscript_owned_parts: localStorage.getItem('dinoscript_owned_parts') || '[]',
+          dinoscript_coins: localStorage.getItem('dinoscript_coins') || '0'
+        }, { merge: true })
+        .then(() => console.log('[DinoScript] ☁️ Stable & Gen-2 hybrids saved to Firestore cloud'))
+        .catch(e => console.warn('[DinoScript] Cloud save stable failed:', e.message));
+      } catch(e) {}
+    }
+  }
 }
 
 function updateStableBadge() {

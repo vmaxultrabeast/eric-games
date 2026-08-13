@@ -166,6 +166,23 @@ export async function pullAllSaves(uid) {
         snap.forEach(docSnap => {
             const data = docSnap.data();
             Object.entries(data).forEach(([key, val]) => {
+                if (key === 'dinoscript_hybrids' && val) {
+                    try {
+                        const localRaw = localStorage.getItem('dinoscript_hybrids');
+                        const localList = localRaw ? JSON.parse(localRaw) : [];
+                        const cloudList = typeof val === 'string' ? JSON.parse(val) : val;
+
+                        if (Array.isArray(localList) && Array.isArray(cloudList)) {
+                            const mergedMap = new Map();
+                            cloudList.forEach(item => { if (item && item.id) mergedMap.set(item.id, item); });
+                            localList.forEach(item => { if (item && item.id && !mergedMap.has(item.id)) mergedMap.set(item.id, item); });
+
+                            const mergedList = Array.from(mergedMap.values());
+                            localStorage.setItem(key, JSON.stringify(mergedList));
+                            return;
+                        }
+                    } catch(e) {}
+                }
                 localStorage.setItem(key, val);
             });
             count++;
