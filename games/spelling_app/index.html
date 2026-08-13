@@ -3849,30 +3849,55 @@ async function loadCommunityDinos() {
       .get();
 
     _communityData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const activeVerifiedList = [];
 
-    // Auto-repair community records showing "Trainer" or missing photoURL
+    // Auto-repair community records showing "Trainer" or missing photoURL & purge deleted/fused dinos
     for (const d of _communityData) {
       if (d.userId && d.userId !== 'guest') {
         try {
           const uSnap = await window._dinoFirestore.collection('users').doc(d.userId).get();
-          if (uSnap.exists) {
-            const uData = uSnap.data();
-            const updates = {};
-            if (uData.displayName && (d.username === 'Trainer' || !d.username)) {
-              d.username = uData.displayName;
-              updates.username = uData.displayName;
-            }
-            if (uData.photoURL && !d.userAvatar) {
-              d.userAvatar = uData.photoURL;
-              updates.userAvatar = uData.photoURL;
-            }
-            if (Object.keys(updates).length > 0) {
-              window._dinoFirestore.collection('community_dinos').doc(d.id).update(updates).catch(()=>{});
+          if (!uSnap.exists) {
+            // User account no longer exists in cloud -> purge orphaned dino
+            window._dinoFirestore.collection('community_dinos').doc(d.id).delete().catch(()=>{});
+            continue;
+          }
+
+          const uData = uSnap.data();
+          const updates = {};
+          if (uData.displayName && (d.username === 'Trainer' || !d.username)) {
+            d.username = uData.displayName;
+            updates.username = uData.displayName;
+          }
+          if (uData.photoURL && !d.userAvatar) {
+            d.userAvatar = uData.photoURL;
+            updates.userAvatar = uData.photoURL;
+          }
+          if (Object.keys(updates).length > 0) {
+            window._dinoFirestore.collection('community_dinos').doc(d.id).update(updates).catch(()=>{});
+          }
+
+          // Verify if dinosaur still exists in user's active cloud save stable
+          const sSnap = await window._dinoFirestore.collection('users').doc(d.userId).collection('saves').doc('spelling_app').get();
+          if (sSnap.exists) {
+            const rawHybrids = sSnap.data().dino_hybrids;
+            if (rawHybrids) {
+              try {
+                const list = typeof rawHybrids === 'string' ? JSON.parse(rawHybrids) : rawHybrids;
+                if (Array.isArray(list) && !list.some(h => h.id === d.id)) {
+                  // Dinosaur was deleted or fused into Gen-2 -> purge from community leaderboard
+                  console.log(`[DinoScript Database Cleanup] 🧹 Purging stale dino "${d.name}" (${d.id})`);
+                  window._dinoFirestore.collection('community_dinos').doc(d.id).delete().catch(()=>{});
+                  continue;
+                }
+              } catch(e) {}
             }
           }
         } catch(e) {}
       }
+      activeVerifiedList.push(d);
     }
+
+    _communityData = activeVerifiedList;
 
     document.getElementById('community-loading').style.display = 'none';
 
