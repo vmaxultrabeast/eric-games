@@ -975,9 +975,13 @@ function initApp() {
             const rowClass = isMine ? 'chat-msg-row mine' : 'chat-msg-row';
             const initial = (msg.senderName || 'P').charAt(0).toUpperCase();
 
-            const avatarHtml = msg.senderAvatar
-                ? `<img src="${msg.senderAvatar}" class="chat-msg-avatar-img" alt="Avatar">`
-                : `<div class="chat-msg-avatar">${initial}</div>`;
+            // Enrich avatar URL if missing on old message records
+            const avatarUrl = msg.senderAvatar || (window._onlinePlayersCache || []).find(p => p.displayName === msg.senderName)?.photoURL || (isMine ? localStorage.getItem('arcade_avatar') : '');
+
+            const avatarHtml = avatarUrl
+                ? `<img src="${avatarUrl}" class="chat-msg-avatar-img" alt="Avatar" onclick="window.openAvatarLightbox('${avatarUrl}', '${escapeHtml(msg.senderName)}')" style="cursor:pointer;" title="Click for full view" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                   <div class="chat-msg-avatar" onclick="window.inspectPlayerByName('${escapeHtml(msg.senderName)}')" style="display:none;cursor:pointer;" title="Click to view profile">${initial}</div>`
+                : `<div class="chat-msg-avatar" onclick="window.inspectPlayerByName('${escapeHtml(msg.senderName)}')" style="cursor:pointer;" title="Click to view profile">${initial}</div>`;
 
             const timeStr = formatTime(msg.timestamp);
 
