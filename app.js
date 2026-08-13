@@ -827,7 +827,6 @@ function initAuthModal() {
     const avatarChipWrapper       = document.getElementById('avatarChipWrapper');
     const dropdownAvatarContainer = document.getElementById('dropdownAvatarContainer');
     const uploadAvatarBtn         = document.getElementById('uploadAvatarBtn');
-    const navUserAvatar           = document.getElementById('navUserAvatar');
     const navUserAvatarImg        = document.getElementById('navUserAvatarImg');
     const dropdownAvatarLarge     = document.getElementById('dropdownAvatarLarge');
     const dropdownAvatarImgLarge  = document.getElementById('dropdownAvatarImgLarge');
