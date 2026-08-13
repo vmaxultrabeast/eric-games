@@ -90,6 +90,27 @@ export async function pushGameSave(uid, gameId) {
                         date: h.date || new Date().toISOString()
                     }, { merge: true });
                 }
+        // Auto-publish high score to global neon-snake leaderboard
+        if (gameId === 'neon-snake' && saveData['neonSnakeHighScore']) {
+            try {
+                const u = auth.currentUser;
+                const username = u?.displayName || (u?.email ? u.email.split('@')[0] : null) || localStorage.getItem('arcade_username') || 'Guest Pilot';
+                const score = parseInt(saveData['neonSnakeHighScore'], 10);
+                const color = saveData['neonsnake_color'] || localStorage.getItem('neonsnake_color') || '#9d4edd';
+
+                if (score > 0) {
+                    const cRef = doc(db, 'neonsnake_leaderboard', uid);
+                    const docSnap = await getDoc(cRef);
+                    if (!docSnap.exists() || (docSnap.data().score || 0) < score) {
+                        await setDoc(cRef, {
+                            username: username,
+                            userId: uid,
+                            score: score,
+                            color: color,
+                            date: new Date().toISOString()
+                        }, { merge: true });
+                    }
+                }
             } catch (err) {}
         }
     } catch (e) {

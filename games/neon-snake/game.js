@@ -308,6 +308,10 @@ function gameOver() {
     overlayMessage.textContent = `You scored ${score} points!`;
     startBtn.textContent = "PLAY AGAIN";
     overlayScreen.classList.add('active');
+
+    if (score > 0) {
+        submitScoreToLeaderboard(score);
+    }
 }
 
 function togglePause() {
@@ -504,3 +508,205 @@ canvas.addEventListener('touchend', (e) => {
         }
     }
 }, { passive: true });
+
+// ==========================================================================
+// Leaderboard & User Identity
+// ==========================================================================
+const leaderboardScreen = document.getElementById('leaderboardScreen');
+const leaderboardToggleBtn = document.getElementById('leaderboardToggleBtn');
+const closeLeaderboardBtn = document.getElementById('closeLeaderboardBtn');
+
+if (leaderboardToggleBtn) {
+    leaderboardToggleBtn.addEventListener('click', () => {
+        if (leaderboardScreen) {
+            leaderboardScreen.classList.add('active');
+            loadSnakeLeaderboard();
+        }
+    });
+}
+
+if (closeLeaderboardBtn) {
+    closeLeaderboardBtn.addEventListener('click', () => {
+        if (leaderboardScreen) {
+            leaderboardScreen.classList.remove('active');
+        }
+    });
+}
+
+function getArcadeUser() {
+  let uid = localStorage.getItem('arcade_uid');
+  let username = localStorage.getItem('arcade_username');
+  if (username === 'Trainer') username = null;
+
+  try {
+    if (window.parent) {
+      if (window.parent._arcadeUser) {
+        const pUser = window.parent._arcadeUser;
+        uid = pUser.uid || uid;
+        const pName = pUser.displayName || (pUser.email ? pUser.email.split('@')[0] : null);
+        if (pName) username = pName;
+      }
+      if (!username && window.parent.localStorage) {
+        const pName = window.parent.localStorage.getItem('arcade_username');
+        if (pName && pName !== 'Trainer') username = pName;
+        uid = uid || window.parent.localStorage.getItem('arcade_uid');
+      }
+    }
+  } catch (e) {}
+
+  if ((!username) && typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+    const fUser = firebase.auth().currentUser;
+    uid = uid || fUser.uid;
+    const fName = fUser.displayName || (fUser.email ? fUser.email.split('@')[0] : null);
+    if (fName) username = fName;
+  }
+
+  if (uid) localStorage.setItem('arcade_uid', uid);
+  if (username && username !== 'Trainer') localStorage.setItem('arcade_username', username);
+
+  return { uid: uid || null, username: (username && username !== 'Trainer') ? username : 'Guest Pilot' };
+}
+
+function submitScoreToLeaderboard(finalScore) {
+  if (!window._snakeFirestore || finalScore <= 0) return;
+  const user = getArcadeUser();
+  const db = window._snakeFirestore;
+
+  const record = {
+    username: user.username,
+    userId: user.uid || 'guest',
+    score: finalScore,
+    color: currentSnakeColor,
+    date: new Date().toISOString()
+  };
+
+  if (user.uid) {
+    // Merge only if score is higher
+    const ref = db.collection('neonsnake_leaderboard').doc(user.uid);
+    ref.get().then(doc => {
+      if (!doc.exists || (doc.data().score || 0) < finalScore) {
+        ref.set(record, { merge: true });
+        console.log('[NeonSnake] 🏆 High score submitted to leaderboard:', finalScore);
+      }
+    }).catch(() => {
+      ref.set(record, { merge: true });
+    });
+  } else {
+    db.collection('neonsnake_leaderboard').add(record);
+  }
+}
+
+async function loadSnakeLeaderboard() {
+  const loadingEl = document.getElementById('leaderboardLoading');
+  const listEl = document.getElementById('leaderboardList');
+  if (!loadingEl || !listEl) return;
+
+  if (!window._snakeFirestore) {
+    loadingEl.style.display = 'block';
+    loadingEl.innerHTML = '<span style="color:#f87171;">⚠️ Leaderboard service unavailable</span>';
+    listEl.innerHTML = '';
+    return;
+  }
+
+  loadingEl.style.display = 'block';
+  loadingEl.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Loading rankings...';
+  listEl.innerHTML = '';
+
+  try {
+    const snap = await window._snakeFirestore
+      .collection('neonsnake_leaderboard')
+      .orderBy('score', 'desc')
+      .limit(20)
+      .get();
+
+    loadingEl.style.display = 'none';
+
+    if (snap.empty) {
+      listEl.innerHTML = '<div style="color:#94a3b8;padding:1rem;">No high scores registered yet! Play a game to set the first score.</div>';
+      return;
+    }
+
+    const docs = snap.docs.map(d => d.data());
+
+    // Repair entries that display "Trainer" or fallback names for logged in user
+    const user = getArcadeUser();
+    if (user.uid && user.username && user.username !== 'Guest Pilot') {
+      docs.forEach(d => {
+        if (d.userId === user.uid && (d.username === 'Trainer' || d.username === 'Guest Pilot')) {
+          d.username = user.username;
+          window._snakeFirestore.collection('neonsnake_leaderboard').doc(user.uid).update({ username: user.username }).catch(()=>{});
+        }
+      });
+    }
+
+    listEl.innerHTML = `
+      <table class="lb-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Pilot</th>
+            <th style="text-align:right;">Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${docs.map((d, i) => {
+            const rank = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+            const dotColor = d.color || '#9d4edd';
+            const name = (d.username && d.username !== 'Trainer') ? d.username : 'Guest Pilot';
+            return `
+              <tr>
+                <td class="lb-rank">${rank}</td>
+                <td>
+                  <div class="lb-user-cell">
+                    <span class="lb-color-dot" style="background:${dotColor};box-shadow:0 0 6px ${dotColor};"></span>
+                    <span class="lb-username">${name}</span>
+                  </div>
+                </td>
+                <td class="lb-score">${d.score || 0}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (e) {
+    loadingEl.style.display = 'block';
+    loadingEl.innerHTML = `<span style="color:#f87171;">⚠️ Could not load leaderboard: ${e.message}</span>`;
+  }
+}
+
+// ── Firebase Init ──────────────────────────────────────────────────────────
+function setupSnakeFirebase() {
+  const cfg = {
+    apiKey:            'AIzaSyDnZOwSu_5hqAuzAqgd3gNimWcQg1IuyIc',
+    authDomain:        'eric-arcade.firebaseapp.com',
+    projectId:         'eric-arcade',
+    storageBucket:     'eric-arcade.firebasestorage.app',
+    messagingSenderId: '933974427341',
+    appId:             '1:933974427341:web:12c8a56664acf9e9c60b84'
+  };
+  if (typeof firebase !== 'undefined') {
+    if (!firebase.apps.length) firebase.initializeApp(cfg);
+    else firebase.app();
+    window._snakeFirestore = firebase.firestore();
+
+    if (firebase.auth) {
+      firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+          const name = user.displayName || (user.email ? user.email.split('@')[0] : 'Player');
+          localStorage.setItem('arcade_uid', user.uid);
+          localStorage.setItem('arcade_username', name);
+
+          // Submit any existing high score
+          const localHS = parseInt(localStorage.getItem('neonSnakeHighScore') || '0', 10);
+          if (localHS > 0) {
+            submitScoreToLeaderboard(localHS);
+          }
+        }
+      });
+    }
+    console.log('[NeonSnake] 🔥 Firebase ready');
+  }
+}
+setupSnakeFirebase();
+

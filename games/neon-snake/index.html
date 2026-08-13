@@ -71,11 +71,35 @@
             </div>
         </div>
 
-        <!-- Mobile Pause Toggle -->
+        <!-- Mobile & Option Controls -->
         <div class="mobile-options">
             <button id="pauseToggleBtn" class="opt-btn"><i class="fa-solid fa-pause"></i> Pause (P)</button>
+            <button id="leaderboardToggleBtn" class="opt-btn" style="margin-left:8px;"><i class="fa-solid fa-trophy"></i> Leaderboard</button>
         </div>
     </div>
+
+    <!-- Leaderboard Overlay Screen -->
+    <div id="leaderboardScreen" class="overlay">
+        <div class="overlay-content leaderboard-content">
+            <h2>🏆 LEADERBOARD</h2>
+            <p>Top Neon Snake Pilots</p>
+
+            <div id="leaderboardLoading" class="leaderboard-status">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> Loading rankings...
+            </div>
+            
+            <div id="leaderboardList" class="leaderboard-list"></div>
+
+            <div class="leaderboard-actions">
+                <button id="closeLeaderboardBtn" class="glow-btn">BACK TO GAME</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
     <!-- Side Controls for Touchscreens -->
     <div class="side-controls-left">
