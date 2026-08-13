@@ -779,6 +779,10 @@ function initAuthModal() {
             navUserName.textContent = displayName;
             dropdownEmail.textContent = user.email;
 
+            // Store identity for iframed games (e.g. DinoScript community tab)
+            localStorage.setItem('arcade_username', displayName);
+            localStorage.setItem('arcade_uid', user.uid);
+
             // Pull all saves into localStorage
             await pullAllSaves(user.uid);
         } else {
@@ -786,6 +790,10 @@ function initAuthModal() {
             window._arcadeUser = null;
             navLoginBtn.style.display = '';
             navUserChip.style.display = 'none';
+
+            // Clear identity keys used by iframed games
+            localStorage.removeItem('arcade_username');
+            localStorage.removeItem('arcade_uid');
 
             // Clear all game saves from localStorage so the next user starts clean
             Object.values(GAME_SAVE_KEYS).flat().forEach(key => localStorage.removeItem(key));

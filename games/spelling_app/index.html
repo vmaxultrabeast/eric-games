@@ -484,6 +484,18 @@
     border-color: transparent; box-shadow: 0 0 16px rgba(232,165,58,0.4);
   }
 
+  /* Community sort buttons */
+  .community-sort-btn {
+    padding: 6px 14px; border: 1.5px solid rgba(232,165,58,0.25); border-radius: 16px;
+    background: rgba(0,0,0,0.3); color: var(--text-light); font-size: 0.8rem;
+    font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: inherit;
+  }
+  .community-sort-btn:hover { border-color: var(--primary); color: var(--text); }
+  .community-sort-btn.active {
+    background: linear-gradient(135deg, #c77d20, #e8a53a); color: white;
+    border-color: transparent; box-shadow: 0 0 10px rgba(232,165,58,0.3);
+  }
+
   /* Shop grid */
   .shop-filters { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
   .shop-filter-btn {
@@ -592,6 +604,7 @@
     <button class="nav-btn" id="nav-eggs" onclick="showTab('eggs')">🥚 Mystery Eggs</button>
     <button class="nav-btn" id="nav-lab" onclick="showTab('lab')">🔬 Hybrid Lab</button>
     <button class="nav-btn" id="nav-stable" onclick="showTab('stable')">🦕 Stable (<span id="stable-count">0</span>)</button>
+    <button class="nav-btn" id="nav-community" onclick="showTab('community')">🌍 Community</button>
   </nav>
 </header>
 
@@ -896,6 +909,38 @@
     <h2>Dino Stable & Garage</h2>
     <p>View your fused hybrid dinosaurs. Choose an active mascot for your lab!</p>
     <div class="stable-grid" id="stable-grid"></div>
+  </div>
+
+  <!-- COMMUNITY LEADERBOARD SCREEN -->
+  <div id="community-screen" class="hidden screen">
+    <div class="emoji-big">🌍</div>
+    <h2>Global Dino Leaderboard</h2>
+    <p>The strongest hybrid dinosaurs from all trainers. Fuse your own in the 🔬 Hybrid Lab to join!</p>
+
+    <div id="community-login-notice" style="display:none;padding:14px 18px;background:rgba(232,165,58,0.1);border:1px solid rgba(232,165,58,0.3);border-radius:12px;text-align:center;margin-bottom:16px;font-size:0.9rem;color:var(--primary);">
+      🔒 <strong>Sign in</strong> via the portal to submit your own dinosaurs to the leaderboard!
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:16px;">
+      <span style="font-size:0.85rem;color:var(--text-light);">Sort by:</span>
+      <button class="community-sort-btn active" id="csort-strength" onclick="sortCommunity('strength')">🏆 Strength</button>
+      <button class="community-sort-btn" id="csort-power" onclick="sortCommunity('power')">⚔️ Power</button>
+      <button class="community-sort-btn" id="csort-defense" onclick="sortCommunity('defense')">🛡️ Defense</button>
+      <button class="community-sort-btn" id="csort-speed" onclick="sortCommunity('speed')">⚡ Speed</button>
+      <button class="community-sort-btn" id="csort-name" onclick="sortCommunity('name')">🦕 Name</button>
+      <button class="btn btn-secondary" onclick="loadCommunityDinos()" style="margin-left:auto;padding:7px 16px;font-size:0.82rem;">🔄 Refresh</button>
+    </div>
+
+    <div id="community-loading" style="text-align:center;padding:30px;color:var(--text-light);display:none;">
+      <span style="font-size:1.5rem;">⏳</span><br>Loading leaderboard...
+    </div>
+    <div id="community-empty" style="text-align:center;padding:30px;color:var(--text-light);display:none;">
+      No community dinosaurs yet! Be the first to fuse one.
+    </div>
+
+    <div id="community-list"></div>
+
+    <p style="text-align:center;color:var(--text-light);font-size:0.78rem;margin-top:16px;">Showing top 20 hybrids. Last updated when you opened this tab.</p>
   </div>
 
   <!-- QUIZ SCREEN -->
@@ -2757,7 +2802,7 @@ function updateStableBadge() {
 
 // Nav Tab Switcher
 function showTab(tab) {
-  ['practice', 'shop', 'inventory', 'eggs', 'lab', 'stable'].forEach(t => {
+  ['practice', 'shop', 'inventory', 'eggs', 'lab', 'stable', 'community'].forEach(t => {
     const btn = document.getElementById(`nav-${t}`);
     if (btn) btn.classList.toggle('active', t === tab);
   });
@@ -2784,6 +2829,7 @@ function showTab(tab) {
   document.getElementById('eggs-screen').classList.toggle('hidden', tab !== 'eggs');
   document.getElementById('lab-screen').classList.toggle('hidden', tab !== 'lab');
   document.getElementById('stable-screen').classList.toggle('hidden', tab !== 'stable');
+  document.getElementById('community-screen').classList.toggle('hidden', tab !== 'community');
 
   if (tab === 'shop') renderShop();
   if (tab === 'inventory') renderInventory();
@@ -2792,6 +2838,7 @@ function showTab(tab) {
     else setupSuperLabSelectors();
   }
   if (tab === 'stable') renderStable();
+  if (tab === 'community') loadCommunityDinos();
 }
 
 // INVENTORY LOGIC
@@ -3201,6 +3248,7 @@ function fuseSuperHybridDino() {
   hybrids = hybrids.filter(h => h.id !== idA && h.id !== idB);
   hybrids.push(superHybrid);
   saveHybrids(hybrids);
+  publishToCommunity(superHybrid); // submit to global leaderboard
   spawnConfetti(50);
 
   showTab('stable');
@@ -3448,6 +3496,7 @@ function fuseHybridDino() {
   const hybrids = loadSavedHybrids();
   hybrids.push(hybrid);
   saveHybrids(hybrids);
+  publishToCommunity(hybrid); // submit to global leaderboard
   spawnConfetti(35);
 
   showTab('stable');
@@ -3571,6 +3620,177 @@ updateWalletDisplay();
 updateLockUI();
 buildRewardsTable();
 updateStableBadge();
+
+// ── Publish hybrid to Firestore community leaderboard ─────────────────────
+function publishToCommunity(hybrid) {
+  if (!window._dinoFirestore) return;
+  const db = window._dinoFirestore;
+  const username = localStorage.getItem('arcade_username') || 'Trainer';
+  const userId   = localStorage.getItem('arcade_uid') || 'guest';
+  const totalStrength = (hybrid.stats.power || 0) + (hybrid.stats.defense || 0) + (hybrid.stats.speed || 0);
+
+  const record = {
+    name:          hybrid.name,
+    avatar:        hybrid.avatar,
+    artwork:       hybrid.artwork || '',
+    stats:         hybrid.stats,
+    totalStrength: totalStrength,
+    geneticTier:   hybrid.geneticTier || '',
+    isGen2:        hybrid.isGen2 || false,
+    lineage:       hybrid.lineage || '',
+    username:      username,
+    userId:        userId,
+    date:          hybrid.date || new Date().toISOString()
+  };
+
+  db.collection('community_dinos').doc(hybrid.id)
+    .set(record)
+    .then(() => console.log('[DinoScript] ✅ Hybrid published to community'))
+    .catch(e  => console.warn('[DinoScript] Community publish failed:', e.message));
+}
+
+// ── Community Leaderboard ──────────────────────────────────────────────────
+let _communityData = [];
+let _communitySort = 'strength';
+
+async function loadCommunityDinos() {
+  if (!window._dinoFirestore) {
+    document.getElementById('community-empty').style.display = 'block';
+    document.getElementById('community-loading').style.display = 'none';
+    document.getElementById('community-list').innerHTML = '';
+    return;
+  }
+
+  // Show login notice if not signed in
+  const uid = localStorage.getItem('arcade_uid');
+  document.getElementById('community-login-notice').style.display = uid ? 'none' : 'block';
+
+  document.getElementById('community-loading').style.display = 'block';
+  document.getElementById('community-empty').style.display   = 'none';
+  document.getElementById('community-list').innerHTML        = '';
+
+  try {
+    const snap = await window._dinoFirestore
+      .collection('community_dinos')
+      .orderBy('totalStrength', 'desc')
+      .limit(20)
+      .get();
+
+    _communityData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    document.getElementById('community-loading').style.display = 'none';
+
+    if (_communityData.length === 0) {
+      document.getElementById('community-empty').style.display = 'block';
+      return;
+    }
+    renderCommunityList();
+  } catch (e) {
+    document.getElementById('community-loading').style.display = 'none';
+    document.getElementById('community-list').innerHTML =
+      `<p style="text-align:center;color:#f87171;">⚠️ Could not load leaderboard: ${e.message}</p>`;
+  }
+}
+
+function sortCommunity(field) {
+  _communitySort = field;
+  document.querySelectorAll('.community-sort-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('csort-' + field);
+  if (btn) btn.classList.add('active');
+  renderCommunityList();
+}
+
+function renderCommunityList() {
+  const sorted = [..._communityData].sort((a, b) => {
+    if (_communitySort === 'name')     return (a.name || '').localeCompare(b.name || '');
+    if (_communitySort === 'power')    return (b.stats?.power   || 0) - (a.stats?.power   || 0);
+    if (_communitySort === 'defense')  return (b.stats?.defense || 0) - (a.stats?.defense || 0);
+    if (_communitySort === 'speed')    return (b.stats?.speed   || 0) - (a.stats?.speed   || 0);
+    return (b.totalStrength || 0) - (a.totalStrength || 0); // default: strength
+  });
+
+  const container = document.getElementById('community-list');
+  container.innerHTML = `
+    <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:0.88rem;">
+      <thead>
+        <tr style="border-bottom:2px solid rgba(232,165,58,0.3);">
+          <th style="padding:10px 8px;text-align:center;color:var(--primary);font-weight:800;">#</th>
+          <th style="padding:10px 8px;text-align:left;color:var(--primary);font-weight:800;">Dinosaur</th>
+          <th style="padding:10px 8px;text-align:left;color:var(--primary);font-weight:800;">Trainer</th>
+          <th style="padding:10px 8px;text-align:center;color:#f87171;font-weight:800;cursor:pointer;" onclick="sortCommunity('power')">⚔️ Pwr</th>
+          <th style="padding:10px 8px;text-align:center;color:#60a5fa;font-weight:800;cursor:pointer;" onclick="sortCommunity('defense')">🛡️ Def</th>
+          <th style="padding:10px 8px;text-align:center;color:#34d399;font-weight:800;cursor:pointer;" onclick="sortCommunity('speed')">⚡ Spd</th>
+          <th style="padding:10px 8px;text-align:center;color:#fbbf24;font-weight:800;cursor:pointer;" onclick="sortCommunity('strength')">🏆 Total</th>
+          <th style="padding:10px 8px;text-align:left;color:var(--primary);font-weight:800;">Tier</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${sorted.map((d, i) => {
+          const rank = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+          const gen2 = d.isGen2 ? ' <span style="font-size:0.7rem;color:#f472b6;font-weight:900;">🌌Gen2</span>' : '';
+          const totalStrength = (d.stats?.power || 0) + (d.stats?.defense || 0) + (d.stats?.speed || 0);
+          const rowBg = i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent';
+          return `<tr style="background:${rowBg};border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.15s;" onmouseover="this.style.background='rgba(232,165,58,0.08)'" onmouseout="this.style.background='${rowBg}'">
+            <td style="padding:10px 8px;text-align:center;font-weight:900;font-size:1rem;">${rank}</td>
+            <td style="padding:10px 8px;">
+              <div style="font-size:1.1rem;margin-bottom:2px;">${d.avatar || '🦕'}</div>
+              <div style="font-weight:800;color:#fbbf24;">${d.name}${gen2}</div>
+            </td>
+            <td style="padding:10px 8px;color:var(--text-light);font-size:0.82rem;">👤 ${d.username || 'Trainer'}</td>
+            <td style="padding:10px 8px;text-align:center;font-weight:700;color:#f87171;">${d.stats?.power || 0}</td>
+            <td style="padding:10px 8px;text-align:center;font-weight:700;color:#60a5fa;">${d.stats?.defense || 0}</td>
+            <td style="padding:10px 8px;text-align:center;font-weight:700;color:#34d399;">${d.stats?.speed || 0}</td>
+            <td style="padding:10px 8px;text-align:center;font-weight:900;color:#fbbf24;font-size:1rem;">${totalStrength}</td>
+            <td style="padding:10px 8px;font-size:0.75rem;color:var(--text-light);">${d.geneticTier || '—'}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    </div>`;
+}
+
+// ── Firebase init (compat CDN) — runs after page loads ─────────────────────
+(function initDinoFirebase() {
+  const cfg = {
+    apiKey:            'AIzaSyDnZOwSu_5hqAuzAqgd3gNimWcQg1IuyIc',
+    authDomain:        'eric-arcade.firebaseapp.com',
+    projectId:         'eric-arcade',
+    storageBucket:     'eric-arcade.firebasestorage.app',
+    messagingSenderId: '933974427341',
+    appId:             '1:933974427341:web:12c8a56664acf9e9c60b84'
+  };
+  // Only initialize if compat SDK is available (loaded via CDN)
+  if (typeof firebase !== 'undefined') {
+    if (!firebase.apps.length) firebase.initializeApp(cfg);
+    else firebase.app(); // use existing
+    window._dinoFirestore = firebase.firestore();
+    console.log('[DinoScript] 🔥 Firebase ready');
+  }
+})();
+</script>
+
+<!-- Firebase Compat SDK (for community leaderboard) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+// Re-run init after compat SDKs load (they load after the main script block)
+(function retryDinoFirebase() {
+  if (window._dinoFirestore) return; // already done
+  const cfg = {
+    apiKey:            'AIzaSyDnZOwSu_5hqAuzAqgd3gNimWcQg1IuyIc',
+    authDomain:        'eric-arcade.firebaseapp.com',
+    projectId:         'eric-arcade',
+    storageBucket:     'eric-arcade.firebasestorage.app',
+    messagingSenderId: '933974427341',
+    appId:             '1:933974427341:web:12c8a56664acf9e9c60b84'
+  };
+  if (typeof firebase !== 'undefined') {
+    if (!firebase.apps.length) firebase.initializeApp(cfg);
+    else firebase.app();
+    window._dinoFirestore = firebase.firestore();
+    console.log('[DinoScript] 🔥 Firebase ready (retry)');
+  }
+})();
 </script>
 </body>
 </html>
