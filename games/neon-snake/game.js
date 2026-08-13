@@ -524,6 +524,9 @@ const openLeaderboard = () => {
     }
 };
 
+window.openLeaderboardModal = openLeaderboard;
+window.loadSnakeLeaderboard = loadSnakeLeaderboard;
+
 if (leaderboardToggleBtn) leaderboardToggleBtn.addEventListener('click', openLeaderboard);
 if (overlayLeaderboardBtn) overlayLeaderboardBtn.addEventListener('click', openLeaderboard);
 

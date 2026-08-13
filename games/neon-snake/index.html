@@ -53,7 +53,7 @@
                     
                     <div style="display:flex;gap:10px;justify-content:center;align-items:center;width:100%;margin-top:4px;">
                         <button id="startBtn" class="glow-btn" style="flex:1;">START GAME</button>
-                        <button id="overlayLeaderboardBtn" class="glow-btn" style="border-color:var(--neon-cyan);text-shadow:0 0 5px var(--neon-cyan-glow);box-shadow:0 0 15px rgba(0,245,255,0.2);" title="View Leaderboard"><i class="fa-solid fa-trophy"></i> LEADERBOARD</button>
+                        <button id="overlayLeaderboardBtn" class="glow-btn" onclick="openLeaderboardModal()" style="border-color:var(--neon-cyan);text-shadow:0 0 5px var(--neon-cyan-glow);box-shadow:0 0 15px rgba(0,245,255,0.2);" title="View Leaderboard"><i class="fa-solid fa-trophy"></i> LEADERBOARD</button>
                     </div>
                 </div>
             </div>
@@ -77,7 +77,7 @@
         <!-- Mobile & Option Controls -->
         <div class="mobile-options">
             <button id="pauseToggleBtn" class="opt-btn"><i class="fa-solid fa-pause"></i> Pause (P)</button>
-            <button id="leaderboardToggleBtn" class="opt-btn" style="margin-left:8px;"><i class="fa-solid fa-trophy"></i> Leaderboard</button>
+            <button id="leaderboardToggleBtn" class="opt-btn" onclick="openLeaderboardModal()" style="margin-left:8px;"><i class="fa-solid fa-trophy"></i> Leaderboard</button>
         </div>
     </div>
 
@@ -94,10 +94,22 @@
             <div id="leaderboardList" class="leaderboard-list"></div>
 
             <div class="leaderboard-actions">
-                <button id="closeLeaderboardBtn" class="glow-btn">BACK TO GAME</button>
+                <button id="closeLeaderboardBtn" class="glow-btn" onclick="closeLeaderboardModal()">BACK TO GAME</button>
             </div>
         </div>
     </div>
+
+    <script>
+    function openLeaderboardModal() {
+        const lbScreen = document.getElementById('leaderboardScreen');
+        if (lbScreen) lbScreen.classList.add('active');
+        if (typeof loadSnakeLeaderboard === 'function') loadSnakeLeaderboard();
+    }
+    function closeLeaderboardModal() {
+        const lbScreen = document.getElementById('leaderboardScreen');
+        if (lbScreen) lbScreen.classList.remove('active');
+    }
+    </script>
 
     <!-- Firebase Compat SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -114,6 +126,6 @@
         <button class="side-btn" id="sideBtnDown" title="Move Down"><i class="fa-solid fa-caret-down"></i></button>
     </div>
 
-    <script src="game.js"></script>
+    <script src="game.js?v=1.0.2"></script>
 </body>
 </html>
