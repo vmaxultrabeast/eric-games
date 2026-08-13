@@ -327,6 +327,16 @@ export async function getOnlinePlayers() {
 
 // ── Real-time Arcade Chat ──────────────────────────────────────────────────
 /**
+ * Helper to compute deterministic private room ID between two users
+ */
+export function getPrivateRoomId(userA, userB) {
+    if (!userA || !userB) return 'global';
+    const cleanA = String(userA).trim().toLowerCase();
+    const cleanB = String(userB).trim().toLowerCase();
+    return [cleanA, cleanB].sort().join('_p2p_');
+}
+
+/**
  * Send a chat message to Firestore.
  */
 export async function sendChatMessage(text, recipient = null) {
@@ -338,13 +348,16 @@ export async function sendChatMessage(text, recipient = null) {
         const senderAvatar = u?.photoURL || localStorage.getItem('arcade_avatar') || '';
         const senderId = u?.uid || localStorage.getItem('arcade_guest_uid') || 'guest';
 
+        const recipientName = recipient?.displayName || recipient?.name || (typeof recipient === 'string' ? recipient : null);
+        const roomId = recipientName ? getPrivateRoomId(senderName, recipientName) : 'global';
+
         const col = collection(db, 'chat_messages');
         await addDoc(col, {
+            roomId: roomId,
             senderId: senderId,
             senderName: senderName,
             senderAvatar: senderAvatar,
-            recipientId: recipient?.id || 'global',
-            recipientName: recipient?.displayName || null,
+            recipientName: recipientName || null,
             text: text.trim(),
             timestamp: new Date().toISOString()
         });

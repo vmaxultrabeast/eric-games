@@ -2,7 +2,7 @@
 // Firebase — Auth & Sync Imports
 // ==========================================================================
 import { onAuthChange, signInWithEmail, signUpWithEmail, signOutUser, getFriendlyError, updateProfile, updateUserEmail } from './firebase-auth.js';
-import { pullAllSaves, pullGameSave, pushGameSave, pushAllLocalSaves, saveUserProfile, updatePresence, getOnlinePlayers, sendChatMessage, subscribeToChatMessages, GAME_SAVE_KEYS } from './firebase-sync.js';
+import { pullAllSaves, pullGameSave, pushGameSave, pushAllLocalSaves, saveUserProfile, updatePresence, getOnlinePlayers, sendChatMessage, subscribeToChatMessages, getPrivateRoomId, GAME_SAVE_KEYS } from './firebase-sync.js';
 
 // ==========================================================================
 // Games Registry (Metadata)
@@ -691,12 +691,13 @@ function initApp() {
     const chatInput       = document.getElementById('chatInput');
     const chatUnreadBadge = document.getElementById('chatUnreadBadge');
     const chatTargetName  = document.getElementById('chatTargetName');
-    const chanGlobalBtn   = document.getElementById('chanGlobalBtn');
-    const chanDirectBtn   = document.getElementById('chanDirectBtn');
+    const chatChannelsContainer = document.querySelector('.chat-channels');
 
     let isChatOpen = false;
     let unreadCount = 0;
-    let activeRecipient = null; // null = global
+    let activeChannel = 'global'; // 'global' or target player's displayName
+    let openPrivateTabs = new Set(); // set of player names e.g. ['Henry']
+    let cachedAllMessages = [];
 
     function toggleChat(open) {
         isChatOpen = (open !== undefined) ? open : !isChatOpen;
@@ -719,42 +720,77 @@ function initApp() {
     if (chatLauncher) chatLauncher.addEventListener('click', () => toggleChat(true));
     if (chatMinimizeBtn) chatMinimizeBtn.addEventListener('click', () => toggleChat(false));
 
+    function getMyDisplayName() {
+        const u = window._arcadeUser;
+        return u?.displayName || (u?.email ? u.email.split('@')[0] : null) || localStorage.getItem('arcade_username') || 'Guest Player';
+    }
+
+    function renderChannelsBar() {
+        if (!chatChannelsContainer) return;
+
+        let html = `<button type="button" class="chat-chan-btn ${activeChannel === 'global' ? 'active' : ''}" data-channel="global">🌍 Global</button>`;
+
+        openPrivateTabs.forEach(name => {
+            const isActive = (activeChannel === name);
+            html += `<button type="button" class="chat-chan-btn ${isActive ? 'active' : ''}" data-channel="${escapeHtml(name)}" style="display:inline-flex;align-items:center;gap:4px;">
+                👤 @${escapeHtml(name)}
+                <span class="tab-close-btn" data-close="${escapeHtml(name)}" style="opacity:0.7;padding:0 2px;margin-left:2px;font-size:0.7rem;">✕</span>
+            </button>`;
+        });
+
+        chatChannelsContainer.innerHTML = html;
+
+        // Wire channel tab clicks
+        chatChannelsContainer.querySelectorAll('.chat-chan-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const closeTarget = e.target.getAttribute('data-close');
+                if (closeTarget) {
+                    e.stopPropagation();
+                    openPrivateTabs.delete(closeTarget);
+                    if (activeChannel === closeTarget) {
+                        activeChannel = 'global';
+                    }
+                    renderChannelsBar();
+                    updateChatHeader();
+                    renderChatMessages(cachedAllMessages);
+                    return;
+                }
+
+                const ch = btn.getAttribute('data-channel');
+                if (ch) {
+                    activeChannel = ch;
+                    renderChannelsBar();
+                    updateChatHeader();
+                    renderChatMessages(cachedAllMessages);
+                }
+            });
+        });
+    }
+
+    function updateChatHeader() {
+        if (!chatTargetName) return;
+        if (activeChannel === 'global') {
+            chatTargetName.textContent = 'Global Lounge';
+            if (chatInput) chatInput.placeholder = 'Type a message...';
+        } else {
+            chatTargetName.textContent = `Private Chat: @${activeChannel}`;
+            if (chatInput) chatInput.placeholder = `Message @${activeChannel} (Private)...`;
+        }
+    }
+
     window.initiateDirectChat = function(targetName) {
         if (!targetName) return;
+        const myName = getMyDisplayName();
+        if (targetName.toLowerCase() === myName.toLowerCase()) return; // don't 1-1 chat with yourself
+
+        openPrivateTabs.add(targetName);
+        activeChannel = targetName;
         toggleChat(true);
-        activeRecipient = targetName;
-        if (chatTargetName) chatTargetName.textContent = `@${targetName}`;
-        if (chanDirectBtn) {
-            chanDirectBtn.textContent = `👤 @${targetName}`;
-            chanDirectBtn.classList.remove('hidden');
-            chanDirectBtn.classList.add('active');
-        }
-        if (chanGlobalBtn) chanGlobalBtn.classList.remove('active');
-        if (chatInput) {
-            chatInput.value = `@${targetName} `;
-            chatInput.focus();
-        }
+        renderChannelsBar();
+        updateChatHeader();
+        renderChatMessages(cachedAllMessages);
+        if (chatInput) chatInput.focus();
     };
-
-    if (chanGlobalBtn) {
-        chanGlobalBtn.addEventListener('click', () => {
-            activeRecipient = null;
-            if (chatTargetName) chatTargetName.textContent = 'Global Lounge';
-            chanGlobalBtn.classList.add('active');
-            if (chanDirectBtn) chanDirectBtn.classList.remove('active');
-            if (chatInput) chatInput.value = '';
-        });
-    }
-
-    if (chanDirectBtn) {
-        chanDirectBtn.addEventListener('click', () => {
-            if (activeRecipient) {
-                if (chatTargetName) chatTargetName.textContent = `@${activeRecipient}`;
-                chanDirectBtn.classList.add('active');
-                if (chanGlobalBtn) chanGlobalBtn.classList.remove('active');
-            }
-        });
-    }
 
     function formatTime(isoStr) {
         if (!isoStr) return '';
@@ -769,17 +805,32 @@ function initApp() {
     }
 
     function renderChatMessages(messages) {
+        cachedAllMessages = messages || [];
         if (!chatMessages) return;
+
+        const myName = getMyDisplayName();
         const currentUserId = window._arcadeUser?.uid || localStorage.getItem('arcade_guest_uid');
 
-        if (messages.length === 0) {
-            chatMessages.innerHTML = `<div class="chat-loading">No messages yet. Say hello! 👋</div>`;
+        // Filter messages for current active channel / private room
+        let filtered = [];
+        if (activeChannel === 'global') {
+            filtered = cachedAllMessages.filter(m => !m.roomId || m.roomId === 'global');
+        } else {
+            const expectedRoomId = getPrivateRoomId(myName, activeChannel);
+            filtered = cachedAllMessages.filter(m => m.roomId === expectedRoomId);
+        }
+
+        if (filtered.length === 0) {
+            const emptyText = (activeChannel === 'global') 
+                ? 'No global messages yet. Say hello! 👋'
+                : `Private chat with @${escapeHtml(activeChannel)}. Say hi! 🔒`;
+            chatMessages.innerHTML = `<div class="chat-loading">${emptyText}</div>`;
             return;
         }
 
-        chatMessages.innerHTML = messages.map(msg => {
+        chatMessages.innerHTML = filtered.map(msg => {
             const isMine = (currentUserId && msg.senderId === currentUserId) || 
-                           (msg.senderName === (window._arcadeUser?.displayName || localStorage.getItem('arcade_username')));
+                           (msg.senderName && msg.senderName.toLowerCase() === myName.toLowerCase());
             const rowClass = isMine ? 'chat-msg-row mine' : 'chat-msg-row';
             const initial = (msg.senderName || 'P').charAt(0).toUpperCase();
 
@@ -803,7 +854,8 @@ function initApp() {
 
         scrollChatToBottom();
 
-        if (!isChatOpen && messages.length > 0) {
+        // Increment unread badge if closed
+        if (!isChatOpen && cachedAllMessages.length > 0) {
             unreadCount++;
             if (chatUnreadBadge) {
                 chatUnreadBadge.textContent = unreadCount;
@@ -823,9 +875,13 @@ function initApp() {
             if (!text) return;
 
             chatInput.value = '';
-            await sendChatMessage(text, activeRecipient ? { displayName: activeRecipient } : null);
+            const recipient = (activeChannel === 'global') ? null : { displayName: activeChannel };
+            await sendChatMessage(text, recipient);
         });
     }
+
+    renderChannelsBar();
+    updateChatHeader();
 
     // Subscribe to Firestore real-time chat updates
     subscribeToChatMessages(renderChatMessages);
