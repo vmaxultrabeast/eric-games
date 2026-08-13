@@ -752,6 +752,59 @@ function initApp() {
         openPlayerProfileModal(p);
     };
 
+    // ── Avatar Lightbox Modal (Full-Size View) ─────────────────────────────────
+    const avatarLightboxModal     = document.getElementById('avatarLightboxModal');
+    const avatarLightboxClose     = document.getElementById('avatarLightboxClose');
+    const avatarLightboxImg       = document.getElementById('avatarLightboxImg');
+    const avatarLightboxInitial   = document.getElementById('avatarLightboxInitial');
+    const avatarLightboxCaption   = document.getElementById('avatarLightboxCaption');
+    const inspectAvatarContainer  = document.getElementById('inspectAvatarClickableContainer');
+
+    function openAvatarLightbox(photoUrl, displayName) {
+        if (!avatarLightboxModal) return;
+        const name = displayName || 'Player';
+        if (avatarLightboxCaption) avatarLightboxCaption.textContent = name;
+
+        const initial = name.charAt(0).toUpperCase();
+
+        if (photoUrl) {
+            if (avatarLightboxImg) {
+                avatarLightboxImg.src = photoUrl;
+                avatarLightboxImg.style.display = 'block';
+            }
+            if (avatarLightboxInitial) avatarLightboxInitial.style.display = 'none';
+        } else {
+            if (avatarLightboxInitial) {
+                avatarLightboxInitial.textContent = initial;
+                avatarLightboxInitial.style.display = 'flex';
+            }
+            if (avatarLightboxImg) avatarLightboxImg.style.display = 'none';
+        }
+
+        avatarLightboxModal.classList.add('active');
+    }
+
+    function closeAvatarLightbox() {
+        if (avatarLightboxModal) avatarLightboxModal.classList.remove('active');
+    }
+
+    if (avatarLightboxClose) avatarLightboxClose.addEventListener('click', closeAvatarLightbox);
+    if (avatarLightboxModal) {
+        avatarLightboxModal.addEventListener('click', (e) => {
+            if (e.target === avatarLightboxModal) closeAvatarLightbox();
+        });
+    }
+
+    if (inspectAvatarContainer) {
+        inspectAvatarContainer.addEventListener('click', () => {
+            const photoUrl = (inspectPlayerAvatarImg && inspectPlayerAvatarImg.style.display !== 'none') ? inspectPlayerAvatarImg.src : null;
+            const name = inspectPlayerName ? inspectPlayerName.textContent : 'Player';
+            openAvatarLightbox(photoUrl, name);
+        });
+    }
+
+    window.openAvatarLightbox = openAvatarLightbox;
+
     setInterval(() => updatePresence(window._arcadeUser), 40000);
     setInterval(() => renderOnlinePlayersWidget(), 15000);
 

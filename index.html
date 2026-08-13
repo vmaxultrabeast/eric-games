@@ -311,10 +311,11 @@
                 <i class="fa-solid fa-xmark"></i>
             </button>
 
-            <!-- Large Avatar -->
-            <div style="position:relative;width:86px;height:86px;margin:0.5rem auto 1rem;">
+            <!-- Large Avatar (Clickable for full size view) -->
+            <div id="inspectAvatarClickableContainer" style="position:relative;width:86px;height:86px;margin:0.5rem auto 1rem;cursor:pointer;transition:transform 0.2s ease;" title="Click to view full size avatar">
                 <span class="nav-user-avatar" id="inspectPlayerAvatarInitial" style="width:86px;height:86px;font-size:2.4rem;display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 0 20px rgba(0,245,255,0.2);">P</span>
                 <img id="inspectPlayerAvatarImg" style="display:none;width:86px;height:86px;border-radius:50%;object-fit:cover;border:3px solid var(--neon-cyan);box-shadow:0 0 20px var(--neon-cyan-glow);" alt="Player Avatar">
+                <div style="position:absolute;top:0;right:0;background:rgba(0,0,0,0.6);color:var(--neon-cyan);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;border:1.5px solid var(--neon-cyan);" title="Click to zoom"><i class="fa-solid fa-magnifying-glass-plus"></i></div>
                 <div style="position:absolute;bottom:2px;right:2px;background:#34d399;width:16px;height:16px;border-radius:50%;border:3px solid #0e101c;box-shadow:0 0 8px #34d399;" title="Online Now"></div>
             </div>
 
@@ -335,6 +336,20 @@
             <button type="button" class="btn btn-primary" id="inspectPlayerChatBtn" style="width:100%;justify-content:center;padding:12px;font-size:0.92rem;border-radius:10px;">
                 <i class="fa-solid fa-comments"></i> Chat with <span id="inspectPlayerChatBtnName">Player</span>
             </button>
+        </div>
+    </div>
+
+    <!-- Avatar Lightbox Modal (Full-Size Image View) -->
+    <div class="auth-modal-overlay" id="avatarLightboxModal" style="z-index:10005;">
+        <div style="position:relative;max-width:90vw;max-height:90vh;text-align:center;animation:chatSlideUp 0.25s ease;">
+            <button class="auth-modal-close" id="avatarLightboxClose" aria-label="Close" style="top:-38px;right:0;color:#fff;background:rgba(255,255,255,0.15);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="avatarLightboxContainer" style="display:flex;align-items:center;justify-content:center;">
+                <img id="avatarLightboxImg" style="max-width:80vw;max-height:75vh;border-radius:24px;border:3px solid var(--neon-cyan);box-shadow:0 0 40px var(--neon-cyan-glow), 0 0 80px rgba(0,245,255,0.3);object-fit:contain;" alt="Full Avatar View">
+                <div id="avatarLightboxInitial" style="display:none;width:220px;height:220px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;font-family:var(--font-logo);font-size:6.5rem;align-items:center;justify-content:center;border:4px solid var(--neon-cyan);box-shadow:0 0 50px var(--neon-cyan-glow);">P</div>
+            </div>
+            <div id="avatarLightboxCaption" style="margin-top:1rem;color:#fff;font-family:var(--font-logo);font-size:1.15rem;letter-spacing:1px;text-shadow:0 0 10px rgba(0,245,255,0.5);"></div>
         </div>
     </div>
 
@@ -383,6 +398,6 @@
     </div>
 
     <!-- Main Logic Script (ES Module) -->
-    <script type="module" src="app.js?v=1.4.0"></script>
+    <script type="module" src="app.js?v=1.4.1"></script>
 </body>
 </html>
