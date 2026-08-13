@@ -1793,6 +1793,74 @@ footer {
 }
 
 /* ==========================================================================
+   New Message Neon Glow Highlights & Alerts
+   ========================================================================== */
+.chat-launcher.has-unread {
+    animation: launcherPulseGlow 1.5s infinite alternate ease-in-out !important;
+    border-color: var(--neon-pink) !important;
+    background: rgba(255, 0, 127, 0.25) !important;
+}
+
+@keyframes launcherPulseGlow {
+    0% {
+        box-shadow: 0 0 12px var(--neon-cyan), 0 0 24px rgba(0, 245, 255, 0.4);
+        transform: scale(1);
+    }
+    100% {
+        box-shadow: 0 0 28px var(--neon-pink), 0 0 55px rgba(255, 0, 127, 0.8);
+        transform: scale(1.06);
+    }
+}
+
+.chat-box.has-new-msg {
+    animation: boxPulseHighlight 0.85s ease-out;
+}
+
+@keyframes boxPulseHighlight {
+    0% {
+        border-color: var(--neon-pink);
+        box-shadow: 0 0 35px var(--neon-pink-glow), 0 0 70px rgba(255, 0, 127, 0.5);
+    }
+    50% {
+        border-color: var(--neon-cyan);
+        box-shadow: 0 0 40px var(--neon-cyan-glow), 0 0 80px rgba(0, 245, 255, 0.6);
+    }
+    100% {
+        border-color: rgba(0, 245, 255, 0.35);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    }
+}
+
+.chat-chan-btn.has-unread-tab {
+    position: relative;
+    border-color: var(--neon-pink) !important;
+    color: #fff !important;
+    background: rgba(255, 0, 127, 0.2) !important;
+    animation: tabUnreadGlow 1.2s infinite alternate;
+}
+
+@keyframes tabUnreadGlow {
+    from { box-shadow: 0 0 4px var(--neon-pink); }
+    to   { box-shadow: 0 0 14px var(--neon-pink); }
+}
+
+.chat-msg-row.newly-added {
+    animation: msgHighlightPop 0.6s ease-out;
+}
+
+@keyframes msgHighlightPop {
+    0% {
+        background: rgba(0, 245, 255, 0.25);
+        transform: translateX(8px);
+        border-radius: 8px;
+    }
+    100% {
+        background: transparent;
+        transform: translateX(0);
+    }
+}
+
+/* ==========================================================================
    Auth Modal
    ========================================================================== */
 .auth-modal-overlay {

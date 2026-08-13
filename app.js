@@ -823,18 +823,42 @@ function initApp() {
     let unreadCount = 0;
     let activeChannel = 'global'; // 'global' or target player's displayName
     let openPrivateTabs = new Set(); // set of player names e.g. ['Henry']
+    let unreadChannels = new Set(); // set of channel names with unread messages
     let cachedAllMessages = [];
+    let lastRenderedCount = 0;
+
+    function playChatChime() {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+            osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12); // A5
+            gain.gain.setValueAtTime(0.08, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.25);
+        } catch (e) {}
+    }
 
     function toggleChat(open) {
         isChatOpen = (open !== undefined) ? open : !isChatOpen;
         if (isChatOpen) {
             chatLauncher.classList.add('hidden');
+            chatLauncher.classList.remove('has-unread');
             chatBox.classList.remove('hidden');
             unreadCount = 0;
             if (chatUnreadBadge) {
                 chatUnreadBadge.textContent = '0';
                 chatUnreadBadge.classList.add('hidden');
             }
+            if (activeChannel) unreadChannels.delete(activeChannel);
+            renderChannelsBar();
             if (chatInput) chatInput.focus();
             scrollChatToBottom();
         } else {
@@ -854,12 +878,14 @@ function initApp() {
     function renderChannelsBar() {
         if (!chatChannelsContainer) return;
 
-        let html = `<button type="button" class="chat-chan-btn ${activeChannel === 'global' ? 'active' : ''}" data-channel="global">🌍 Global</button>`;
+        const isGlobalUnread = unreadChannels.has('global') && activeChannel !== 'global';
+        let html = `<button type="button" class="chat-chan-btn ${activeChannel === 'global' ? 'active' : ''} ${isGlobalUnread ? 'has-unread-tab' : ''}" data-channel="global">🌍 Global</button>`;
 
         openPrivateTabs.forEach(name => {
             const isActive = (activeChannel === name);
-            html += `<button type="button" class="chat-chan-btn ${isActive ? 'active' : ''}" data-channel="${escapeHtml(name)}" style="display:inline-flex;align-items:center;gap:4px;">
-                👤 @${escapeHtml(name)}
+            const isTabUnread = unreadChannels.has(name) && !isActive;
+            html += `<button type="button" class="chat-chan-btn ${isActive ? 'active' : ''} ${isTabUnread ? 'has-unread-tab' : ''}" data-channel="${escapeHtml(name)}" style="display:inline-flex;align-items:center;gap:4px;">
+                👤 @${escapeHtml(name)} ${isTabUnread ? '🔴' : ''}
                 <span class="tab-close-btn" data-close="${escapeHtml(name)}" style="opacity:0.7;padding:0 2px;margin-left:2px;font-size:0.7rem;">✕</span>
             </button>`;
         });
@@ -873,6 +899,7 @@ function initApp() {
                 if (closeTarget) {
                     e.stopPropagation();
                     openPrivateTabs.delete(closeTarget);
+                    unreadChannels.delete(closeTarget);
                     if (activeChannel === closeTarget) {
                         activeChannel = 'global';
                     }
@@ -885,6 +912,7 @@ function initApp() {
                 const ch = btn.getAttribute('data-channel');
                 if (ch) {
                     activeChannel = ch;
+                    unreadChannels.delete(ch);
                     renderChannelsBar();
                     updateChatHeader();
                     renderChatMessages(cachedAllMessages);
@@ -911,6 +939,7 @@ function initApp() {
 
         openPrivateTabs.add(targetName);
         activeChannel = targetName;
+        unreadChannels.delete(targetName);
         toggleChat(true);
         renderChannelsBar();
         updateChatHeader();
@@ -937,6 +966,10 @@ function initApp() {
         const myName = getMyDisplayName();
         const currentUserId = window._arcadeUser?.uid || localStorage.getItem('arcade_guest_uid');
 
+        // Check for new incoming messages that were not sent by current user
+        const isInitialLoad = (lastRenderedCount === 0);
+        const hasNewIncoming = (!isInitialLoad && cachedAllMessages.length > lastRenderedCount);
+
         // Automatically open private tab if an incoming private message is addressed to current user
         let newPrivateTabAdded = false;
         cachedAllMessages.forEach(msg => {
@@ -945,12 +978,45 @@ function initApp() {
                     openPrivateTabs.add(msg.senderName);
                     newPrivateTabAdded = true;
                 }
+                const msgChannel = msg.senderName;
+                if (activeChannel !== msgChannel) {
+                    unreadChannels.add(msgChannel);
+                }
+            } else if (!msg.roomId || msg.roomId === 'global') {
+                if (msg.senderName && msg.senderName.toLowerCase() !== myName.toLowerCase() && activeChannel !== 'global') {
+                    unreadChannels.add('global');
+                }
             }
         });
 
         if (newPrivateTabAdded) {
             renderChannelsBar();
         }
+
+        // Trigger highlights and chime if new incoming message arrived from another player
+        if (hasNewIncoming) {
+            const latestMsg = cachedAllMessages[cachedAllMessages.length - 1];
+            if (latestMsg && latestMsg.senderName && latestMsg.senderName.toLowerCase() !== myName.toLowerCase()) {
+                playChatChime();
+
+                if (!isChatOpen) {
+                    if (chatLauncher) chatLauncher.classList.add('has-unread');
+                    unreadCount++;
+                    if (chatUnreadBadge) {
+                        chatUnreadBadge.textContent = unreadCount;
+                        chatUnreadBadge.classList.remove('hidden');
+                    }
+                } else {
+                    if (chatBox) {
+                        chatBox.classList.add('has-new-msg');
+                        setTimeout(() => chatBox.classList.remove('has-new-msg'), 850);
+                    }
+                    renderChannelsBar();
+                }
+            }
+        }
+
+        lastRenderedCount = cachedAllMessages.length;
 
         // Filter messages for current active channel / private room
         let filtered = [];
@@ -969,10 +1035,14 @@ function initApp() {
             return;
         }
 
-        chatMessages.innerHTML = filtered.map(msg => {
+        chatMessages.innerHTML = filtered.map((msg, index) => {
             const isMine = (currentUserId && msg.senderId === currentUserId) || 
                            (msg.senderName && msg.senderName.toLowerCase() === myName.toLowerCase());
-            const rowClass = isMine ? 'chat-msg-row mine' : 'chat-msg-row';
+            const isLatestNew = (hasNewIncoming && index === filtered.length - 1 && !isMine);
+            const rowClass = isMine 
+                ? (isLatestNew ? 'chat-msg-row mine newly-added' : 'chat-msg-row mine')
+                : (isLatestNew ? 'chat-msg-row newly-added' : 'chat-msg-row');
+
             const initial = (msg.senderName || 'P').charAt(0).toUpperCase();
 
             // Enrich avatar URL if missing on old message records
@@ -998,15 +1068,6 @@ function initApp() {
         }).join('');
 
         scrollChatToBottom();
-
-        // Increment unread badge if closed
-        if (!isChatOpen && cachedAllMessages.length > 0) {
-            unreadCount++;
-            if (chatUnreadBadge) {
-                chatUnreadBadge.textContent = unreadCount;
-                chatUnreadBadge.classList.remove('hidden');
-            }
-        }
     }
 
     function escapeHtml(str) {
