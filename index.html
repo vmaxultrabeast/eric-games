@@ -52,7 +52,7 @@
                                 </div>
                                 <div class="dropdown-email" id="dropdownEmail"></div>
                             </div>
-                            <button type="button" class="dropdown-item-btn" id="dropdownSettingsBtn">
+                            <button type="button" class="dropdown-item-btn" id="dropdownSettingsBtn" onclick="if(window.openSettingsModal) window.openSettingsModal();">
                                 <i class="fa-solid fa-gear"></i> Settings
                             </button>
                             <button class="dropdown-signout-btn" id="dropdownSignOutBtn">
@@ -251,18 +251,21 @@
     </div>
 
     <!-- Account Settings Modal -->
-    <div class="auth-modal" id="settingsModal">
-        <div class="auth-modal-content" style="max-width:440px;">
-            <button class="auth-modal-close" id="settingsModalClose"><i class="fa-solid fa-xmark"></i></button>
-            <div class="auth-header">
-                <h2>⚙️ ACCOUNT SETTINGS</h2>
-                <p>Manage your profile & account credentials</p>
+    <div class="auth-modal-overlay" id="settingsModal">
+        <div class="auth-modal" style="max-width:440px;">
+            <button class="auth-modal-close" id="settingsModalClose" aria-label="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="auth-logo" style="margin-bottom:0.75rem;">
+                <i class="fa-solid fa-gear"></i>
+                <span>Account <span class="accent-text">Settings</span></span>
             </div>
+            <p class="auth-subtitle" style="margin-bottom:1.25rem;">Manage your profile avatar & account credentials.</p>
 
-            <div class="settings-body" style="padding-top:0.5rem;">
+            <div class="settings-body">
                 <!-- Avatar Section with Current Avatar Preview -->
-                <div class="settings-section" style="text-align:center;margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:1px solid rgba(255,255,255,0.08);">
-                    <label style="font-size:0.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;display:block;margin-bottom:0.75rem;">Current Avatar</label>
+                <div class="settings-section" style="text-align:center;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid rgba(255,255,255,0.08);">
+                    <label style="font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;display:block;margin-bottom:0.75rem;">Current Avatar</label>
                     <div class="settings-avatar-preview" id="settingsAvatarPreviewBtn" style="position:relative;width:80px;height:80px;margin:0 auto 0.75rem;cursor:pointer;" title="Click to upload new avatar">
                         <span class="nav-user-avatar" id="settingsAvatarInitial" style="width:80px;height:80px;font-size:2.2rem;display:flex;align-items:center;justify-content:center;margin:0 auto;">P</span>
                         <img id="settingsAvatarImg" style="display:none;width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--neon-cyan);box-shadow:0 0 16px var(--neon-cyan-glow);" alt="Current Avatar">
@@ -291,6 +294,6 @@
     </div>
 
     <!-- Main Logic Script (ES Module) -->
-    <script type="module" src="app.js?v=1.1.2"></script>
+    <script type="module" src="app.js?v=1.1.3"></script>
 </body>
 </html>

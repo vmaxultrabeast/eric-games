@@ -862,6 +862,8 @@ function initAuthModal() {
         document.body.style.overflow = 'hidden';
     }
 
+    window.openSettingsModal = openSettingsModal;
+
     function closeSettingsModal() {
         if (!settingsModal) return;
         settingsModal.classList.remove('active');
