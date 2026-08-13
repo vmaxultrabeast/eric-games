@@ -886,8 +886,18 @@ function initApp() {
         openPrivateTabs.forEach(name => {
             const isActive = (activeChannel === name);
             const isTabUnread = unreadChannels.has(name) && !isActive;
-            html += `<button type="button" class="chat-chan-btn ${isActive ? 'active' : ''} ${isTabUnread ? 'has-unread-tab' : ''}" data-channel="${escapeHtml(name)}" style="display:inline-flex;align-items:center;gap:4px;">
-                👤 @${escapeHtml(name)} ${isTabUnread ? '🔴' : ''}
+            const playerRecord = (window._onlinePlayersCache || []).find(p => p.displayName === name);
+            const avatarUrl = playerRecord?.photoURL || '';
+            const initial = (name || 'P').charAt(0).toUpperCase();
+
+            const avatarHtml = avatarUrl
+                ? `<img src="${avatarUrl}" class="chat-tab-avatar-img" alt="Avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+                   <span class="chat-tab-avatar-initial" style="display:none;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.2);font-size:0.65rem;align-items:center;justify-content:center;font-weight:700;">${initial}</span>`
+                : `<span class="chat-tab-avatar-initial" style="display:inline-flex;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.2);font-size:0.65rem;align-items:center;justify-content:center;font-weight:700;">${initial}</span>`;
+
+            html += `<button type="button" class="chat-chan-btn ${isActive ? 'active' : ''} ${isTabUnread ? 'has-unread-tab' : ''}" data-channel="${escapeHtml(name)}" style="display:inline-flex;align-items:center;gap:6px;">
+                ${avatarHtml}
+                <span>${escapeHtml(name)}</span> ${isTabUnread ? '🔴' : ''}
                 <span class="tab-close-btn" data-close="${escapeHtml(name)}" style="opacity:0.7;padding:0 2px;margin-left:2px;font-size:0.7rem;">✕</span>
             </button>`;
         });
@@ -929,8 +939,8 @@ function initApp() {
             chatTargetName.textContent = 'Global Lounge';
             if (chatInput) chatInput.placeholder = 'Type a message...';
         } else {
-            chatTargetName.textContent = `Private Chat: @${activeChannel}`;
-            if (chatInput) chatInput.placeholder = `Message @${activeChannel} (Private)...`;
+            chatTargetName.textContent = `Private Chat: ${activeChannel}`;
+            if (chatInput) chatInput.placeholder = `Message ${activeChannel} (Private)...`;
         }
     }
 

@@ -1659,9 +1659,18 @@ footer {
 }
 
 .chat-chan-btn.active {
-    background: rgba(0, 245, 255, 0.15);
-    border-color: rgba(0, 245, 255, 0.3);
+    background: rgba(0, 245, 255, 0.2);
+    border-color: var(--neon-cyan);
     color: var(--neon-cyan);
+}
+
+.chat-tab-avatar-img {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--neon-cyan);
+    flex-shrink: 0;
 }
 
 .chat-messages {
