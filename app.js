@@ -782,10 +782,13 @@ function initAuthModal() {
             // Pull all saves into localStorage
             await pullAllSaves(user.uid);
         } else {
-            // Logged out — reset nav
+            // Logged out — reset nav and wipe local game saves
             window._arcadeUser = null;
             navLoginBtn.style.display = '';
             navUserChip.style.display = 'none';
+
+            // Clear all game saves from localStorage so the next user starts clean
+            Object.values(GAME_SAVE_KEYS).flat().forEach(key => localStorage.removeItem(key));
         }
     });
 }
