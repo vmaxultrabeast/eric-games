@@ -211,29 +211,25 @@ function gameStep() {
 // ==========================================================================
 function draw() {
     // Clear canvas
+    ctx.shadowBlur = 0;
     ctx.fillStyle = '#05060b';
-    ctx.shadowBlur = 0; // reset glow for background fill
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw subtle grid line details
+    // 1. Draw grid in a SINGLE stroke call
+    ctx.beginPath();
     ctx.strokeStyle = 'rgba(30, 41, 59, 0.15)';
     ctx.lineWidth = 0.5;
     for (let i = 0; i <= TILE_COUNT; i++) {
-        // Vertical lines
-        ctx.beginPath();
-        ctx.moveTo(i * GRID_SIZE, 0);
-        ctx.lineTo(i * GRID_SIZE, canvas.height);
-        ctx.stroke();
-        
-        // Horizontal lines
-        ctx.beginPath();
-        ctx.moveTo(0, i * GRID_SIZE);
-        ctx.lineTo(canvas.width, i * GRID_SIZE);
-        ctx.stroke();
+        const pos = i * GRID_SIZE;
+        ctx.moveTo(pos, 0);
+        ctx.lineTo(pos, canvas.height);
+        ctx.moveTo(0, pos);
+        ctx.lineTo(canvas.width, pos);
     }
+    ctx.stroke();
 
-    // Draw Food with bright Neon Cyan glow
-    ctx.shadowBlur = 18;
+    // 2. Draw Food with bright Neon Cyan glow
+    ctx.shadowBlur = 14;
     ctx.shadowColor = '#00f5ff';
     ctx.fillStyle = '#00f5ff';
     ctx.beginPath();
@@ -241,28 +237,37 @@ function draw() {
     ctx.arc(food.x + GRID_SIZE / 2, food.y + GRID_SIZE / 2, foodRadius, 0, 2 * Math.PI);
     ctx.fill();
 
-    // Draw Snake with selected color theme
+    // 3. Draw Snake
     const theme = SNAKE_THEMES[currentSnakeColor] || SNAKE_THEMES['#9d4edd'];
-    snake.forEach((part, index) => {
-        // Head is slightly brighter
-        if (index === 0) {
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = theme.headGlow;
-            ctx.fillStyle = theme.head;
-        } else {
-            ctx.shadowBlur = 12;
-            ctx.shadowColor = theme.glow;
-            ctx.fillStyle = theme.body;
-        }
-        
-        // Rounded card styles for grid tiles
-        const padding = 1.5;
-        const size = GRID_SIZE - padding * 2;
-        
+    const padding = 1.5;
+    const size = GRID_SIZE - padding * 2;
+
+    // Draw body segments with single batched path and single shadowBlur setting
+    if (snake.length > 1) {
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = theme.glow;
+        ctx.fillStyle = theme.body;
         ctx.beginPath();
-        ctx.roundRect(part.x + padding, part.y + padding, size, size, 4);
+        for (let i = 1; i < snake.length; i++) {
+            const part = snake[i];
+            ctx.roundRect(part.x + padding, part.y + padding, size, size, 4);
+        }
         ctx.fill();
-    });
+    }
+
+    // Draw head with brighter glow on top
+    if (snake.length > 0) {
+        const head = snake[0];
+        ctx.shadowBlur = 16;
+        ctx.shadowColor = theme.headGlow;
+        ctx.fillStyle = theme.head;
+        ctx.beginPath();
+        ctx.roundRect(head.x + padding, head.y + padding, size, size, 4);
+        ctx.fill();
+    }
+
+    // Reset shadowBlur for next frame
+    ctx.shadowBlur = 0;
 }
 
 function drawInitialState() {
