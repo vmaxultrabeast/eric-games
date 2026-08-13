@@ -3245,57 +3245,97 @@ function setupLabSelectors() {
   renderHybridPreview();
 }
 
-// ARTWORK MATCHING
+// ARTWORK MATCHING (23 AI DINOSAUR ARTWORK CARDS)
 function getHybridArtwork(headId, torsoId, limbsId, tailId, auraId) {
-  // 1. Sauropods / Titan Sauropelta / Argentinosaurus
+  // 1. Omega Apex Singularity / Primordial Void
+  if (headId === 'head_omega' || torsoId === 'torso_primordial_void' || auraId === 'aura_god_apex') {
+    return 'assets/dino_omega_singularity.png';
+  }
+  // 2. Blood Moon Berserker Rage
+  if (auraId === 'aura_blood_moon') {
+    return 'assets/dino_blood_moon_berserk.png';
+  }
+  // 3. Mecha-Godzilla Titanium Cyber
+  if (headId === 'head_mecha_rex' || tailId === 'tail_titanium' || torsoId === 'torso_cyber_titanium') {
+    return 'assets/dino_mecha_godzilla.png';
+  }
+  // 4. Abyssal Leviathan Deep-Sea Nightmare
+  if (headId === 'head_abyss') {
+    return 'assets/dino_abyssal_leviathan.png';
+  }
+  // 5. Solar Phoenix Sun Crest of Rebirth
+  if (headId === 'head_phoenix' || limbsId === 'limbs_hyperion_wings' || auraId === 'aura_phoenix_rebirth') {
+    return 'assets/dino_phoenix_sun.png';
+  }
+  // 6. Therizinosaurus 1-Meter Scythe Claws
+  if (headId === 'head_therizino' || limbsId === 'limbs_therizino') {
+    return 'assets/dino_therizino_scythe.png';
+  }
+  // 7. Sub-Zero Glacial Ice-Dragon / Frost
+  if (headId === 'head_frost' || auraId === 'aura_ice' || tailId === 'tail_frost_blade') {
+    return 'assets/dino_frost_ice_dragon.png';
+  }
+  // 8. Baryonyx / Suchomimus Bio-Swamp Predator
+  if (headId === 'head_bary' || limbsId === 'limbs_bary' || headId === 'head_sucho') {
+    return 'assets/dino_bary_swamp.png';
+  }
+  // 9. Pachycephalosaurus Bone-Dome Headbutt
+  if (headId === 'head_pachy' || headId === 'head_stegoceras') {
+    return 'assets/dino_pachy_ram.png';
+  }
+  // 10. Allosaurus Shadow Predator
+  if (headId === 'head_allosaurus' || headId === 'head_tarbo') {
+    return 'assets/dino_allosaurus_shadow.png';
+  }
+  // 11. Sauropods / Titan Sauropelta / Argentinosaurus
   if (torsoId === 'torso_brachio' || torsoId === 'torso_diplodocus' || torsoId === 'torso_argentino' || headId === 'head_amarga') {
     return 'assets/dino_titan_brachio.png';
   }
-  // 2. Quantum Singularity / Void / Omega Crown / Reality Rift
-  if (auraId === 'aura_omni' || torsoId === 'torso_singularity' || auraId === 'aura_black_hole' || headId === 'head_omega' || torsoId === 'torso_primordial_void') {
+  // 12. Quantum Singularity / Void / Reality Rift
+  if (auraId === 'aura_omni' || torsoId === 'torso_singularity' || auraId === 'aura_black_hole') {
     return 'assets/dino_quantum_galaxy.png';
   }
-  // 3. Golden King-Rex / Sol / Phoenix / Hyperion
-  if (headId === 'head_golden' || headId === 'head_hyperion' || headId === 'head_phoenix' || limbsId === 'limbs_hyperion_wings' || auraId === 'aura_god_apex') {
+  // 13. Golden King-Rex / Sol / Hyperion Crown
+  if (headId === 'head_golden' || headId === 'head_hyperion') {
     return 'assets/dino_golden_king_rex.png';
   }
-  // 4. Giganotosaurus / Tarbosaurus / Cyber-Mecha Rex
-  if (headId === 'head_giga' || headId === 'head_tarbo' || headId === 'head_mecha_rex' || tailId === 'tail_titanium') {
+  // 14. Giganotosaurus / Cyber-Mecha Rex
+  if (headId === 'head_giga') {
     return 'assets/dino_cyber_giga.png';
   }
-  // 5. Venomous Dilophosaurus / Toxin / Acidic Spores
-  if (auraId === 'aura_toxin' || headId === 'head_dilo' || auraId === 'aura_spores' || headId === 'head_sucho') {
+  // 15. Venomous Dilophosaurus / Toxin / Acidic Spores
+  if (auraId === 'aura_toxin' || headId === 'head_dilo' || auraId === 'aura_spores') {
     return 'assets/dino_poison_dilo.png';
   }
-  // 6. Plasma Wings / Jet Thrusters / Gliders / Quetzalcoatlus
+  // 16. Plasma Wings / Jet Thrusters / Gliders / Quetzalcoatlus
   if (limbsId === 'limbs_plasma' || limbsId === 'limbs_celestial' || limbsId === 'limbs_quetzal' || limbsId === 'limbs_tapejara' || limbsId === 'limbs_dragon_wings') {
     return 'assets/dino_plasma_wings.png';
   }
-  // 7. Volcanic Carnotaurus / Magma Chamber / Flare Lash
+  // 17. Volcanic Carnotaurus / Magma Chamber / Flare Lash
   if (torsoId === 'torso_carno' || headId === 'head_carno' || torsoId === 'torso_magma' || auraId === 'aura_magma_skin' || tailId === 'tail_solar_flare') {
     return 'assets/dino_volcanic_carno.png';
   }
-  // 8. Cosmic Nebula / Godzilla Atomic Pulse / Phoenix Rebirth
-  if (auraId === 'aura_nebula' || auraId === 'aura_indominus' || auraId === 'aura_godzilla' || auraId === 'aura_phoenix_rebirth' || torsoId === 'torso_celestial_nebula') {
+  // 18. Cosmic Nebula / Godzilla Atomic Pulse
+  if (auraId === 'aura_nebula' || auraId === 'aura_indominus' || auraId === 'aura_godzilla' || torsoId === 'torso_celestial_nebula') {
     return 'assets/dino_cosmic_nebula.png';
   }
-  // 9. Cybernetic Laser Helmet / Repulsor Hover / Void Shadow
+  // 19. Cybernetic Laser Helmet / Repulsor Hover / Void Shadow
   if (headId === 'head_cyber' || limbsId === 'limbs_aeon' || limbsId === 'limbs_void' || limbsId === 'limbs_cyber_hover' || auraId === 'aura_emp' || auraId === 'aura_stealth') {
     return 'assets/dino_cyber_raptor.png';
   }
-  // 10. Crystal Spine / Frost Ice Dragon / Sub-Zero
-  if (torsoId === 'torso_crystal' || headId === 'head_frost' || auraId === 'aura_ice' || tailId === 'tail_frost_blade') {
+  // 20. Crystal Spine Exoskeleton
+  if (torsoId === 'torso_crystal') {
     return 'assets/dino_crystal_titan.png';
   }
-  // 11. Inferno Dragon Tail / Spinosaurus Croc Snout
+  // 21. Inferno Dragon Tail / Spinosaurus Croc Snout
   if (tailId === 'tail_dragon' || headId === 'head_spino' || torsoId === 'torso_spino' || torsoId === 'torso_infernal_lava') {
     return 'assets/dino_inferno_dragon.png';
   }
-  // 12. Armored Stego / Ankylosaurus Wrecking Mace / Sauropelta
-  if (torsoId === 'torso_ankylo' || tailId === 'tail_stego' || tailId === 'tail_ankylo' || headId === 'head_stego' || headId === 'head_pachy' || tailId === 'tail_euoplocephalus' || torsoId === 'torso_sauropelta') {
+  // 22. Armored Stego / Ankylosaurus Wrecking Mace / Sauropelta
+  if (torsoId === 'torso_ankylo' || tailId === 'tail_stego' || tailId === 'tail_ankylo' || headId === 'head_stego' || tailId === 'tail_euoplocephalus' || torsoId === 'torso_sauropelta') {
     return 'assets/dino_armored_stego.png';
   }
-  // 13. Default Apex T-Rex Predator
+  // 23. Default Apex T-Rex Predator
   return 'assets/dino_apex_rex.png';
 }
 
