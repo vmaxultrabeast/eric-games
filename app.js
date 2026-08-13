@@ -2,7 +2,7 @@
 // Firebase — Auth & Sync Imports
 // ==========================================================================
 import { onAuthChange, signInWithEmail, signUpWithEmail, signOutUser, getFriendlyError } from './firebase-auth.js';
-import { pullAllSaves, pullGameSave, pushGameSave, GAME_SAVE_KEYS } from './firebase-sync.js';
+import { pullAllSaves, pullGameSave, pushGameSave, pushAllLocalSaves, GAME_SAVE_KEYS } from './firebase-sync.js';
 
 // ==========================================================================
 // Games Registry (Metadata)
@@ -740,7 +740,9 @@ function initAuthModal() {
             const name     = document.getElementById('suName').value.trim();
             const email    = document.getElementById('suEmail').value.trim();
             const password = document.getElementById('suPassword').value;
-            await signUpWithEmail(email, password, name);
+            const user = await signUpWithEmail(email, password, name);
+            // Upload all existing local game saves to the new account
+            await pushAllLocalSaves(user.uid);
             closeAuthModal();
         } catch (err) {
             suError.textContent = getFriendlyError(err.code);

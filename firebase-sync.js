@@ -118,3 +118,39 @@ export async function pullAllSaves(uid) {
         console.warn('[Arcade Sync] ⚠️ Pull all failed:', e.message);
     }
 }
+
+// ── Push All: on new account creation, upload existing local saves ──────────
+/**
+ * Push ALL locally-stored game saves to Firestore.
+ * Call this once after a brand-new account is created so that
+ * existing local progress is carried over to the cloud immediately.
+ */
+export async function pushAllLocalSaves(uid) {
+    if (!uid) return;
+
+    const gameIds = Object.keys(GAME_SAVE_KEYS);
+    let count = 0;
+
+    for (const gameId of gameIds) {
+        const keys = GAME_SAVE_KEYS[gameId];
+        if (!keys || keys.length === 0) continue;
+
+        const saveData = {};
+        keys.forEach(key => {
+            const val = localStorage.getItem(key);
+            if (val !== null) saveData[key] = val;
+        });
+
+        if (Object.keys(saveData).length === 0) continue;
+
+        try {
+            const ref = doc(db, 'users', uid, 'saves', gameId);
+            await setDoc(ref, saveData, { merge: true });
+            count++;
+        } catch (e) {
+            console.warn(`[Arcade Sync] ⚠️ Push failed for "${gameId}":`, e.message);
+        }
+    }
+
+    console.log(`[Arcade Sync] ✅ Uploaded local saves for ${count} games to new account`);
+}
