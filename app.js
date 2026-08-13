@@ -642,6 +642,9 @@ function initApp() {
             if (link.getAttribute('href').slice(1) === current) {
                 link.classList.add('active');
             }
+        });
+    });
+
     // ── Live Online Players Widget ───────────────────────────────────────────
     async function renderOnlinePlayersWidget() {
         const onlineCountBadge  = document.getElementById('onlineCountBadge');
