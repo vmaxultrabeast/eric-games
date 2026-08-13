@@ -3731,18 +3731,23 @@ async function loadCommunityDinos() {
 
     _communityData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    // Auto-repair any community records owned by current user that still say "Trainer"
-    if (user.uid && user.username && user.username !== 'Trainer') {
-      _communityData.forEach(d => {
-        if ((d.userId === user.uid || !d.userId) && d.username === 'Trainer') {
-          d.username = user.username;
-          d.userId   = user.uid;
-          window._dinoFirestore.collection('community_dinos').doc(d.id).update({
-            username: user.username,
-            userId: user.uid
-          }).catch(e => console.warn('[DinoScript] Auto-repair failed:', e.message));
+    // Auto-repair any community records showing "Trainer" by cross-referencing users profile
+    for (const d of _communityData) {
+      if (d.username === 'Trainer' || !d.username) {
+        if (d.userId && d.userId !== 'guest') {
+          try {
+            const uSnap = await window._dinoFirestore.collection('users').doc(d.userId).get();
+            if (uSnap.exists) {
+              const uData = uSnap.data();
+              const realName = uData.displayName || (uData.email ? uData.email.split('@')[0] : null);
+              if (realName) {
+                d.username = realName;
+                window._dinoFirestore.collection('community_dinos').doc(d.id).update({ username: realName }).catch(()=>{});
+              }
+            }
+          } catch(e) {}
         }
-      });
+      }
     }
 
     document.getElementById('community-loading').style.display = 'none';
@@ -3798,13 +3803,14 @@ function renderCommunityList() {
           const gen2 = d.isGen2 ? ' <span style="font-size:0.7rem;color:#f472b6;font-weight:900;">🌌Gen2</span>' : '';
           const totalStrength = (d.stats?.power || 0) + (d.stats?.defense || 0) + (d.stats?.speed || 0);
           const rowBg = i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent';
+          const displayTrainer = (d.username && d.username !== 'Trainer') ? d.username : 'Guest Trainer';
           return `<tr style="background:${rowBg};border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.15s;" onmouseover="this.style.background='rgba(232,165,58,0.08)'" onmouseout="this.style.background='${rowBg}'">
             <td style="padding:10px 8px;text-align:center;font-weight:900;font-size:1rem;">${rank}</td>
             <td style="padding:10px 8px;">
               <div style="font-size:1.1rem;margin-bottom:2px;">${d.avatar || '🦕'}</div>
               <div style="font-weight:800;color:#fbbf24;">${d.name}${gen2}</div>
             </td>
-            <td style="padding:10px 8px;color:var(--text-light);font-size:0.82rem;">👤 ${d.username || 'Trainer'}</td>
+            <td style="padding:10px 8px;color:var(--text-light);font-size:0.82rem;">👤 ${displayTrainer}</td>
             <td style="padding:10px 8px;text-align:center;font-weight:700;color:#f87171;">${d.stats?.power || 0}</td>
             <td style="padding:10px 8px;text-align:center;font-weight:700;color:#60a5fa;">${d.stats?.defense || 0}</td>
             <td style="padding:10px 8px;text-align:center;font-weight:700;color:#34d399;">${d.stats?.speed || 0}</td>

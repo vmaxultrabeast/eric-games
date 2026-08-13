@@ -145,6 +145,22 @@ export async function pullAllSaves(uid) {
     }
 }
 
+// ── Save User Profile: store user displayName & email in Firestore ──────────
+export async function saveUserProfile(user) {
+    if (!user) return;
+    try {
+        const displayName = user.displayName || user.email.split('@')[0];
+        const ref = doc(db, 'users', user.uid);
+        await setDoc(ref, {
+            displayName: displayName,
+            email: user.email,
+            lastLogin: new Date().toISOString()
+        }, { merge: true });
+    } catch (e) {
+        console.warn('[Arcade Sync] ⚠️ Profile save failed:', e.message);
+    }
+}
+
 // ── Push All: on new account creation, upload existing local saves ──────────
 /**
  * Push ALL locally-stored game saves to Firestore.

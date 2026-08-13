@@ -2,7 +2,7 @@
 // Firebase — Auth & Sync Imports
 // ==========================================================================
 import { onAuthChange, signInWithEmail, signUpWithEmail, signOutUser, getFriendlyError } from './firebase-auth.js';
-import { pullAllSaves, pullGameSave, pushGameSave, pushAllLocalSaves, GAME_SAVE_KEYS } from './firebase-sync.js';
+import { pullAllSaves, pullGameSave, pushGameSave, pushAllLocalSaves, saveUserProfile, GAME_SAVE_KEYS } from './firebase-sync.js';
 
 // ==========================================================================
 // Games Registry (Metadata)
@@ -790,6 +790,9 @@ function initAuthModal() {
             // Store identity for iframed games (e.g. DinoScript community tab)
             localStorage.setItem('arcade_username', displayName);
             localStorage.setItem('arcade_uid', user.uid);
+
+            // Sync user profile to Firestore
+            await saveUserProfile(user);
 
             // Pull all saves into localStorage
             await pullAllSaves(user.uid);
