@@ -7,9 +7,9 @@
 //   FIREBASE_SERVICE_ACCOUNT — JSON content of Firebase service account key
 // ==========================================================================
 
-const { GoogleGenAI }     = require('@google/genai');
-const textToSpeech        = require('@google-cloud/text-to-speech');
-const admin               = require('firebase-admin');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const textToSpeech          = require('@google-cloud/text-to-speech');
+const admin                 = require('firebase-admin');
 
 // ── Firebase & GCP init ────────────────────────────────────────────────────
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
@@ -23,8 +23,8 @@ const storage = admin.storage();
 // ── TTS Client (uses same GCP service account) ────────────────────────────
 const ttsClient = new textToSpeech.TextToSpeechClient({ credentials: serviceAccount });
 
-// ── Gemini / Imagen client ─────────────────────────────────────────────────
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// ── Gemini client ──────────────────────────────────────────────────────────
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // ==========================================================================
 // Story Bible
@@ -80,25 +80,25 @@ async function main() {
 
     console.log(`📖 Generating Episode ${episodeNumber}...`);
 
-    // 2. Generate story text with Gemini
-    const storyPrompt = buildStoryPrompt(episodeNumber, runningSummary);
-    const textResult  = await ai.models.generateContent({
-        model:  'gemini-2.0-flash',
-        contents: storyPrompt,
-        config: {
-            temperature:     0.88,
-            topP:            0.95,
-            maxOutputTokens: 4096,
-        },
+    // 2. Generate story text with Gemini 1.5 Flash
+    const model = genAI.getGenerativeModel({
+        model: 'gemini-1.5-flash',
+        generationConfig: {
+            temperature: 0.88,
+            topP: 0.95,
+            maxOutputTokens: 8192,
+        }
     });
 
-    const rawText = textResult.text;
-    const parsed  = parseEpisodeResponse(rawText, episodeNumber);
+    const storyPrompt = buildStoryPrompt(episodeNumber, runningSummary);
+    const textResult  = await model.generateContent(storyPrompt);
+    const rawText     = textResult.response.text();
+    const parsed      = parseEpisodeResponse(rawText, episodeNumber);
 
     const wordCount = parsed.content.split(/\s+/).length;
     console.log(`✍️  Story: "${parsed.title}" — ${wordCount} words`);
 
-    // 3. Generate episode image with Imagen 3
+    // 3. Generate episode image with Imagen 3 REST API
     let imageUrl = null;
     try {
         imageUrl = await generateAndUploadImage(parsed, episodeNumber);
@@ -159,25 +159,33 @@ async function generateAndUploadImage(parsed, episodeNumber) {
         `Dense tropical jungle, volcanic peaks, stormy dramatic atmosphere, bioluminescent plants. ` +
         `Photorealistic, epic scale, Jurassic Park meets Pacific Rim style, 16:9 wide shot.`;
 
-    const imgResult = await ai.models.generateImages({
-        model:  'imagen-3.0-generate-002',
-        prompt: imagePrompt,
-        config: {
-            numberOfImages:    1,
-            aspectRatio:       '16:9',
-            safetyFilterLevel: 'BLOCK_ONLY_HIGH',
-            personGeneration:  'DONT_ALLOW',
-        },
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:generateImages?key=${process.env.GEMINI_API_KEY}`;
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            prompt: imagePrompt,
+            config: {
+                numberOfImages: 1,
+                aspectRatio: '16:9',
+                outputMimeType: 'image/jpeg',
+                personGeneration: 'DONT_ALLOW'
+            }
+        })
     });
 
-    if (!imgResult.generatedImages || imgResult.generatedImages.length === 0) {
+    if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Imagen API error ${res.status}: ${errText}`);
+    }
+
+    const json = await res.json();
+    if (!json.generatedImages || json.generatedImages.length === 0) {
         throw new Error('Imagen returned no images');
     }
 
-    const imageBytes = Buffer.from(
-        imgResult.generatedImages[0].image.imageBytes,
-        'base64'
-    );
+    const b64 = json.generatedImages[0].image.imageBytes;
+    const imageBytes = Buffer.from(b64, 'base64');
 
     // Upload to Firebase Storage
     const bucket   = storage.bucket();
