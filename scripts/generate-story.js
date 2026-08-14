@@ -341,22 +341,32 @@ async function generateAndUploadAudio(storyContentText, episodeNumber) {
 
     let fullAudioBuffer = null;
 
-    // 1. Generate high-definition studio narration via edge-tts (Python)
+    // 1. Generate high-definition studio narration via edge-tts (Python) chunk-by-chunk
     try {
         const { execSync } = require('child_process');
         const fs = require('fs');
         const path = require('path');
 
-        const tmpTxt = path.join(__dirname, `tmp_ep_${episodeNumber}.txt`);
-        const tmpMp3 = path.join(__dirname, `tmp_ep_${episodeNumber}.mp3`);
-        fs.writeFileSync(tmpTxt, cleanText, 'utf-8');
+        console.log(`🎙️ Generating Studio Neural MP3 narration for ${chunks.length} text chunk(s)...`);
+        const chunkBuffers = [];
 
-        console.log('🎙️ Generating Studio Neural MP3 narration (en-US-ChristopherNeural)...');
-        execSync(`edge-tts --file "${tmpTxt}" --voice en-US-ChristopherNeural --rate="-4%" --write-media "${tmpMp3}"`);
+        for (let i = 0; i < chunks.length; i++) {
+            const tmpTxt = path.join(__dirname, `tmp_ep_${episodeNumber}_${i}.txt`);
+            const tmpMp3 = path.join(__dirname, `tmp_ep_${episodeNumber}_${i}.mp3`);
+            fs.writeFileSync(tmpTxt, chunks[i], 'utf-8');
 
-        if (fs.existsSync(tmpMp3)) {
-            fullAudioBuffer = fs.readFileSync(tmpMp3);
-            try { fs.unlinkSync(tmpTxt); fs.unlinkSync(tmpMp3); } catch {}
+            console.log(`  🔊 Synthesizing chunk ${i + 1}/${chunks.length}...`);
+            execSync(`edge-tts --file "${tmpTxt}" --voice en-US-ChristopherNeural --rate="-4%" --write-media "${tmpMp3}"`);
+
+            if (fs.existsSync(tmpMp3)) {
+                chunkBuffers.push(fs.readFileSync(tmpMp3));
+                try { fs.unlinkSync(tmpTxt); fs.unlinkSync(tmpMp3); } catch {}
+            }
+        }
+
+        if (chunkBuffers.length > 0) {
+            fullAudioBuffer = Buffer.concat(chunkBuffers);
+            console.log(`✅ Complete Studio MP3 generated (${fullAudioBuffer.length} bytes)!`);
         }
     } catch (pyErr) {
         console.warn('⚠️ edge-tts note:', pyErr.message);
