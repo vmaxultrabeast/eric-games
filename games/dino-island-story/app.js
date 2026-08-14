@@ -101,26 +101,6 @@ const TTS = {
     usingStudioAudio: false,
 };
 
-// ── Init ───────────────────────────────────────────────────────────────────
-loadMyRatings();
-onAuthStateChanged(auth, (user) => { currentUser = user; });
-subscribeToEpisodes();
-startCountdownTimer();
-initSidebarToggle();
-initScrollProgress();
-initTTS();
-
-// ── Load locally saved ratings ────────────────────────────────────────────
-function loadMyRatings() {
-    try {
-        myRatings = JSON.parse(localStorage.getItem('dino_island_ratings') || '{}');
-    } catch { myRatings = {}; }
-}
-
-function saveMyRatings() {
-    localStorage.setItem('dino_island_ratings', JSON.stringify(myRatings));
-}
-
 const FALLBACK_EPISODES = [
     {
         id: 'ep1-static',
@@ -169,6 +149,26 @@ A roaring battle echoed across the island as security teams scrambled to contain
         hybrids: ['D-Rex', 'Volt-Raptor']
     }
 ];
+
+// ── Init ───────────────────────────────────────────────────────────────────
+loadMyRatings();
+onAuthStateChanged(auth, (user) => { currentUser = user; });
+subscribeToEpisodes();
+startCountdownTimer();
+initSidebarToggle();
+initScrollProgress();
+initTTS();
+
+// ── Load locally saved ratings ────────────────────────────────────────────
+function loadMyRatings() {
+    try {
+        myRatings = JSON.parse(localStorage.getItem('dino_island_ratings') || '{}');
+    } catch { myRatings = {}; }
+}
+
+function saveMyRatings() {
+    localStorage.setItem('dino_island_ratings', JSON.stringify(myRatings));
+}
 
 function applyEpisodes(newEps) {
     if (!newEps || newEps.length === 0) return;
@@ -496,8 +496,8 @@ function renderRatingStats(ep) {
 }
 
 // ── Episode navigation buttons ────────────────────────────────────────────
-prevEpBtn.addEventListener('click', () => openEpisode(currentEpIndex - 1));
-nextEpBtn.addEventListener('click', () => openEpisode(currentEpIndex + 1));
+if (prevEpBtn) prevEpBtn.addEventListener('click', () => openEpisode(currentEpIndex - 1));
+if (nextEpBtn) nextEpBtn.addEventListener('click', () => openEpisode(currentEpIndex + 1));
 
 // ── Scroll progress bar ───────────────────────────────────────────────────
 function initScrollProgress() {
@@ -517,6 +517,7 @@ function startCountdownTimer() {
     setInterval(tick, 1000);
 }
 function tick() {
+    if (!countdownTime) return;
     const now  = new Date();
     const next = new Date();
     next.setHours(18, 0, 0, 0); // 6 PM local
@@ -531,15 +532,17 @@ function tick() {
 
 // ── Mobile sidebar ────────────────────────────────────────────────────────
 function initSidebarToggle() {
-    sidebarToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('open');
-        sidebarOverlay.classList.toggle('hidden');
-    });
-    sidebarOverlay.addEventListener('click', closeSidebar);
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', () => {
+            if (sidebar) sidebar.classList.toggle('open');
+            if (sidebarOverlay) sidebarOverlay.classList.toggle('hidden');
+        });
+    }
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
 }
 function closeSidebar() {
-    sidebar.classList.remove('open');
-    sidebarOverlay.classList.add('hidden');
+    if (sidebar) sidebar.classList.remove('open');
+    if (sidebarOverlay) sidebarOverlay.classList.add('hidden');
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────────
@@ -627,25 +630,25 @@ function initTTS() {
     }
 
     // 2. ALWAYS attach listen button click listener
-    listenBtn.addEventListener('click', (e) => {
-        e.preventDefault();
+    if (listenBtn) {
+        listenBtn.addEventListener('click', (e) => {
+            e.preventDefault();
 
-        // 1. Synchronously prime Web Speech API within click callstack
-        if ('speechSynthesis' in window && window.speechSynthesis) {
-            window.speechSynthesis.resume();
-        }
+            if ('speechSynthesis' in window && window.speechSynthesis) {
+                window.speechSynthesis.resume();
+            }
 
-        // 2. Open first episode if none selected
-        if (currentEpIndex < 0 && episodes.length > 0) {
-            openEpisode(0);
-        }
+            if (currentEpIndex < 0 && episodes.length > 0) {
+                openEpisode(0);
+            }
 
-        if (TTS.isPlaying || TTS.isPaused) {
-            ttsStop();
-        } else {
-            ttsStart(0);
-        }
-    });
+            if (TTS.isPlaying || TTS.isPaused) {
+                ttsStop();
+            } else {
+                ttsStart(0);
+            }
+        });
+    }
 
     const heroPlayBtn = document.getElementById('heroPlayBtn');
     if (heroPlayBtn) {
@@ -770,25 +773,29 @@ function initTTS() {
         }
     });
 
-    // 3. Sentence click delegation: click any sentence to start reading from there
-    storyContent.addEventListener('click', (e) => {
-        const span = e.target.closest('.story-sentence');
-        if (!span) return;
-        const si = parseInt(span.dataset.si, 10);
-        if (!isNaN(si)) {
-            ttsStart(si);
-        }
-    });
+    // 3. Sentence click delegation
+    if (storyContent) {
+        storyContent.addEventListener('click', (e) => {
+            const span = e.target.closest('.story-sentence');
+            if (!span) return;
+            const si = parseInt(span.dataset.si, 10);
+            if (!isNaN(si)) {
+                ttsStart(si);
+            }
+        });
+    }
 
     // 4. Control buttons
-    ttsPlayPauseBtn.addEventListener('click', () => {
-        if (TTS.isPaused) ttsResume();
-        else if (TTS.isPlaying) ttsPause();
-    });
+    if (ttsPlayPauseBtn) {
+        ttsPlayPauseBtn.addEventListener('click', () => {
+            if (TTS.isPaused) ttsResume();
+            else if (TTS.isPlaying) ttsPause();
+        });
+    }
 
-    ttsRestartBtn.addEventListener('click', () => ttsStart(0));
-    ttsStopBtn.addEventListener('click', ttsStop);
-    ttsCloseBtn.addEventListener('click', ttsStop);
+    if (ttsRestartBtn) ttsRestartBtn.addEventListener('click', () => ttsStart(0));
+    if (ttsStopBtn) ttsStopBtn.addEventListener('click', ttsStop);
+    if (ttsCloseBtn) ttsCloseBtn.addEventListener('click', ttsStop);
 
     ttsSpeedBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -805,8 +812,8 @@ function initTTS() {
     });
 
     // Stop TTS when user switches episodes
-    prevEpBtn.addEventListener('click', ttsStop);
-    nextEpBtn.addEventListener('click', ttsStop);
+    if (prevEpBtn) prevEpBtn.addEventListener('click', ttsStop);
+    if (nextEpBtn) nextEpBtn.addEventListener('click', ttsStop);
 
     // 5. Populate Web Speech voices if supported
     if ('speechSynthesis' in window && window.speechSynthesis) {
