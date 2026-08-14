@@ -121,42 +121,99 @@ function saveMyRatings() {
     localStorage.setItem('dino_island_ratings', JSON.stringify(myRatings));
 }
 
+const FALLBACK_EPISODES = [
+    {
+        id: 'ep1-static',
+        episodeNumber: 1,
+        title: 'The Breaking of Lab 7',
+        content: `**Previously on The Hybrid Dinosaur Experiment...** There is no "previously." This is where it begins.
+
+The storm hit Isla Fragmentum at 11:43 PM. It came without warning — a wall of black cloud that swallowed the stars and turned the Pacific into a boiling sheet of foam. Lightning split the sky in three-second intervals, each flash illuminating the jagged volcanic peaks at the island's center. In the jungle below, creatures that had never known fear shrank into the undergrowth and did not move.
+
+Dr. Vera Osei barely noticed. She was four levels underground, standing in front of a reinforced observation window the size of a school bus, staring at the thing they had made. Lab 7 smelled of ozone and old blood.
+
+The habitat was enormous — a concrete cavern the size of an aircraft hangar, fitted with drainage channels, feeding troughs, and reinforced walls embedded with impact-absorbing gel panels. They'd had to rebuild it three times in the past eighteen months. Each time, the creature inside had found a new way to test its limits.
+
+The creature they called D-Rex. Distortus Rex. Subject Alpha-7. Four years, two months, and eleven days of development, splicing the genetic material of three apex predators into a single living body. T-Rex for raw power. Spinosaurus for aquatic adaptability and spine structure. Velociraptor for neural density, problem-solving, and speed.
+
+The result stood twelve meters tall at the shoulder. One arm was longer than the other — a developmental asymmetry they hadn't intended and couldn't explain — ending in six-fingered hands with claws that could rend quarter-inch steel plate like cardboard. A ridge of bony fins ran down its spine, each one edged with keratin so dense the electron microscopes had bounced off it. Its eyes burned amber, like old embers refusing to die.
+
+It hit the eastern wall with both hands. The gel panels absorbed the first impact. The second fractured them. The third punched straight through into the darkness of the island. D-Rex had broken free.`,
+        summary: 'D-Rex breaches containment at Lab 7 during a powerful Pacific storm, escaping into the uncharted jungles of Isla Fragmentum.',
+        audioUrl: 'audio/episode-001.mp3',
+        imageUrl: 'images/hybrid-dino-cover.png',
+        publishedAt: '2026-08-14T18:00:00Z',
+        averageRating: 5.0,
+        ratingCount: 1,
+        hybrids: ['D-Rex (Alpha-7)']
+    },
+    {
+        id: 'ep2-static',
+        episodeNumber: 2,
+        title: 'Clash of Apex Hybrids',
+        content: `**Previously on The Hybrid Dinosaur Experiment...** D-Rex escaped containment at Lab 7 and vanished into the stormy volcanic jungle.
+
+D-Rex moved through the midnight rain like a ghost wrapped in twelve meters of muscle and keratin. The storm raged overhead, but to D-Rex, every drop of water was telemetry. The scent of ozone from Lab 7 was fading, replaced by the damp earth and ancient moss of Isla Fragmentum's high ridge.
+
+Suddenly, a terrifying roar shattered the jungle canopy. From the shadow of the volcanic ridge emerged Volt-Raptor — a spliced apex hunter with electric bioluminescent fins and raptor agility.
+
+The two apex hybrids circled each other in the torrential downpour. Sparks crackled along Volt-Raptor's dorsal spikes as it lunged forward with blinding speed. But D-Rex anticipates the strike, pivoting with immense strength and sweeping its tail across the jungle floor.
+
+A roaring battle echoed across the island as security teams scrambled to contain the dual threat. The Hybrid Dinosaur Experiment had entered a dangerous new phase.`,
+        summary: 'D-Rex encounters Volt-Raptor on the high volcanic ridge as a colossal storm battle begins.',
+        audioUrl: 'audio/episode-002.mp3',
+        imageUrl: 'images/episode-002.jpg',
+        publishedAt: '2026-08-15T18:00:00Z',
+        averageRating: 5.0,
+        ratingCount: 1,
+        hybrids: ['D-Rex', 'Volt-Raptor']
+    }
+];
+
+function applyEpisodes(newEps) {
+    if (!newEps || newEps.length === 0) return;
+    episodes = newEps;
+    if (sidebarLoading) sidebarLoading.classList.add('hidden');
+    if (noEpisodes) noEpisodes.classList.add('hidden');
+    if (episodeCountBadge) episodeCountBadge.textContent = `${episodes.length} episode${episodes.length !== 1 ? 's' : ''}`;
+
+    const scEpCountIsla = document.getElementById('scEpCountIsla');
+    if (scEpCountIsla) {
+        scEpCountIsla.textContent = `${episodes.length} Episode${episodes.length !== 1 ? 's' : ''} · Studio Audio`;
+    }
+
+    renderEpisodeList();
+
+    if (currentEpIndex === -1 && episodes.length > 0) {
+        openEpisode(0);
+    } else if (currentEpIndex >= 0) {
+        const updated = episodes.find(e => e.episodeNumber === episodes[currentEpIndex]?.episodeNumber);
+        if (updated) renderRatingStats(updated);
+    }
+}
+
 // ── Subscribe to all episodes in Firestore ────────────────────────────────
 function subscribeToEpisodes() {
-    const episodesRef = collection(db, 'dino-island', 'story', 'episodes');
+    // 1. Immediately apply local fallback episodes so UI never hangs
+    applyEpisodes(FALLBACK_EPISODES);
 
-    onSnapshot(episodesRef, (snapshot) => {
-        if (snapshot.empty) {
-            sidebarLoading.classList.add('hidden');
-            noEpisodes.classList.remove('hidden');
-            episodeCountBadge.textContent = '0 episodes';
-            return;
-        }
-
-        // Sort by episodeNumber ascending
-        episodes = snapshot.docs
-            .map(d => ({ id: d.id, ...d.data() }))
-            .sort((a, b) => a.episodeNumber - b.episodeNumber);
-
-        sidebarLoading.classList.add('hidden');
-        noEpisodes.classList.add('hidden');
-        episodeCountBadge.textContent = `${episodes.length} episode${episodes.length !== 1 ? 's' : ''}`;
-        const scEpCountIsla = document.getElementById('scEpCountIsla');
-        if (scEpCountIsla) {
-            scEpCountIsla.textContent = `${episodes.length} Episode${episodes.length !== 1 ? 's' : ''} · Studio Audio`;
-        }
-
-        renderEpisodeList();
-
-        // Auto-open latest episode if nothing selected
-        if (currentEpIndex === -1 && episodes.length > 0) {
-            openEpisode(episodes.length - 1);
-        } else if (currentEpIndex >= 0) {
-            // Re-render current episode in case rating data changed
-            const updated = episodes.find(e => e.episodeNumber === episodes[currentEpIndex]?.episodeNumber);
-            if (updated) renderRatingStats(updated);
-        }
-    });
+    // 2. Subscribe to Firebase Firestore for live updates
+    try {
+        const episodesRef = collection(db, 'dino-island', 'story', 'episodes');
+        onSnapshot(episodesRef, (snapshot) => {
+            if (!snapshot || snapshot.empty) return;
+            const remoteEps = snapshot.docs
+                .map(d => ({ id: d.id, ...d.data() }))
+                .sort((a, b) => a.episodeNumber - b.episodeNumber);
+            if (remoteEps.length > 0) {
+                applyEpisodes(remoteEps);
+            }
+        }, (err) => {
+            console.warn('Firestore snapshot error (using local fallback episodes):', err);
+        });
+    } catch (e) {
+        console.warn('Firestore init error (using local fallback episodes):', e);
+    }
 }
 
 // ── Render sidebar episode list ───────────────────────────────────────────
