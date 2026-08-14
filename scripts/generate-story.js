@@ -79,7 +79,7 @@ async function main() {
     // 2. Generate story text with Gemini
     const storyPrompt = buildStoryPrompt(episodeNumber, runningSummary);
     const textResult  = await ai.models.generateContent({
-        model:  'gemini-1.5-flash',
+        model:  'gemini-2.0-flash',
         contents: storyPrompt,
         config: {
             temperature:     0.88,
