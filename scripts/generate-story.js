@@ -124,16 +124,17 @@ async function main() {
         'gemini-3.5-flash'
     ];
 
+    let activeModelName = 'gemini-3.6-flash';
     let rawText = null;
     for (const modelName of [...new Set(candidateModels)]) {
         try {
-            // Target v1beta explicitly so gemini-3.1-pro-preview / gemini-2.5-pro work
             const model = genAI.getGenerativeModel(
                 { model: modelName, generationConfig: { temperature: 0.90, topP: 0.95, maxOutputTokens: 8192 } },
                 { apiVersion: 'v1beta' }
             );
             const textResult = await model.generateContent(storyPrompt);
             rawText = textResult.response.text();
+            activeModelName = modelName;
             console.log(`✨ Success with model "${modelName}" (v1beta API)!`);
             break;
         } catch (err1) {
@@ -144,6 +145,7 @@ async function main() {
                 );
                 const textResult = await model.generateContent(storyPrompt);
                 rawText = textResult.response.text();
+                activeModelName = modelName;
                 console.log(`✨ Success with model "${modelName}" (v1 API)!`);
                 break;
             } catch (err2) {
@@ -158,8 +160,42 @@ async function main() {
 
     const parsed = parseEpisodeResponse(rawText, episodeNumber);
 
-    const wordCount = parsed.content.split(/\s+/).length;
-    console.log(`✍️  Story: "${parsed.title}" — ${wordCount} words`);
+    let wordCount = parsed.content.split(/\s+/).length;
+    console.log(`✍️ Initial draft: "${parsed.title}" — ${wordCount} words`);
+
+    // Automatic Narrative Expansion if draft is under 1,800 words (~10-min read target)
+    if (wordCount < 1800) {
+        console.log(`📖 Episode is under 1,800 words (${wordCount} w). Expanding narrative to reach 2,000+ word 10-minute read target...`);
+        try {
+            const expandPrompt = `You are the lead author of ISLA FRAGMENTUM.
+Expand the following story content into a full, immersive, highly detailed 2,200 to 2,800-word chapter (~10-minute read).
+
+RULES FOR EXPANSION:
+- Keep the exact same plot, characters, and title.
+- Do NOT write summaries. Write out every single scene in rich multi-paragraph prose.
+- Add rich environmental descriptions (bioluminescent jungle, volcanic ash, heavy rain), step-by-step physical action choreography, character dialogue, and internal thoughts.
+- Expand tactical exchanges and dialogue between Dr. Vera Osei, Chief Reyes, and security personnel.
+
+CURRENT DRAFT TO EXPAND:
+${parsed.content}
+
+Output ONLY the expanded story text, starting with **Previously on Isla Fragmentum...** in bold.`;
+
+            const expModel = genAI.getGenerativeModel(
+                { model: activeModelName, generationConfig: { temperature: 0.92, topP: 0.95, maxOutputTokens: 8192 } },
+                { apiVersion: 'v1beta' }
+            );
+            const expRes = await expModel.generateContent(expandPrompt);
+            const expText = expRes.response.text().trim();
+            if (expText && expText.length > parsed.content.length) {
+                parsed.content = expText;
+                wordCount = parsed.content.split(/\s+/).length;
+                console.log(`✨ Successfully expanded story to ${wordCount} words!`);
+            }
+        } catch (expErr) {
+            console.warn('⚠️ Narrative expansion note:', expErr.message.split('\n')[0]);
+        }
+    }
 
     // 3. Generate episode image (Imagen 3 / Pollinations AI fallback)
     let imageUrl = null;
