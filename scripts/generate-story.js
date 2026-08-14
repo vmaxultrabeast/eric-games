@@ -359,7 +359,7 @@ async function generateAndUploadAudio(storyContentText, episodeNumber) {
         const fs = require('fs');
         const path = require('path');
 
-        console.log(`🎙️ Generating Studio Neural MP3 narration for ${chunks.length} text chunk(s)...`);
+        console.log(`🎙️ Generating Expressive Studio Audio (en-US-BrianNeural) for ${chunks.length} text chunk(s)...`);
         const chunkBuffers = [];
 
         for (let i = 0; i < chunks.length; i++) {
@@ -368,7 +368,7 @@ async function generateAndUploadAudio(storyContentText, episodeNumber) {
             fs.writeFileSync(tmpTxt, chunks[i], 'utf-8');
 
             console.log(`  🔊 Synthesizing chunk ${i + 1}/${chunks.length}...`);
-            execSync(`edge-tts --file "${tmpTxt}" --voice en-US-ChristopherNeural --rate="-4%" --write-media "${tmpMp3}"`);
+            execSync(`edge-tts --file "${tmpTxt}" --voice en-US-BrianNeural --pitch="+2Hz" --rate="+0%" --write-media "${tmpMp3}"`);
 
             if (fs.existsSync(tmpMp3)) {
                 chunkBuffers.push(fs.readFileSync(tmpMp3));
