@@ -271,23 +271,41 @@ async function generateAndUploadImage(parsed, episodeNumber) {
         imageBytes = Buffer.from(ab);
     }
 
-    // Upload to Firebase Storage
-    const bucket   = getBucket();
-    const fileName = `dino-island/episodes/episode-${String(episodeNumber).padStart(3, '0')}.jpg`;
-    const file     = bucket.file(fileName);
+    // Save to repository static directory & try Firebase Storage
+    const fs = require('fs');
+    const path = require('path');
+    const epStr = String(episodeNumber).padStart(3, '0');
+    const relImgPath = `images/episode-${epStr}.jpg`;
+    const localImgPath = path.join(__dirname, '..', 'games', 'dino-island-story', 'images', `episode-${epStr}.jpg`);
 
-    await file.save(imageBytes, {
-        metadata: {
-            contentType: 'image/jpeg',
+    try {
+        const imgDir = path.dirname(localImgPath);
+        if (!fs.existsSync(imgDir)) fs.mkdirSync(imgDir, { recursive: true });
+        fs.writeFileSync(localImgPath, imageBytes);
+        console.log(`📁 Saved image to static repo path: ${relImgPath}`);
+    } catch (fsErr) {
+        console.warn('Local image save note:', fsErr.message);
+    }
+
+    try {
+        const bucket   = getBucket();
+        const fileName = `dino-island/episodes/episode-${epStr}.jpg`;
+        const file     = bucket.file(fileName);
+
+        await file.save(imageBytes, {
             metadata: {
-                episodeNumber: String(episodeNumber),
-                episodeTitle:  parsed.title,
+                contentType: 'image/jpeg',
+                metadata: { episodeNumber: String(episodeNumber), episodeTitle: parsed.title },
             },
-        },
-    });
+            resumable: false,
+        });
 
-    await file.makePublic();
-    return `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+        await file.makePublic();
+        return `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+    } catch (stErr) {
+        console.warn('⚠️ Firebase Storage image upload note (using static repo path):', stErr.message.split('\n')[0]);
+        return relImgPath;
+    }
 }
 
 // ==========================================================================
@@ -296,7 +314,6 @@ async function generateAndUploadImage(parsed, episodeNumber) {
 async function generateAndUploadAudio(storyContentText, episodeNumber) {
     console.log('🎙️  Synthesizing Studio Neural audio narration...');
 
-    // 1. Strip markdown elements for clean TTS reading
     let cleanText = storyContentText
         .replace(/\*\*(.*?)\*\*/g, '$1')
         .replace(/__(.*?)__/g, '$1')
@@ -365,18 +382,37 @@ async function generateAndUploadAudio(storyContentText, episodeNumber) {
         throw new Error('Both GCP TTS and edge-tts audio synthesis attempts were skipped.');
     }
 
-    // Upload MP3 to Firebase Storage
-    const bucket   = getBucket();
-    const fileName = `dino-island/episodes/episode-${String(episodeNumber).padStart(3, '0')}.mp3`;
-    const file     = bucket.file(fileName);
+    const fs = require('fs');
+    const path = require('path');
+    const epStr = String(episodeNumber).padStart(3, '0');
+    const relAudioPath = `audio/episode-${epStr}.mp3`;
+    const localAudioPath = path.join(__dirname, '..', 'games', 'dino-island-story', 'audio', `episode-${epStr}.mp3`);
 
-    await file.save(fullAudioBuffer, {
-        metadata: { contentType: 'audio/mpeg', metadata: { episodeNumber: String(episodeNumber) } },
-        resumable: false,
-    });
+    try {
+        const audDir = path.dirname(localAudioPath);
+        if (!fs.existsSync(audDir)) fs.mkdirSync(audDir, { recursive: true });
+        fs.writeFileSync(localAudioPath, fullAudioBuffer);
+        console.log(`📁 Saved MP3 to static repo path: ${relAudioPath}`);
+    } catch (fsErr) {
+        console.warn('Local MP3 save note:', fsErr.message);
+    }
 
-    await file.makePublic();
-    return `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+    try {
+        const bucket   = getBucket();
+        const fileName = `dino-island/episodes/episode-${epStr}.mp3`;
+        const file     = bucket.file(fileName);
+
+        await file.save(fullAudioBuffer, {
+            metadata: { contentType: 'audio/mpeg', metadata: { episodeNumber: String(episodeNumber) } },
+            resumable: false,
+        });
+
+        await file.makePublic();
+        return `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+    } catch (stErr) {
+        console.warn('⚠️ Firebase Storage audio upload note (using static repo path):', stErr.message.split('\n')[0]);
+        return relAudioPath;
+    }
 }
 
 // ==========================================================================
