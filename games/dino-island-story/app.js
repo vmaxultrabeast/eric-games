@@ -511,9 +511,14 @@ function initTTS() {
     TTS.audioEl = new Audio();
     TTS.audioEl.addEventListener('ended', ttsStop);
     TTS.audioEl.addEventListener('timeupdate', () => {
-        if (!TTS.studioAudioUrl || !TTS.audioEl.duration) return;
+        if (!TTS.usingStudioAudio || !TTS.audioEl.duration) return;
         const pct = Math.floor((TTS.audioEl.currentTime / TTS.audioEl.duration) * 100);
-        ttsSentenceCounter.textContent = `Studio Audio: ${pct}%`;
+        ttsSentenceCounter.textContent = `🎙️ Studio Narration: ${pct}%`;
+    });
+    TTS.audioEl.addEventListener('error', (e) => {
+        console.warn('Studio MP3 playback error, falling back to Web Speech API:', e);
+        TTS.usingStudioAudio = false;
+        ttsFallbackWebSpeech(TTS.currentIdx >= 0 ? TTS.currentIdx : 0);
     });
 
     // Populate voices & handle async loading in Chrome/Edge/Safari
@@ -630,14 +635,16 @@ function ttsPrepare() {
 // ── Start reading from a given sentence index ──────────────────────────────
 function ttsStart(fromIdx) {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
-    if (TTS.audioEl) TTS.audioEl.pause();
+    if (TTS.audioEl) {
+        TTS.audioEl.pause();
+        TTS.audioEl.currentTime = 0;
+    }
     ttsHighlightClear();
 
-    // Check if current episode has studio MP3 (from Firestore audioUrl or static audio folder)
     const currentEp = episodes[currentEpIndex];
     const epNum = currentEp ? currentEp.episodeNumber : 1;
     const staticAudioPath = `audio/episode-${String(epNum).padStart(3, '0')}.mp3`;
-    TTS.studioAudioUrl = (currentEp && currentEp.audioUrl) ? currentEp.audioUrl : staticAudioPath;
+    const targetAudioUrl = (currentEp && currentEp.audioUrl) ? currentEp.audioUrl : staticAudioPath;
 
     TTS.isPlaying = true;
     TTS.isPaused  = false;
@@ -649,24 +656,33 @@ function ttsStart(fromIdx) {
     readerPanel.classList.add('tts-open');
     ttsSetPlayingUI(true);
 
-    if (TTS.studioAudioUrl && TTS.audioEl) {
-        // Studio MP3 mode
+    if (targetAudioUrl && TTS.audioEl) {
+        // Attempt Studio MP3 Mode first
+        TTS.usingStudioAudio = true;
         const voiceContainer = ttsVoiceSelect.closest('.tts-voice');
         if (voiceContainer) voiceContainer.style.display = 'none';
 
-        TTS.audioEl.src = TTS.studioAudioUrl;
+        TTS.audioEl.src = targetAudioUrl;
         TTS.audioEl.playbackRate = TTS.rate;
-        TTS.audioEl.play().catch(err => console.warn('Audio play failed:', err));
-        ttsSentenceCounter.textContent = 'Playing Studio Audio...';
+        TTS.audioEl.play().catch(err => {
+            console.warn('Audio play failed, using Web Speech API fallback:', err);
+            TTS.usingStudioAudio = false;
+            ttsFallbackWebSpeech(fromIdx);
+        });
+        ttsSentenceCounter.textContent = '🎙️ Studio Narration...';
     } else {
-        // Fallback Web Speech API mode
-        const voiceContainer = ttsVoiceSelect.closest('.tts-voice');
-        if (voiceContainer) voiceContainer.style.display = '';
-
-        ttsPrepare();
-        if (TTS.sentences.length === 0) return;
-        ttsSpeak(fromIdx);
+        ttsFallbackWebSpeech(fromIdx);
     }
+}
+
+function ttsFallbackWebSpeech(fromIdx) {
+    TTS.usingStudioAudio = false;
+    const voiceContainer = ttsVoiceSelect.closest('.tts-voice');
+    if (voiceContainer) voiceContainer.style.display = '';
+
+    ttsPrepare();
+    if (TTS.sentences.length === 0) return;
+    ttsSpeak(fromIdx);
 }
 
 // ── Speak a single sentence, then chain to next ────────────────────────────
