@@ -124,27 +124,27 @@ async function main() {
     let rawText = null;
     for (const modelName of [...new Set(candidateModels)]) {
         try {
-            // Try v1 first, then fallback
-            const model = genAI.getGenerativeModel(
-                { model: modelName, generationConfig: { temperature: 0.88, topP: 0.95, maxOutputTokens: 8192 } },
-                { apiVersion: 'v1' }
-            );
+            // Try default (v1beta) first so pro models work
+            const model = genAI.getGenerativeModel({
+                model: modelName,
+                generationConfig: { temperature: 0.90, topP: 0.95, maxOutputTokens: 8192 }
+            });
             const textResult = await model.generateContent(storyPrompt);
             rawText = textResult.response.text();
-            console.log(`✨ Success with model "${modelName}" (v1 API)!`);
+            console.log(`✨ Success with model "${modelName}"!`);
             break;
         } catch (err1) {
             try {
-                const model = genAI.getGenerativeModel({
-                    model: modelName,
-                    generationConfig: { temperature: 0.88, topP: 0.95, maxOutputTokens: 8192 }
-                });
+                const model = genAI.getGenerativeModel(
+                    { model: modelName, generationConfig: { temperature: 0.90, topP: 0.95, maxOutputTokens: 8192 } },
+                    { apiVersion: 'v1' }
+                );
                 const textResult = await model.generateContent(storyPrompt);
                 rawText = textResult.response.text();
-                console.log(`✨ Success with model "${modelName}" (v1beta API)!`);
+                console.log(`✨ Success with model "${modelName}" (v1 API)!`);
                 break;
             } catch (err2) {
-                console.warn(`⚠️ Model "${modelName}" failed:`, err2.message.split('\n')[0]);
+                console.warn(`⚠️ Model "${modelName}" note:`, err2.message.split('\n')[0]);
             }
         }
     }
@@ -158,7 +158,7 @@ async function main() {
     const wordCount = parsed.content.split(/\s+/).length;
     console.log(`✍️  Story: "${parsed.title}" — ${wordCount} words`);
 
-    // 3. Generate episode image with Imagen 3 REST API
+    // 3. Generate episode image (Imagen 3 / Pollinations AI fallback)
     let imageUrl = null;
     try {
         imageUrl = await generateAndUploadImage(parsed, episodeNumber);
@@ -256,11 +256,17 @@ async function generateAndUploadImage(parsed, episodeNumber) {
         }
     }
 
-    if (!b64) {
-        throw new Error('All Imagen 3 model endpoints returned non-200 responses.');
+    let imageBytes = null;
+    if (b64) {
+        imageBytes = Buffer.from(b64, 'base64');
+    } else {
+        console.log('🎨 Generating HD AI scene image via Pollinations AI fallback...');
+        const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}?width=1280&height=720&nologo=true&seed=${episodeNumber * 1337}`;
+        const pRes = await fetch(pollUrl);
+        if (!pRes.ok) throw new Error(`Pollinations image fetch failed: ${pRes.status}`);
+        const ab = await pRes.arrayBuffer();
+        imageBytes = Buffer.from(ab);
     }
-
-    const imageBytes = Buffer.from(b64, 'base64');
 
     // Upload to Firebase Storage
     const bucket   = storage.bucket();

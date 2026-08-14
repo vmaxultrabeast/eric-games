@@ -30,6 +30,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: scripts/package.json
 
+      - name: 🐍 Setup Python & edge-tts
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 🎙️ Install edge-tts
+        run: pip install edge-tts
+
       - name: 📦 Install dependencies
         run: npm install
         working-directory: scripts
