@@ -271,45 +271,23 @@ async function generateAndUploadImage(parsed, episodeNumber) {
         imageBytes = Buffer.from(ab);
     }
 
-    // Save to repository static directory & try Firebase Storage
+    // Save to repository static directory (games/dino-island-story/images/episode-XXX.jpg)
     const fs = require('fs');
     const path = require('path');
     const epStr = String(episodeNumber).padStart(3, '0');
     const relImgPath = `images/episode-${epStr}.jpg`;
     const localImgPath = path.join(__dirname, '..', 'games', 'dino-island-story', 'images', `episode-${epStr}.jpg`);
 
-    try {
-        const imgDir = path.dirname(localImgPath);
-        if (!fs.existsSync(imgDir)) fs.mkdirSync(imgDir, { recursive: true });
-        fs.writeFileSync(localImgPath, imageBytes);
-        console.log(`📁 Saved image to static repo path: ${relImgPath}`);
-    } catch (fsErr) {
-        console.warn('Local image save note:', fsErr.message);
-    }
+    const imgDir = path.dirname(localImgPath);
+    if (!fs.existsSync(imgDir)) fs.mkdirSync(imgDir, { recursive: true });
+    fs.writeFileSync(localImgPath, imageBytes);
+    console.log(`🖼️ Saved image to repository static path: ${relImgPath}`);
 
-    try {
-        const bucket   = getBucket();
-        const fileName = `dino-island/episodes/episode-${epStr}.jpg`;
-        const file     = bucket.file(fileName);
-
-        await file.save(imageBytes, {
-            metadata: {
-                contentType: 'image/jpeg',
-                metadata: { episodeNumber: String(episodeNumber), episodeTitle: parsed.title },
-            },
-            resumable: false,
-        });
-
-        await file.makePublic();
-        return `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-    } catch (stErr) {
-        console.warn('⚠️ Firebase Storage image upload note (using static repo path):', stErr.message.split('\n')[0]);
-        return relImgPath;
-    }
+    return relImgPath;
 }
 
 // ==========================================================================
-// Generate & upload studio AI audio narration via GCP Text-to-Speech / edge-tts
+// Generate studio AI audio narration via edge-tts / GCP Text-to-Speech
 // ==========================================================================
 async function generateAndUploadAudio(storyContentText, episodeNumber) {
     console.log('🎙️  Synthesizing Studio Neural audio narration...');
@@ -339,80 +317,62 @@ async function generateAndUploadAudio(storyContentText, episodeNumber) {
 
     let fullAudioBuffer = null;
 
-    // Try GCP Text-to-Speech API first
+    // 1. Generate high-definition studio narration via edge-tts (Python)
     try {
-        const audioBuffers = [];
-        for (let i = 0; i < chunks.length; i++) {
-            const [response] = await ttsClient.synthesizeSpeech({
-                input: { text: chunks[i] },
-                voice: { languageCode: 'en-US', name: 'en-US-Neural2-D', ssmlGender: 'MALE' },
-                audioConfig: { audioEncoding: 'MP3', speakingRate: 0.96, pitch: -1.5 },
-            });
-            if (response.audioContent) audioBuffers.push(Buffer.from(response.audioContent));
+        const { execSync } = require('child_process');
+        const fs = require('fs');
+        const path = require('path');
+
+        const tmpTxt = path.join(__dirname, `tmp_ep_${episodeNumber}.txt`);
+        const tmpMp3 = path.join(__dirname, `tmp_ep_${episodeNumber}.mp3`);
+        fs.writeFileSync(tmpTxt, cleanText, 'utf-8');
+
+        console.log('🎙️ Generating Studio Neural MP3 narration (en-US-ChristopherNeural)...');
+        execSync(`edge-tts --file "${tmpTxt}" --voice en-US-ChristopherNeural --rate="-4%" --write-media "${tmpMp3}"`);
+
+        if (fs.existsSync(tmpMp3)) {
+            fullAudioBuffer = fs.readFileSync(tmpMp3);
+            try { fs.unlinkSync(tmpTxt); fs.unlinkSync(tmpMp3); } catch {}
         }
-        if (audioBuffers.length > 0) fullAudioBuffer = Buffer.concat(audioBuffers);
-    } catch (gcpErr) {
-        console.warn('⚠️ GCP Text-to-Speech API unavailable (using edge-tts fallback):', gcpErr.message.split('\n')[0]);
+    } catch (pyErr) {
+        console.warn('⚠️ edge-tts note:', pyErr.message);
     }
 
-    // Fallback to edge-tts via Python if GCP API is disabled/unbilled
+    // 2. Fallback to GCP Text-to-Speech API if edge-tts unavailable
     if (!fullAudioBuffer) {
         try {
-            const { execSync } = require('child_process');
-            const fs = require('fs');
-            const path = require('path');
-
-            const tmpTxt = path.join(__dirname, `tmp_ep_${episodeNumber}.txt`);
-            const tmpMp3 = path.join(__dirname, `tmp_ep_${episodeNumber}.mp3`);
-            fs.writeFileSync(tmpTxt, cleanText, 'utf-8');
-
-            console.log('🎙️ Generating free Neural MP3 via edge-tts...');
-            execSync(`edge-tts --file "${tmpTxt}" --voice en-US-ChristopherNeural --rate="-4%" --write-media "${tmpMp3}"`);
-
-            if (fs.existsSync(tmpMp3)) {
-                fullAudioBuffer = fs.readFileSync(tmpMp3);
-                try { fs.unlinkSync(tmpTxt); fs.unlinkSync(tmpMp3); } catch {}
+            const audioBuffers = [];
+            for (let i = 0; i < chunks.length; i++) {
+                const [response] = await ttsClient.synthesizeSpeech({
+                    input: { text: chunks[i] },
+                    voice: { languageCode: 'en-US', name: 'en-US-Neural2-D', ssmlGender: 'MALE' },
+                    audioConfig: { audioEncoding: 'MP3', speakingRate: 0.96, pitch: -1.5 },
+                });
+                if (response.audioContent) audioBuffers.push(Buffer.from(response.audioContent));
             }
-        } catch (pyErr) {
-            console.warn('⚠️ edge-tts fallback note:', pyErr.message);
+            if (audioBuffers.length > 0) fullAudioBuffer = Buffer.concat(audioBuffers);
+        } catch (gcpErr) {
+            console.warn('⚠️ GCP TTS note:', gcpErr.message.split('\n')[0]);
         }
     }
 
     if (!fullAudioBuffer) {
-        throw new Error('Both GCP TTS and edge-tts audio synthesis attempts were skipped.');
+        throw new Error('Audio synthesis returned no audio buffer.');
     }
 
+    // Save MP3 directly to repository static directory (games/dino-island-story/audio/episode-XXX.mp3)
     const fs = require('fs');
     const path = require('path');
     const epStr = String(episodeNumber).padStart(3, '0');
     const relAudioPath = `audio/episode-${epStr}.mp3`;
     const localAudioPath = path.join(__dirname, '..', 'games', 'dino-island-story', 'audio', `episode-${epStr}.mp3`);
 
-    try {
-        const audDir = path.dirname(localAudioPath);
-        if (!fs.existsSync(audDir)) fs.mkdirSync(audDir, { recursive: true });
-        fs.writeFileSync(localAudioPath, fullAudioBuffer);
-        console.log(`📁 Saved MP3 to static repo path: ${relAudioPath}`);
-    } catch (fsErr) {
-        console.warn('Local MP3 save note:', fsErr.message);
-    }
+    const audDir = path.dirname(localAudioPath);
+    if (!fs.existsSync(audDir)) fs.mkdirSync(audDir, { recursive: true });
+    fs.writeFileSync(localAudioPath, fullAudioBuffer);
+    console.log(`🎙️ Saved studio MP3 to repository static path: ${relAudioPath}`);
 
-    try {
-        const bucket   = getBucket();
-        const fileName = `dino-island/episodes/episode-${epStr}.mp3`;
-        const file     = bucket.file(fileName);
-
-        await file.save(fullAudioBuffer, {
-            metadata: { contentType: 'audio/mpeg', metadata: { episodeNumber: String(episodeNumber) } },
-            resumable: false,
-        });
-
-        await file.makePublic();
-        return `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-    } catch (stErr) {
-        console.warn('⚠️ Firebase Storage audio upload note (using static repo path):', stErr.message.split('\n')[0]);
-        return relAudioPath;
-    }
+    return relAudioPath;
 }
 
 // ==========================================================================
