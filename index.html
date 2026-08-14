@@ -354,6 +354,32 @@
         </div>
     </div>
 
+    <!-- Floating Global Arcade Audiobook Mini-Player (Bottom Left) -->
+    <div class="global-audio-player hidden" id="globalAudioPlayer">
+        <div class="gap-progress-bar">
+            <div class="gap-progress-fill" id="gapProgressFill"></div>
+        </div>
+        <div class="gap-content">
+            <div class="gap-thumb-container">
+                <img id="gapCoverImg" src="games/dino-island-story/cover.png" alt="Audiobook Thumbnail">
+                <div class="gap-playing-waves hidden" id="gapWaves">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+            <div class="gap-info">
+                <span class="gap-series-tag" id="gapSeriesTag">Isla Fragmentum</span>
+                <span class="gap-title" id="gapTitle">Episode 1: The Breaking of Lab 7</span>
+            </div>
+            <div class="gap-controls">
+                <button class="gap-btn" id="gapPrevBtn" title="Previous Episode"><i class="fa-solid fa-backward-step"></i></button>
+                <button class="gap-btn primary" id="gapPlayBtn" title="Play/Pause"><i class="fa-solid fa-play"></i></button>
+                <button class="gap-btn" id="gapNextBtn" title="Next Episode"><i class="fa-solid fa-forward-step"></i></button>
+                <button class="gap-btn maximize" id="gapMaximizeBtn" title="Open Audiobook App"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>
+                <button class="gap-btn close" id="gapCloseBtn" title="Close Mini Player"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Floating Live Arcade Chat Popup (Bottom Right) -->
     <div class="chat-widget" id="chatWidget">
         <!-- Collapsed Floating Launcher Button -->

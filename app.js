@@ -10,14 +10,14 @@ import { pullAllSaves, pullGameSave, pushGameSave, pushAllLocalSaves, saveUserPr
 const GAMES_REGISTRY = [
     {
         id: 'dino-island-story',
-        title: 'Isla Fragmentum',
+        title: "Eric's Audiobooks",
         category: 'story',
-        description: 'A new episode of this evolving hybrid-dinosaur adventure drops every evening at 6 PM! Follow D-Rex — the escaped Distortus Rex — as he battles rival hybrids across Isla Fragmentum. Listen to studio audio narration, rate each episode, and watch the saga unfold!',
+        description: "Listen to high-definition AI audiobook series! Featuring Isla Fragmentum — a continuous hybrid dinosaur saga with daily automated episodes, background playback, and automatic episode queuing.",
         folder: 'games/dino-island-story',
         cover: 'games/dino-island-story/cover.png',
-        controls: 'Click an episode to read or listen. Tap the stars to rate each episode. A new chapter arrives every evening at 6 PM.',
+        controls: 'Click any series collection to listen. Tap play to start. Episodes automatically play the next track when finished.',
         addedDate: '2026-08-13',
-        updatedDate: '2026-08-13'
+        updatedDate: '2026-08-14'
     },
     {
         id: 'neon-snake',
@@ -1545,5 +1545,87 @@ function initAuthModal() {
         }
     }
 }
+
+// ==========================================================================
+// Global Floating Audiobook Mini-Player Controller
+// ==========================================================================
+(function initGlobalAudiobookPlayer() {
+    const playerEl     = document.getElementById('globalAudioPlayer');
+    const gapCoverImg  = document.getElementById('gapCoverImg');
+    const gapSeriesTag = document.getElementById('gapSeriesTag');
+    const gapTitle     = document.getElementById('gapTitle');
+    const gapPlayBtn   = document.getElementById('gapPlayBtn');
+    const gapPrevBtn   = document.getElementById('gapPrevBtn');
+    const gapNextBtn   = document.getElementById('gapNextBtn');
+    const gapMaximize  = document.getElementById('gapMaximizeBtn');
+    const gapCloseBtn  = document.getElementById('gapCloseBtn');
+    const gapProgress  = document.getElementById('gapProgressFill');
+    const gapWaves     = document.getElementById('gapWaves');
+
+    if (!playerEl) return;
+
+    let isAudioPlaying = false;
+
+    // Send command to child iframe (dino-island-story)
+    function sendAudioCommand(action) {
+        const iframe = document.getElementById('gameIframe');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({ type: 'AUDIOBOOK_COMMAND', action }, '*');
+        }
+    }
+
+    // Listen to messages from Audiobook iframe
+    window.addEventListener('message', (event) => {
+        const data = event.data;
+        if (!data) return;
+
+        if (data.type === 'MINIMIZE_ARCADE_MODAL') {
+            const modal = document.getElementById('gameModal');
+            if (modal) modal.classList.remove('active');
+            return;
+        }
+
+        if (data.type !== 'AUDIOBOOK_STATE') return;
+
+        playerEl.classList.remove('hidden');
+        if (data.title) gapTitle.textContent = data.title;
+        if (data.seriesTitle) gapSeriesTag.textContent = data.seriesTitle;
+        if (data.coverUrl) gapCoverImg.src = data.coverUrl;
+        if (data.progressPercent !== undefined) gapProgress.style.width = `${data.progressPercent}%`;
+
+        isAudioPlaying = !!data.isPlaying;
+        if (gapPlayBtn) {
+            gapPlayBtn.innerHTML = isAudioPlaying
+                ? '<i class="fa-solid fa-pause"></i>'
+                : '<i class="fa-solid fa-play"></i>';
+        }
+        if (gapWaves) gapWaves.classList.toggle('hidden', !isAudioPlaying);
+    });
+
+    if (gapPlayBtn) {
+        gapPlayBtn.addEventListener('click', () => {
+            sendAudioCommand(isAudioPlaying ? 'pause' : 'play');
+        });
+    }
+
+    if (gapPrevBtn) gapPrevBtn.addEventListener('click', () => sendAudioCommand('prev'));
+    if (gapNextBtn) gapNextBtn.addEventListener('click', () => sendAudioCommand('next'));
+
+    if (gapMaximize) {
+        gapMaximize.addEventListener('click', () => {
+            const abGame = GAMES_REGISTRY.find(g => g.id === 'dino-island-story');
+            if (abGame && typeof openGameModal === 'function') {
+                openGameModal(abGame);
+            }
+        });
+    }
+
+    if (gapCloseBtn) {
+        gapCloseBtn.addEventListener('click', () => {
+            sendAudioCommand('stop');
+            playerEl.classList.add('hidden');
+        });
+    }
+})();
 
 

@@ -511,16 +511,51 @@ function escHtml(str) {
 // TTS — Web Speech API & Studio Narration Reader
 // ==========================================================================
 
+function broadcastAudioState() {
+    if (window.parent && window.parent !== window) {
+        const ep = episodes[currentEpIndex];
+        const duration = (TTS.audioEl && TTS.audioEl.duration) ? TTS.audioEl.duration : 1;
+        const currentTime = (TTS.audioEl && TTS.audioEl.currentTime) ? TTS.audioEl.currentTime : 0;
+        const pct = TTS.usingStudioAudio ? Math.floor((currentTime / duration) * 100) : 50;
+
+        window.parent.postMessage({
+            type: 'AUDIOBOOK_STATE',
+            isPlaying: TTS.isPlaying,
+            title: ep ? `Ep. ${ep.episodeNumber}: ${ep.title}` : 'Isla Fragmentum',
+            seriesTitle: 'Isla Fragmentum',
+            coverUrl: ep && ep.imageUrl ? ep.imageUrl : 'cover.png',
+            progressPercent: pct
+        }, '*');
+    }
+}
+
 function initTTS() {
     // 1. Initialize HTML5 Audio Element for studio MP3 narration
     try {
         TTS.audioEl = new Audio();
-        TTS.audioEl.addEventListener('ended', ttsStop);
+        TTS.audioEl.addEventListener('ended', () => {
+            ttsStop();
+            broadcastAudioState();
+
+            // Continuous Autoplay next episode
+            const autoplayCheck = document.getElementById('autoplayToggleCheck');
+            const shouldAutoplay = autoplayCheck ? autoplayCheck.checked : true;
+            if (shouldAutoplay && currentEpIndex + 1 < episodes.length) {
+                console.log(`🔄 Autoplay: starting Episode ${currentEpIndex + 2}...`);
+                setTimeout(() => {
+                    openEpisode(currentEpIndex + 1);
+                    ttsStart(0);
+                }, 800);
+            }
+        });
         TTS.audioEl.addEventListener('timeupdate', () => {
             if (!TTS.usingStudioAudio || !TTS.audioEl.duration) return;
             const pct = Math.floor((TTS.audioEl.currentTime / TTS.audioEl.duration) * 100);
             ttsSentenceCounter.textContent = `🎙️ Studio Narration: ${pct}%`;
+            broadcastAudioState();
         });
+        TTS.audioEl.addEventListener('play', broadcastAudioState);
+        TTS.audioEl.addEventListener('pause', broadcastAudioState);
         TTS.audioEl.addEventListener('error', (e) => {
             console.warn('Studio MP3 playback error, falling back to Web Speech API:', e);
             TTS.usingStudioAudio = false;
@@ -576,6 +611,67 @@ function initTTS() {
             }
         });
     }
+
+    // ── Series Collection Navigation Controllers ──
+    const seriesCollectionView = document.getElementById('seriesCollectionView');
+    const seriesDetailView     = document.getElementById('seriesDetailView');
+    const navCollectionsBtn    = document.getElementById('navCollectionsBtn');
+    const headerLogoBtn        = document.getElementById('headerLogoBtn');
+    const seriesCardIsla       = document.getElementById('seriesCardIsla');
+    const minimizeAppBtn       = document.getElementById('minimizeAppBtn');
+
+    function showCollectionsView() {
+        if (seriesCollectionView) seriesCollectionView.classList.remove('hidden');
+        if (seriesDetailView) seriesDetailView.classList.add('hidden');
+    }
+
+    function showSeriesDetail() {
+        if (seriesCollectionView) seriesCollectionView.classList.add('hidden');
+        if (seriesDetailView) seriesDetailView.classList.remove('hidden');
+    }
+
+    if (seriesCardIsla) {
+        seriesCardIsla.addEventListener('click', () => {
+            showSeriesDetail();
+            if (currentEpIndex < 0 && episodes.length > 0) {
+                openEpisode(0);
+            }
+        });
+    }
+
+    if (navCollectionsBtn) navCollectionsBtn.addEventListener('click', showCollectionsView);
+    if (headerLogoBtn) headerLogoBtn.addEventListener('click', showCollectionsView);
+
+    if (minimizeAppBtn) {
+        minimizeAppBtn.addEventListener('click', () => {
+            broadcastAudioState();
+            // Request parent arcade modal to minimize / close without stopping audio
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'MINIMIZE_ARCADE_MODAL' }, '*');
+            }
+        });
+    }
+
+    // Parent Command Listener (from root Arcade floating mini player)
+    window.addEventListener('message', (event) => {
+        const data = event.data;
+        if (!data || data.type !== 'AUDIOBOOK_COMMAND') return;
+
+        if (data.action === 'play') ttsResume();
+        else if (data.action === 'pause') ttsPause();
+        else if (data.action === 'stop') ttsStop();
+        else if (data.action === 'next') {
+            if (currentEpIndex + 1 < episodes.length) {
+                openEpisode(currentEpIndex + 1);
+                ttsStart(0);
+            }
+        } else if (data.action === 'prev') {
+            if (currentEpIndex - 1 >= 0) {
+                openEpisode(currentEpIndex - 1);
+                ttsStart(0);
+            }
+        }
+    });
 
     // 3. Sentence click delegation: click any sentence to start reading from there
     storyContent.addEventListener('click', (e) => {
