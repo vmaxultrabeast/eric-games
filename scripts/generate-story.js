@@ -95,8 +95,15 @@ async function main() {
                 .map(m => m.name.replace('models/', ''));
 
             console.log('📋 Available models for key:', valid.join(', '));
-            // Pick preferred model
-            const preferred = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-pro'];
+            // Pick preferred model from currently active endpoints
+            const preferred = [
+                'gemini-3.6-flash',
+                'gemini-3.5-flash',
+                'gemini-flash-latest',
+                'gemini-3.7-flash',
+                'gemini-3-flash-preview',
+                'gemini-flash-lite-latest'
+            ];
             const found = preferred.find(p => valid.includes(p)) || valid[0];
             if (found) targetModelName = found;
         }
@@ -104,13 +111,13 @@ async function main() {
         console.warn('⚠️ Model discovery note:', e.message);
     }
 
-    console.log(`🤖 Using model: "${targetModelName}"`);
+    console.log(`🤖 Selected active model: "${targetModelName}"`);
     const candidateModels = [
         targetModelName,
-        'gemini-1.5-flash',
-        'gemini-1.5-flash-latest',
-        'gemini-1.5-pro',
-        'gemini-pro'
+        'gemini-3.6-flash',
+        'gemini-3.5-flash',
+        'gemini-flash-latest',
+        'gemini-3.7-flash'
     ];
 
     let rawText = null;
