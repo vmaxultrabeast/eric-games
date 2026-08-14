@@ -1565,6 +1565,7 @@ function initAuthModal() {
     if (!playerEl) return;
 
     let isAudioPlaying = false;
+    let isClosedByUser = false;
 
     // Send command to child iframe (dino-island-story)
     function sendAudioCommand(action) {
@@ -1582,11 +1583,14 @@ function initAuthModal() {
         if (data.type === 'MINIMIZE_ARCADE_MODAL') {
             const modal = document.getElementById('gameModal');
             if (modal) modal.classList.remove('active');
+            isClosedByUser = false;
             return;
         }
 
         if (data.type !== 'AUDIOBOOK_STATE') return;
+        if (isClosedByUser && !data.isPlaying) return;
 
+        isClosedByUser = false;
         playerEl.classList.remove('hidden');
         if (data.title) gapTitle.textContent = data.title;
         if (data.seriesTitle) gapSeriesTag.textContent = data.seriesTitle;
@@ -1655,16 +1659,21 @@ function initAuthModal() {
     if (gapNextBtn) gapNextBtn.addEventListener('click', () => sendAudioCommand('next'));
 
     if (gapMaximize) {
-        gapMaximize.addEventListener('click', () => {
-            const abGame = GAMES_REGISTRY.find(g => g.id === 'dino-island-story');
-            if (abGame && typeof openGameModal === 'function') {
-                openGameModal(abGame);
+        gapMaximize.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const modal = document.getElementById('gameModal');
+            if (modal) {
+                modal.classList.add('active');
             }
         });
     }
 
     if (gapCloseBtn) {
-        gapCloseBtn.addEventListener('click', () => {
+        gapCloseBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            isClosedByUser = true;
             sendAudioCommand('stop');
             playerEl.classList.add('hidden');
         });
