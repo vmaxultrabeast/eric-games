@@ -126,6 +126,10 @@
                             <span class="episode-read-time" id="episodeReadTime">
                                 <i class="fa-regular fa-clock"></i> — min read
                             </span>
+                            <button class="listen-btn" id="listenBtn" title="Listen to this episode">
+                                <i class="fa-solid fa-volume-high"></i>
+                                <span>Listen</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -183,6 +187,53 @@
     <div class="toast hidden" id="toast">
         <i class="fa-solid fa-star toast-icon"></i>
         <span id="toastMessage">Rating saved!</span>
+    </div>
+
+    <!-- ── TTS Floating Player Bar ── -->
+    <div class="tts-bar hidden" id="ttsBar" role="region" aria-label="Story audio player">
+        <div class="tts-bar-inner">
+
+            <!-- Waveform animation -->
+            <div class="tts-waveform" id="ttsWaveform" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+            </div>
+
+            <!-- Sentence progress -->
+            <div class="tts-info">
+                <span class="tts-label">🔊 Now reading</span>
+                <span class="tts-sentence-counter" id="ttsSentenceCounter">— / —</span>
+            </div>
+
+            <!-- Controls -->
+            <div class="tts-controls">
+                <button class="tts-btn" id="ttsRestartBtn" title="Restart from beginning">
+                    <i class="fa-solid fa-backward-step"></i>
+                </button>
+                <button class="tts-btn tts-play-btn" id="ttsPlayPauseBtn" title="Play / Pause">
+                    <i class="fa-solid fa-pause" id="ttsPlayPauseIcon"></i>
+                </button>
+                <button class="tts-btn" id="ttsStopBtn" title="Stop">
+                    <i class="fa-solid fa-stop"></i>
+                </button>
+            </div>
+
+            <!-- Speed selector -->
+            <div class="tts-speed">
+                <label class="tts-speed-label">Speed</label>
+                <div class="tts-speed-btns">
+                    <button class="tts-speed-btn" data-rate="0.8"  id="speed08">0.8×</button>
+                    <button class="tts-speed-btn active" data-rate="1.0" id="speed10">1×</button>
+                    <button class="tts-speed-btn" data-rate="1.3"  id="speed13">1.3×</button>
+                    <button class="tts-speed-btn" data-rate="1.6"  id="speed16">1.6×</button>
+                </div>
+            </div>
+
+            <!-- Close -->
+            <button class="tts-close-btn" id="ttsCloseBtn" title="Close player">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
     </div>
 
     <script type="module" src="app.js"></script>

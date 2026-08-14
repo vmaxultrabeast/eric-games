@@ -71,6 +71,19 @@ const sidebarOverlay     = document.getElementById('sidebarOverlay');
 const toast              = document.getElementById('toast');
 const toastMessage       = document.getElementById('toastMessage');
 
+// TTS
+const listenBtn          = document.getElementById('listenBtn');
+const ttsBar             = document.getElementById('ttsBar');
+const ttsWaveform        = document.getElementById('ttsWaveform');
+const ttsSentenceCounter = document.getElementById('ttsSentenceCounter');
+const ttsPlayPauseBtn    = document.getElementById('ttsPlayPauseBtn');
+const ttsPlayPauseIcon   = document.getElementById('ttsPlayPauseIcon');
+const ttsRestartBtn      = document.getElementById('ttsRestartBtn');
+const ttsStopBtn         = document.getElementById('ttsStopBtn');
+const ttsCloseBtn        = document.getElementById('ttsCloseBtn');
+const ttsSpeedBtns       = document.querySelectorAll('.tts-speed-btn');
+const readerPanel        = document.getElementById('readerPanel');
+
 // ── Init ───────────────────────────────────────────────────────────────────
 loadMyRatings();
 onAuthStateChanged(auth, (user) => { currentUser = user; });
@@ -78,6 +91,7 @@ subscribeToEpisodes();
 startCountdownTimer();
 initSidebarToggle();
 initScrollProgress();
+initTTS();
 
 // ── Load locally saved ratings ────────────────────────────────────────────
 function loadMyRatings() {
@@ -233,25 +247,47 @@ function openEpisode(idx) {
     readProgressFill.style.width = '0%';
 }
 
-// ── Convert plain story text to readable HTML ─────────────────────────────
+// ── Convert plain story text to readable HTML (with TTS sentence spans) ──
 function renderStoryContent(raw) {
+    let sentenceIdx = 0;
+
     return raw
         .split('\n')
         .map(line => {
             line = line.trim();
             if (!line) return '';
-            // Bold: **text** or __text__
+            if (line === '---') return '<hr>';
+
+            // Apply markdown-ish formatting to full line first
             line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
             line = line.replace(/__(.+?)__/g, '<strong>$1</strong>');
-            // Italic: *text* or _text_
             line = line.replace(/\*([^*]+)\*/g, '<em>$1</em>');
             line = line.replace(/_([^_]+)_/g, '<em>$1</em>');
-            // HR
-            if (line === '---') return '<hr>';
-            return `<p>${line}</p>`;
+
+            // Split into sentences for TTS targeting
+            // Split on sentence-ending punctuation followed by space or end-of-string
+            const sentencePattern = /([^.!?]*[.!?]+["']?\s*)/g;
+            const plain = line.replace(/<[^>]+>/g, ''); // strip tags for splitting
+            const parts = [];
+            let lastIdx = 0;
+            let m;
+            const regex = /([^.!?]*[.!?]+['"']?\s*)/g;
+            const sentences = plain.match(regex) || [plain];
+
+            // Re-wrap with spans
+            const spanned = sentences
+                .filter(s => s.trim())
+                .map(s => {
+                    const idx = sentenceIdx++;
+                    return `<span class="story-sentence" data-si="${idx}">${s}</span>`;
+                })
+                .join('');
+
+            return `<p>${spanned || line}</p>`;
         })
         .join('');
 }
+
 
 // ── Rating widget ─────────────────────────────────────────────────────────
 function renderRatingWidget(ep) {
@@ -448,3 +484,171 @@ function escHtml(str) {
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     })[c]);
 }
+
+// ==========================================================================
+// TTS — Web Speech API Story Reader
+// ==========================================================================
+
+const TTS = {
+    sentences:    [],   // array of plain-text sentences
+    currentIdx:   -1,   // sentence currently being spoken
+    rate:         1.0,  // playback rate
+    isPlaying:    false,
+    isPaused:     false,
+    utterance:    null,
+};
+
+function initTTS() {
+    if (!('speechSynthesis' in window)) {
+        listenBtn.style.display = 'none';
+        return;
+    }
+
+    listenBtn.addEventListener('click', () => {
+        if (TTS.isPlaying || TTS.isPaused) {
+            ttsStop();
+        } else {
+            ttsStart(0);
+        }
+    });
+
+    ttsPlayPauseBtn.addEventListener('click', () => {
+        if (TTS.isPaused) ttsResume();
+        else if (TTS.isPlaying) ttsPause();
+    });
+
+    ttsRestartBtn.addEventListener('click', () => ttsStart(0));
+
+    ttsStopBtn.addEventListener('click', ttsStop);
+
+    ttsCloseBtn.addEventListener('click', ttsStop);
+
+    ttsSpeedBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            TTS.rate = parseFloat(btn.dataset.rate);
+            ttsSpeedBtns.forEach(b => b.classList.toggle('active', b === btn));
+            // Restart current sentence at new speed if playing
+            if (TTS.isPlaying && TTS.currentIdx >= 0) {
+                const idx = TTS.currentIdx;
+                window.speechSynthesis.cancel();
+                setTimeout(() => ttsStart(idx), 80);
+            }
+        });
+    });
+
+    // Stop TTS when user switches episodes
+    prevEpBtn.addEventListener('click', ttsStop);
+    nextEpBtn.addEventListener('click', ttsStop);
+}
+
+// ── Prepare sentences from current episode story ───────────────────────────
+function ttsPrepare() {
+    // Get plain text from all .story-sentence spans
+    const spans = storyContent.querySelectorAll('.story-sentence');
+    TTS.sentences = Array.from(spans).map(s => s.textContent.trim()).filter(Boolean);
+}
+
+// ── Start reading from a given sentence index ──────────────────────────────
+function ttsStart(fromIdx) {
+    window.speechSynthesis.cancel();
+    ttsHighlightClear();
+
+    ttsPrepare();
+    if (TTS.sentences.length === 0) return;
+
+    TTS.isPlaying = true;
+    TTS.isPaused  = false;
+    TTS.currentIdx = fromIdx;
+
+    // UI: show bar, animate listen button
+    listenBtn.classList.add('listening');
+    ttsBar.classList.remove('hidden');
+    readerPanel.classList.add('tts-open');
+    ttsSetPlayingUI(true);
+    ttsSpeak(fromIdx);
+}
+
+// ── Speak a single sentence, then chain to next ────────────────────────────
+function ttsSpeak(idx) {
+    if (idx >= TTS.sentences.length) {
+        ttsStop();
+        return;
+    }
+
+    TTS.currentIdx = idx;
+    ttsHighlightSentence(idx);
+    ttsSentenceCounter.textContent = `${idx + 1} / ${TTS.sentences.length}`;
+
+    const utt = new SpeechSynthesisUtterance(TTS.sentences[idx]);
+    utt.rate = TTS.rate;
+    utt.pitch = 1;
+    utt.lang = 'en-US';
+
+    utt.onend = () => {
+        if (!TTS.isPlaying) return;
+        ttsSpeak(idx + 1);
+    };
+    utt.onerror = (e) => {
+        if (e.error === 'interrupted' || e.error === 'canceled') return;
+        console.warn('TTS error:', e.error);
+        ttsSpeak(idx + 1);
+    };
+
+    TTS.utterance = utt;
+    window.speechSynthesis.speak(utt);
+}
+
+// ── Pause ──────────────────────────────────────────────────────────────────
+function ttsPause() {
+    if (!TTS.isPlaying) return;
+    window.speechSynthesis.pause();
+    TTS.isPaused  = true;
+    TTS.isPlaying = false;
+    ttsSetPlayingUI(false);
+}
+
+// ── Resume ─────────────────────────────────────────────────────────────────
+function ttsResume() {
+    if (!TTS.isPaused) return;
+    window.speechSynthesis.resume();
+    TTS.isPaused  = false;
+    TTS.isPlaying = true;
+    ttsSetPlayingUI(true);
+}
+
+// ── Stop completely ────────────────────────────────────────────────────────
+function ttsStop() {
+    window.speechSynthesis.cancel();
+    TTS.isPlaying  = false;
+    TTS.isPaused   = false;
+    TTS.currentIdx = -1;
+
+    ttsHighlightClear();
+    listenBtn.classList.remove('listening');
+    ttsBar.classList.add('hidden');
+    readerPanel.classList.remove('tts-open');
+    ttsSentenceCounter.textContent = '— / —';
+    ttsSetPlayingUI(false);
+}
+
+// ── Update play/pause button icon and waveform ─────────────────────────────
+function ttsSetPlayingUI(playing) {
+    ttsPlayPauseIcon.className = playing ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+    ttsWaveform.classList.toggle('playing', playing);
+}
+
+// ── Highlight a sentence span ──────────────────────────────────────────────
+function ttsHighlightSentence(idx) {
+    ttsHighlightClear();
+    const spans = storyContent.querySelectorAll('.story-sentence');
+    if (spans[idx]) {
+        spans[idx].classList.add('tts-active');
+        // Auto-scroll: keep highlighted sentence in view
+        spans[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function ttsHighlightClear() {
+    storyContent.querySelectorAll('.tts-active').forEach(el => el.classList.remove('tts-active'));
+}
+
