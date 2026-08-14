@@ -80,37 +80,64 @@ async function main() {
 
     console.log(`📖 Generating Episode ${episodeNumber}...`);
 
-    // 2. Generate story text with Gemini (with automatic model fallback)
+    // 2. Generate story text with Gemini (with dynamic model discovery)
     const storyPrompt = buildStoryPrompt(episodeNumber, runningSummary);
+
+    // Auto-discover available models for this API key
+    let targetModelName = 'gemini-1.5-flash';
+    try {
+        console.log('🔍 Discovering available models for API key...');
+        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`);
+        if (listRes.ok) {
+            const listJson = await listRes.json();
+            const valid = (listJson.models || [])
+                .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
+                .map(m => m.name.replace('models/', ''));
+
+            console.log('📋 Available models for key:', valid.join(', '));
+            // Pick preferred model
+            const preferred = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-pro'];
+            const found = preferred.find(p => valid.includes(p)) || valid[0];
+            if (found) targetModelName = found;
+        }
+    } catch (e) {
+        console.warn('⚠️ Model discovery note:', e.message);
+    }
+
+    console.log(`🤖 Using model: "${targetModelName}"`);
     const candidateModels = [
-        'gemini-1.5-flash-latest',
-        'gemini-1.5-flash-002',
-        'gemini-2.0-flash-exp',
-        'gemini-1.5-flash-001',
+        targetModelName,
         'gemini-1.5-flash',
-        'gemini-1.5-pro-latest'
+        'gemini-1.5-flash-latest',
+        'gemini-1.5-pro',
+        'gemini-pro'
     ];
 
     let rawText = null;
-    let usedModel = null;
-    for (const modelName of candidateModels) {
+    for (const modelName of [...new Set(candidateModels)]) {
         try {
-            console.log(`🤖 Trying Gemini model "${modelName}"...`);
-            const model = genAI.getGenerativeModel({
-                model: modelName,
-                generationConfig: {
-                    temperature: 0.88,
-                    topP: 0.95,
-                    maxOutputTokens: 8192,
-                }
-            });
+            // Try v1 first, then fallback
+            const model = genAI.getGenerativeModel(
+                { model: modelName, generationConfig: { temperature: 0.88, topP: 0.95, maxOutputTokens: 8192 } },
+                { apiVersion: 'v1' }
+            );
             const textResult = await model.generateContent(storyPrompt);
             rawText = textResult.response.text();
-            usedModel = modelName;
-            console.log(`✨ Success with model "${modelName}"!`);
+            console.log(`✨ Success with model "${modelName}" (v1 API)!`);
             break;
-        } catch (err) {
-            console.warn(`⚠️ Model "${modelName}" failed (${err.message.split('\n')[0]}), trying next candidate...`);
+        } catch (err1) {
+            try {
+                const model = genAI.getGenerativeModel({
+                    model: modelName,
+                    generationConfig: { temperature: 0.88, topP: 0.95, maxOutputTokens: 8192 }
+                });
+                const textResult = await model.generateContent(storyPrompt);
+                rawText = textResult.response.text();
+                console.log(`✨ Success with model "${modelName}" (v1beta API)!`);
+                break;
+            } catch (err2) {
+                console.warn(`⚠️ Model "${modelName}" failed:`, err2.message.split('\n')[0]);
+            }
         }
     }
 
