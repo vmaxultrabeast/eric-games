@@ -525,9 +525,9 @@ function broadcastAudioState() {
         window.parent.postMessage({
             type: 'AUDIOBOOK_STATE',
             isPlaying: TTS.isPlaying,
-            title: ep ? `Ep. ${ep.episodeNumber}: ${ep.title}` : 'Isla Fragmentum',
-            seriesTitle: 'Isla Fragmentum',
-            coverUrl: ep && ep.imageUrl ? ep.imageUrl : 'cover.png',
+            title: ep ? `Ep. ${ep.episodeNumber}: ${ep.title}` : 'The Hybrid Dinosaur Experiment',
+            seriesTitle: 'The Hybrid Dinosaur Experiment',
+            coverUrl: ep && ep.imageUrl ? ep.imageUrl : 'images/hybrid-dino-cover.png',
             progressPercent: pct
         }, '*');
     }
@@ -634,20 +634,48 @@ function initTTS() {
         if (seriesDetailView) seriesDetailView.classList.remove('hidden');
     }
 
+    function playOrOpenSeries() {
+        showSeriesDetail();
+        if (episodes.length > 0) {
+            const targetIdx = currentEpIndex >= 0 ? currentEpIndex : 0;
+            openEpisode(targetIdx);
+            if ('speechSynthesis' in window && window.speechSynthesis) {
+                window.speechSynthesis.resume();
+            }
+            if (TTS.isPlaying || TTS.isPaused) {
+                ttsStop();
+            }
+            setTimeout(() => {
+                ttsStart(0);
+            }, 100);
+        } else {
+            const waitCheck = setInterval(() => {
+                if (episodes.length > 0) {
+                    clearInterval(waitCheck);
+                    openEpisode(0);
+                    if ('speechSynthesis' in window && window.speechSynthesis) {
+                        window.speechSynthesis.resume();
+                    }
+                    setTimeout(() => ttsStart(0), 100);
+                }
+            }, 200);
+            setTimeout(() => clearInterval(waitCheck), 4000);
+        }
+    }
+
     if (seriesCardIsla) {
         seriesCardIsla.addEventListener('click', (e) => {
             e.preventDefault();
-            showSeriesDetail();
-            if (episodes.length > 0) {
-                const targetIdx = currentEpIndex >= 0 ? currentEpIndex : 0;
-                openEpisode(targetIdx);
-                if ('speechSynthesis' in window && window.speechSynthesis) {
-                    window.speechSynthesis.resume();
-                }
-                setTimeout(() => {
-                    ttsStart(0);
-                }, 150);
-            }
+            playOrOpenSeries();
+        });
+    }
+
+    const scPlayBtnIsla = document.getElementById('scPlayBtnIsla');
+    if (scPlayBtnIsla) {
+        scPlayBtnIsla.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            playOrOpenSeries();
         });
     }
 
