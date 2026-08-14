@@ -202,14 +202,11 @@ function openEpisode(idx) {
     // Scroll to top
     document.querySelector('.reader-panel').scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Episode image
-    if (ep.imageUrl) {
-        episodeImage.src = ep.imageUrl;
-        episodeImage.alt = `Illustration for Episode ${ep.episodeNumber}: ${ep.title}`;
-        episodeImageCont.style.display = '';
-    } else {
-        episodeImageCont.style.display = 'none';
-    }
+    // Episode image (fallback to cover.png if null)
+    const imgSrc = ep.imageUrl || 'cover.png';
+    episodeImage.src = imgSrc;
+    episodeImage.alt = `Illustration for Episode ${ep.episodeNumber}: ${ep.title}`;
+    episodeImageCont.style.display = '';
 
     // Badge
     episodeNumberBadge.textContent = `EP. ${String(ep.episodeNumber).padStart(2, '0')}`;
