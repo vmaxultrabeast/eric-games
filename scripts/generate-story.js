@@ -54,14 +54,15 @@ NEW HYBRID CREATION RULE:
 - Give the new hybrid a legendary name, striking visual features (spiked armor, wings, bioluminescent glow, venom-spitters, tail blades), and a signature combat power!
 - Feature them in the episode's action — either as Helix Corp's newly unleashed containment threat, a rival predator in a new island biome, or an unexpected ally!
 
-TONE & STYLE (TAILORED FOR 8–10 YEAR OLDS):
-- High-octane, cinematic action with awesome creature battle choreography (tail swipes, jaw snaps, camouflage reveals, sonic roars).
-- Cool sci-fi tech (tracking lasers, bio-scanners, night-vision scopes, drone cameras).
-- Crisp, energetic prose with vivid action verbs. Avoid slow academic filler — keep every paragraph exciting and visually punchy!
-- Great dialogue between characters, suspenseful cliffhangers, and heroic dinosaur moments.
+AUDIOBOOK NARRATIVE SCRIPTING (CRITICAL):
+This story is primarily consumed as a STUDIO AI AUDIOBOOK NARRATION for 8–10 year old listeners!
+- Write specifically for spoken audio performance: short punchy sentence rhythm, dramatic pauses (...), and vivid cinematic pacing.
+- Include exciting onomatopoeia sound effects (KABOOM!, ZZZZT!, THUD-THUD-THUD, SKRRRREEECH!, ROAAAR!) that the neural narrator performs with maximum energy!
+- Emphasize rich spatial audio descriptions (echoing metal corridors, dripping lava caves, hum of high-voltage fences, heavy jungle rainfall).
+- Give every character distinct, expressive dialogue tags ("..." shouted Vera, "..." growled Reyes) so listeners easily track character voices in audio format.
 
 EPISODE STRUCTURE:
-Each episode MUST be a 10-minute read (approximately 2,000–2,500 words total).
+Each episode MUST be a 10 to 12-minute audiobook chapter (approximately 2,200–2,800 words total).
 - A thrilling episode title
 - Bold **Previously on Isla Fragmentum...** recap line
 - 5 distinct action-packed scenes
