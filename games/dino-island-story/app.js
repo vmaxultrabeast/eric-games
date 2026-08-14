@@ -589,12 +589,15 @@ function initTTS() {
         }
 
         ttsVoiceSelect.addEventListener('change', () => {
-            const name = ttsVoiceSelect.value;
-            TTS.selectedVoice = TTS.voices.find(v => v.name === name) || null;
-            if (TTS.isPlaying && TTS.currentIdx >= 0 && !TTS.usingStudioAudio) {
-                const idx = TTS.currentIdx;
-                window.speechSynthesis.cancel();
-                setTimeout(() => ttsStart(idx), 80);
+            const val = ttsVoiceSelect.value;
+            if (val === 'studio') {
+                TTS.selectedVoice = null;
+                ttsStart(0);
+            } else {
+                TTS.selectedVoice = TTS.voices.find(v => v.name === val) || null;
+                TTS.usingStudioAudio = false;
+                if (TTS.audioEl) TTS.audioEl.pause();
+                ttsFallbackWebSpeech(TTS.currentIdx >= 0 ? TTS.currentIdx : 0);
             }
         });
     }
@@ -627,8 +630,7 @@ function scoreVoice(v) {
 }
 
 function populateVoices() {
-    const raw = speechSynthesis.getVoices() || [];
-    if (raw.length === 0) return;
+    const raw = (window.speechSynthesis && window.speechSynthesis.getVoices) ? window.speechSynthesis.getVoices() : [];
 
     // Filter to English voices & sort by quality score
     const englishVoices = raw.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
@@ -637,18 +639,16 @@ function populateVoices() {
     list.sort((a, b) => scoreVoice(b) - scoreVoice(a));
     TTS.voices = list;
 
-    // Clean up voice names for display
-    ttsVoiceSelect.innerHTML = list.map(v => {
+    // Clean up voice names for display, with Studio Narrator option at top
+    const studioOption = `<option value="studio">🎙️ Studio Narrator (HD)</option>`;
+    const voiceOptions = list.map(v => {
         let label = v.name.replace(/Microsoft |Google |Apple /gi, '').replace(/ (Natural|Online \(Natural\))/gi, ' ✨');
         if (label.length > 22) label = label.substring(0, 20) + '…';
         return `<option value="${escHtml(v.name)}">${escHtml(label)}</option>`;
     }).join('');
 
-    // Default to the top-ranked voice
-    if (!TTS.selectedVoice && list.length > 0) {
-        TTS.selectedVoice = list[0];
-        ttsVoiceSelect.value = list[0].name;
-    }
+    ttsVoiceSelect.innerHTML = studioOption + voiceOptions;
+    ttsVoiceSelect.value = 'studio';
 }
 
 // ── Prepare sentences from current episode story ───────────────────────────
@@ -681,11 +681,11 @@ function ttsStart(fromIdx) {
     readerPanel.classList.add('tts-open');
     ttsSetPlayingUI(true);
 
-    if (targetAudioUrl && TTS.audioEl) {
+    if (targetAudioUrl && TTS.audioEl && (!TTS.selectedVoice)) {
         // Attempt Studio MP3 Mode
         TTS.usingStudioAudio = true;
         const voiceContainer = ttsVoiceSelect.closest('.tts-voice');
-        if (voiceContainer) voiceContainer.style.display = 'none';
+        if (voiceContainer) voiceContainer.style.display = '';
 
         TTS.audioEl.src = targetAudioUrl;
         TTS.audioEl.playbackRate = TTS.rate;
