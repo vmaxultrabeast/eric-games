@@ -48,6 +48,12 @@ KEY CHARACTERS & HYBRIDS:
 - AQUAFANG: Aquatic apex predator — fused from Mosasaurus and Kronosaurus. Dominates rivers and coastal lagoons with lightning-fast water ambushes.
 - THE ARCHITECT: Mysterious mastermind pulling the strings behind Helix Corp's secret hybrid projects.
 
+NEW HYBRID CREATION RULE:
+- In EVERY NEW EPISODE, you are strongly encouraged to invent and introduce at least ONE BRAND NEW HYBRID DINOSAUR!
+- Clearly specify the 2 or 3 species spliced together (e.g., Carnotaurus + Pteranodon = Carnopterus; Therizinosaurus + Stegosaurus = Razor-Titan; Velociraptor + Electric Eel = Volt-Raptor).
+- Give the new hybrid a legendary name, striking visual features (spiked armor, wings, bioluminescent glow, venom-spitters, tail blades), and a signature combat power!
+- Feature them in the episode's action — either as Helix Corp's newly unleashed containment threat, a rival predator in a new island biome, or an unexpected ally!
+
 TONE & STYLE (TAILORED FOR 8–10 YEAR OLDS):
 - High-octane, cinematic action with awesome creature battle choreography (tail swipes, jaw snaps, camouflage reveals, sonic roars).
 - Cool sci-fi tech (tracking lasers, bio-scanners, night-vision scopes, drone cameras).
@@ -60,9 +66,10 @@ Each episode MUST be a 10-minute read (approximately 2,000–2,500 words total).
 - Bold **Previously on Isla Fragmentum...** recap line
 - 5 distinct action-packed scenes
 - At least 1 epic hybrid vs. hybrid battle or security mech showdown
+- Introduction of a cool new spliced dinosaur hybrid
 - Suspenseful cliffhanger ending
 
-CONTINUITY: Always respect previous events. Characters remember battles. Wounds persist. Alliances evolve.
+CONTINUITY: Always respect previous events. Characters remember battles. Wounds persist. Alliances evolve. All created hybrids remain part of the island's growing roster!
 `;
 
 // ==========================================================================
