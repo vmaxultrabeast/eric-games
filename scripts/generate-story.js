@@ -259,14 +259,16 @@ async function generateAndUploadImage(parsed, episodeNumber) {
         }
     }
 
+    const enhancedPrompt = `Cinematic 8k movie still, epic concept art, Jurassic Park Pacific Rim hybrid, dramatic storm lighting, bioluminescent jungle fog, ultra detailed 16:9 widescreen shot: ${imagePrompt}`;
+
     let imageBytes = null;
     if (b64) {
         imageBytes = Buffer.from(b64, 'base64');
     } else {
-        console.log('🎨 Generating HD AI scene image via Pollinations AI fallback...');
-        const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}?width=1280&height=720&nologo=true&seed=${episodeNumber * 1337}`;
+        console.log('🎨 Generating ultra-HD Flux AI scene image...');
+        const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1280&height=720&model=flux&nologo=true&enhance=true&seed=${episodeNumber * 4242}`;
         const pRes = await fetch(pollUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-        if (!pRes.ok) throw new Error(`Pollinations image fetch failed: ${pRes.status}`);
+        if (!pRes.ok) throw new Error(`Flux AI image fetch failed: ${pRes.status}`);
         const ab = await pRes.arrayBuffer();
         imageBytes = Buffer.from(ab);
     }
