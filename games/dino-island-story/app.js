@@ -525,9 +525,13 @@ function initTTS() {
     // 2. ALWAYS attach listen button click listener
     listenBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        console.log('🔊 Listen button clicked! currentEpIndex:', currentEpIndex);
 
-        // If no episode is currently selected, open the first episode
+        // 1. Synchronously prime Web Speech API within click callstack
+        if ('speechSynthesis' in window && window.speechSynthesis) {
+            window.speechSynthesis.resume();
+        }
+
+        // 2. Open first episode if none selected
         if (currentEpIndex < 0 && episodes.length > 0) {
             openEpisode(0);
         }
@@ -678,19 +682,23 @@ function ttsStart(fromIdx) {
     ttsSetPlayingUI(true);
 
     if (targetAudioUrl && TTS.audioEl) {
-        // Attempt Studio MP3 Mode first
+        // Attempt Studio MP3 Mode
         TTS.usingStudioAudio = true;
         const voiceContainer = ttsVoiceSelect.closest('.tts-voice');
         if (voiceContainer) voiceContainer.style.display = 'none';
 
         TTS.audioEl.src = targetAudioUrl;
         TTS.audioEl.playbackRate = TTS.rate;
-        TTS.audioEl.play().catch(err => {
-            console.warn('Audio play failed, using Web Speech API fallback:', err);
-            TTS.usingStudioAudio = false;
-            ttsFallbackWebSpeech(fromIdx);
-        });
-        ttsSentenceCounter.textContent = '🎙️ Studio Narration...';
+        const playPromise = TTS.audioEl.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                ttsSentenceCounter.textContent = '🎙️ Studio Narration...';
+            }).catch(err => {
+                console.warn('Studio MP3 play rejected, executing Web Speech fallback:', err);
+                TTS.usingStudioAudio = false;
+                ttsFallbackWebSpeech(fromIdx);
+            });
+        }
     } else {
         ttsFallbackWebSpeech(fromIdx);
     }
