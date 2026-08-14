@@ -6,7 +6,7 @@
 import { initializeApp }      from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore,
          collection, doc,
-         onSnapshot, getDoc,
+         onSnapshot, getDoc, setDoc,
          runTransaction, increment }
                                from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { getAuth, onAuthStateChanged }
@@ -150,9 +150,17 @@ A roaring battle echoed across the island as security teams scrambled to contain
     }
 ];
 
+let savedUserProgress = null;
+
 // ── Init ───────────────────────────────────────────────────────────────────
 loadMyRatings();
-onAuthStateChanged(auth, (user) => { currentUser = user; });
+loadAudiobookProgress();
+onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    if (currentUser) {
+        syncProgressWithCloud();
+    }
+});
 subscribeToEpisodes();
 startCountdownTimer();
 initSidebarToggle();
@@ -571,17 +579,95 @@ function escHtml(str) {
     })[c]);
 }
 
+// ── User Audiobook Progress Persistence (Local + Cloud Sync) ───────────────
+function loadAudiobookProgress() {
+    try {
+        const raw = localStorage.getItem('dino_audiobook_progress');
+        if (raw) savedUserProgress = JSON.parse(raw);
+    } catch (e) {
+        savedUserProgress = null;
+    }
+    updateResumeUI();
+}
+
+async function syncProgressWithCloud() {
+    if (currentUser) {
+        try {
+            const userProgressRef = doc(db, 'dino-island', 'users', currentUser.uid, 'progress', 'latest');
+            const snap = await getDoc(userProgressRef);
+            if (snap.exists()) {
+                const cloudProg = snap.data();
+                if (cloudProg && cloudProg.episodeNumber) {
+                    savedUserProgress = cloudProg;
+                    localStorage.setItem('dino_audiobook_progress', JSON.stringify(cloudProg));
+                }
+            }
+        } catch (e) {
+            console.warn('Cloud progress sync notice:', e);
+        }
+    }
+    updateResumeUI();
+}
+
+let saveProgressTimer = null;
+function saveAudiobookProgress(epIndex, pct, currentTime) {
+    if (epIndex < 0 || !episodes[epIndex]) return;
+    const ep = episodes[epIndex];
+    const progressData = {
+        seriesId: 'hybrid-dino-experiment',
+        episodeNumber: ep.episodeNumber,
+        episodeId: ep.id,
+        title: ep.title,
+        progressPercent: pct || 0,
+        currentTime: currentTime || 0,
+        updatedAt: new Date().toISOString()
+    };
+
+    savedUserProgress = progressData;
+    localStorage.setItem('dino_audiobook_progress', JSON.stringify(progressData));
+
+    if (currentUser) {
+        if (saveProgressTimer) clearTimeout(saveProgressTimer);
+        saveProgressTimer = setTimeout(async () => {
+            try {
+                const userProgressRef = doc(db, 'dino-island', 'users', currentUser.uid, 'progress', 'latest');
+                await setDoc(userProgressRef, progressData, { merge: true });
+            } catch (e) {
+                console.warn('Firestore progress write failed:', e);
+            }
+        }, 3000);
+    }
+
+    updateResumeUI();
+}
+
+function updateResumeUI() {
+    if (!savedUserProgress || !savedUserProgress.episodeNumber) return;
+
+    const resumeBtn = document.getElementById('scResumeBtnIsla');
+    if (resumeBtn) {
+        const epNum = savedUserProgress.episodeNumber;
+        const pct   = Math.round(savedUserProgress.progressPercent || 0);
+        resumeBtn.style.display = 'inline-flex';
+        resumeBtn.innerHTML = `<i class="fa-solid fa-rotate-left"></i> Resume Ep. ${epNum} (${pct}%)`;
+    }
+}
+
 // ==========================================================================
 // TTS — Web Speech API & Studio Narration Reader
 // ==========================================================================
 
 function broadcastAudioState() {
-    if (window.parent && window.parent !== window) {
-        const ep = episodes[currentEpIndex];
-        const duration = (TTS.audioEl && TTS.audioEl.duration) ? TTS.audioEl.duration : 1;
-        const currentTime = (TTS.audioEl && TTS.audioEl.currentTime) ? TTS.audioEl.currentTime : 0;
-        const pct = TTS.usingStudioAudio ? Math.floor((currentTime / duration) * 100) : 50;
+    const ep = episodes[currentEpIndex];
+    const duration = (TTS.audioEl && TTS.audioEl.duration) ? TTS.audioEl.duration : 1;
+    const currentTime = (TTS.audioEl && TTS.audioEl.currentTime) ? TTS.audioEl.currentTime : 0;
+    const pct = TTS.usingStudioAudio ? Math.floor((currentTime / duration) * 100) : 50;
 
+    if (currentEpIndex >= 0) {
+        saveAudiobookProgress(currentEpIndex, pct, currentTime);
+    }
+
+    if (window.parent && window.parent !== window) {
         window.parent.postMessage({
             type: 'AUDIOBOOK_STATE',
             isPlaying: TTS.isPlaying,
@@ -738,6 +824,29 @@ function initTTS() {
             e.preventDefault();
             e.stopPropagation();
             playOrOpenSeries();
+        });
+    }
+
+    const scResumeBtnIsla = document.getElementById('scResumeBtnIsla');
+    if (scResumeBtnIsla) {
+        scResumeBtnIsla.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (savedUserProgress && savedUserProgress.episodeNumber) {
+                showSeriesDetail();
+                const epIdx = episodes.findIndex(ep => ep.episodeNumber === savedUserProgress.episodeNumber);
+                const targetIdx = epIdx >= 0 ? epIdx : 0;
+                openEpisode(targetIdx);
+                if ('speechSynthesis' in window && window.speechSynthesis) window.speechSynthesis.resume();
+                setTimeout(() => {
+                    ttsStart(0);
+                    if (savedUserProgress.progressPercent > 0) {
+                        setTimeout(() => seekAudioToPercent(savedUserProgress.progressPercent), 250);
+                    }
+                }, 150);
+            } else {
+                playOrOpenSeries();
+            }
         });
     }
 

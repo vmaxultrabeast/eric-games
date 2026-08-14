@@ -351,8 +351,28 @@ async function launchGame(gameId) {
     modalGameTag.textContent = game.category;
     modalGameControls.textContent = game.controls;
 
-    // Point iframe to game entry point with cache-busting parameter
-    gameIframe.src = `${game.folder}/index.html?v=${Date.now()}`;
+    const audiobookIframe = document.getElementById('audiobookIframe');
+
+    if (gameId === 'dino-island-story') {
+        if (audiobookIframe) {
+            if (!audiobookIframe.src || audiobookIframe.src === 'about:blank' || audiobookIframe.src.endsWith('/')) {
+                audiobookIframe.src = `${game.folder}/index.html?v=${Date.now()}`;
+            }
+            audiobookIframe.classList.remove('hidden');
+        }
+        if (gameIframe) {
+            gameIframe.classList.add('hidden');
+            gameIframe.src = '';
+        }
+    } else {
+        if (audiobookIframe) {
+            audiobookIframe.classList.add('hidden');
+        }
+        if (gameIframe) {
+            gameIframe.classList.remove('hidden');
+            gameIframe.src = `${game.folder}/index.html?v=${Date.now()}`;
+        }
+    }
 
     // Open Modal
     gameModal.classList.add('active');
@@ -370,8 +390,10 @@ async function closeGame() {
     gameModal.classList.remove('active');
     document.body.style.overflow = ''; // Restore scrolling
 
-    // Safely unload iframe to stop game audio, animations, loops
-    gameIframe.src = '';
+    // Unload regular game iframe to stop arcade game audio/loops (audiobook iframe stays alive)
+    if (gameIframe) {
+        gameIframe.src = '';
+    }
 
     // Reset full screen view if active
     modalContent.classList.remove('fullscreen');
@@ -1569,7 +1591,7 @@ function initAuthModal() {
 
     // Send command to child iframe (dino-island-story)
     function sendAudioCommand(action) {
-        const iframe = document.getElementById('gameIframe');
+        const iframe = document.getElementById('audiobookIframe') || document.getElementById('gameIframe');
         if (iframe && iframe.contentWindow) {
             iframe.contentWindow.postMessage({ type: 'AUDIOBOOK_COMMAND', action }, '*');
         }
@@ -1623,7 +1645,7 @@ function initAuthModal() {
             const pct = Math.max(0, Math.min(100, (clickX / rect.width) * 100));
             if (gapProgress) gapProgress.style.width = `${pct}%`;
 
-            const iframe = document.getElementById('gameIframe');
+            const iframe = document.getElementById('audiobookIframe') || document.getElementById('gameIframe');
             if (iframe && iframe.contentWindow) {
                 iframe.contentWindow.postMessage({
                     type: 'AUDIOBOOK_COMMAND',
