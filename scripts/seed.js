@@ -5,7 +5,8 @@
 // Requires FIREBASE_SERVICE_ACCOUNT env var OR a local serviceAccount.json
 // ==========================================================================
 
-const admin = require('firebase-admin');
+const admin        = require('firebase-admin');
+const textToSpeech = require('@google-cloud/text-to-speech');
 
 // Support both env var (CI/prod) and local file (dev)
 let credential;
@@ -21,8 +22,18 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     }
 }
 
-admin.initializeApp({ credential, projectId: 'eric-arcade' });
-const db = admin.firestore();
+admin.initializeApp({
+    credential,
+    projectId: 'eric-arcade',
+    storageBucket: 'eric-arcade.firebasestorage.app',
+});
+const db      = admin.firestore();
+const storage = admin.storage();
+const ttsClient = new textToSpeech.TextToSpeechClient({ credentials: credential.certificate || saCert(credential) });
+
+function saCert(cred) {
+    try { return require('./serviceAccount.json'); } catch { return null; }
+}
 
 // ==========================================================================
 // Episode 1 Content
@@ -140,17 +151,69 @@ const EPISODE_1 = {
 
 const RUNNING_SUMMARY = `Episode 1: D-Rex (Distortus Rex, Subject Alpha-7) escapes from Lab 7 on Isla Fragmentum during a Pacific storm. A twelve-meter apex hybrid of T-Rex, Spinosaurus, and Velociraptor DNA, D-Rex exploits a backup power failure to breach its habitat wall. It moves through three security levels without harming any personnel, then vanishes into the island's jungle. Dr. Vera Osei (lead geneticist, D-Rex's creator) and Chief Reyes (head of security) witness the escape. Vera feels conflicted admiration for D-Rex's survival intelligence. D-Rex is now free on the island.`;
 
+async function generateAudio(storyText) {
+    console.log('🎙️ Synthesizing Studio Neural2 audio for Episode 1...');
+    let cleanText = storyText
+        .replace(/\*\*(.*?)\*\*/g, '$1')
+        .replace(/__(.*?)__/g, '$1')
+        .replace(/\*(.*?)\*/g, '$1')
+        .replace(/_(.*?)_/g, '$1')
+        .replace(/^---$/gm, '')
+        .replace(/\n{2,}/g, '\n\n')
+        .trim();
+
+    const paragraphs = cleanText.split('\n\n');
+    const chunks = [];
+    let currentChunk = '';
+    for (const p of paragraphs) {
+        if ((currentChunk + '\n\n' + p).length > 4500) {
+            if (currentChunk) chunks.push(currentChunk);
+            currentChunk = p;
+        } else {
+            currentChunk = currentChunk ? (currentChunk + '\n\n' + p) : p;
+        }
+    }
+    if (currentChunk) chunks.push(currentChunk);
+
+    const audioBuffers = [];
+    for (let i = 0; i < chunks.length; i++) {
+        const [res] = await ttsClient.synthesizeSpeech({
+            input: { text: chunks[i] },
+            voice: { languageCode: 'en-US', name: 'en-US-Neural2-D', ssmlGender: 'MALE' },
+            audioConfig: { audioEncoding: 'MP3', speakingRate: 0.96, pitch: -1.5 },
+        });
+        if (res.audioContent) audioBuffers.push(Buffer.from(res.audioContent));
+    }
+
+    const fullBuffer = Buffer.concat(audioBuffers);
+    const bucket = storage.bucket();
+    const file = bucket.file('dino-island/episodes/episode-001.mp3');
+
+    await file.save(fullBuffer, { metadata: { contentType: 'audio/mpeg' } });
+    await file.makePublic();
+    return `https://storage.googleapis.com/${bucket.name}/dino-island/episodes/episode-001.mp3`;
+}
+
 // ==========================================================================
 // Run
 // ==========================================================================
 async function seed() {
     console.log('🌱 Seeding Episode 1 into Firestore...');
 
+    let audioUrl = null;
+    try {
+        audioUrl = await generateAudio(CONTENT);
+        console.log('🎙️ Episode 1 studio audio generated & uploaded:', audioUrl);
+    } catch (err) {
+        console.error('⚠️ Audio generation failed:', err.message);
+    }
+
     const storyRef    = db.collection('dino-island').doc('story');
     const episodesRef = storyRef.collection('episodes');
 
     await episodesRef.doc('episode-001').set({
         ...EPISODE_1,
+        audioUrl: audioUrl || null,
         generatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
