@@ -491,22 +491,33 @@ function escHtml(str) {
 // ==========================================================================
 
 const TTS = {
-    sentences:    [],   // array of plain-text sentences
-    currentIdx:   -1,   // sentence currently being spoken
-    rate:         1.0,  // playback rate
-    pitch:        0.92, // storytelling pitch (slightly deeper, dramatic)
-    selectedVoice: null,
-    voices:       [],
-    isPlaying:    false,
-    isPaused:     false,
-    utterance:    null,
+    sentences:      [],   // array of plain-text sentences
+    currentIdx:     -1,   // sentence currently being spoken
+    rate:           1.0,  // playback rate
+    pitch:          0.92, // storytelling pitch (slightly deeper, dramatic)
+    selectedVoice:  null,
+    voices:         [],
+    isPlaying:      false,
+    isPaused:       false,
+    utterance:      null,
+    studioAudioUrl: null, // MP3 URL if episode has pre-rendered studio audio
+    audioEl:        null, // HTMLAudioElement for studio MP3
 };
 
 function initTTS() {
-    if (!('speechSynthesis' in window)) {
+    if (!('speechSynthesis' in window) && !TTS.audioEl) {
         listenBtn.style.display = 'none';
         return;
     }
+
+    // Initialize HTML5 audio element for studio narration
+    TTS.audioEl = new Audio();
+    TTS.audioEl.addEventListener('ended', ttsStop);
+    TTS.audioEl.addEventListener('timeupdate', () => {
+        if (!TTS.studioAudioUrl || !TTS.audioEl.duration) return;
+        const pct = Math.floor((TTS.audioEl.currentTime / TTS.audioEl.duration) * 100);
+        ttsSentenceCounter.textContent = `Studio Audio: ${pct}%`;
+    });
 
     // Populate voices & handle async loading in Chrome/Edge/Safari
     populateVoices();
@@ -517,7 +528,7 @@ function initTTS() {
     ttsVoiceSelect.addEventListener('change', () => {
         const name = ttsVoiceSelect.value;
         TTS.selectedVoice = TTS.voices.find(v => v.name === name) || null;
-        if (TTS.isPlaying && TTS.currentIdx >= 0) {
+        if (TTS.isPlaying && TTS.currentIdx >= 0 && !TTS.studioAudioUrl) {
             const idx = TTS.currentIdx;
             window.speechSynthesis.cancel();
             setTimeout(() => ttsStart(idx), 80);
@@ -547,8 +558,9 @@ function initTTS() {
         btn.addEventListener('click', () => {
             TTS.rate = parseFloat(btn.dataset.rate);
             ttsSpeedBtns.forEach(b => b.classList.toggle('active', b === btn));
-            // Restart current sentence at new speed if playing
-            if (TTS.isPlaying && TTS.currentIdx >= 0) {
+            if (TTS.audioEl) TTS.audioEl.playbackRate = TTS.rate;
+
+            if (TTS.isPlaying && TTS.currentIdx >= 0 && !TTS.studioAudioUrl) {
                 const idx = TTS.currentIdx;
                 window.speechSynthesis.cancel();
                 setTimeout(() => ttsStart(idx), 80);
@@ -614,18 +626,19 @@ function populateVoices() {
 
 // ── Prepare sentences from current episode story ───────────────────────────
 function ttsPrepare() {
-    // Get plain text from all .story-sentence spans
     const spans = storyContent.querySelectorAll('.story-sentence');
     TTS.sentences = Array.from(spans).map(s => s.textContent.trim()).filter(Boolean);
 }
 
 // ── Start reading from a given sentence index ──────────────────────────────
 function ttsStart(fromIdx) {
-    window.speechSynthesis.cancel();
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (TTS.audioEl) TTS.audioEl.pause();
     ttsHighlightClear();
 
-    ttsPrepare();
-    if (TTS.sentences.length === 0) return;
+    // Check if current episode has studio MP3
+    const currentEp = episodes[currentEpIndex];
+    TTS.studioAudioUrl = (currentEp && currentEp.audioUrl) ? currentEp.audioUrl : null;
 
     TTS.isPlaying = true;
     TTS.isPaused  = false;
@@ -636,7 +649,25 @@ function ttsStart(fromIdx) {
     ttsBar.classList.remove('hidden');
     readerPanel.classList.add('tts-open');
     ttsSetPlayingUI(true);
-    ttsSpeak(fromIdx);
+
+    if (TTS.studioAudioUrl && TTS.audioEl) {
+        // Studio MP3 mode
+        const voiceContainer = ttsVoiceSelect.closest('.tts-voice');
+        if (voiceContainer) voiceContainer.style.display = 'none';
+
+        TTS.audioEl.src = TTS.studioAudioUrl;
+        TTS.audioEl.playbackRate = TTS.rate;
+        TTS.audioEl.play().catch(err => console.warn('Audio play failed:', err));
+        ttsSentenceCounter.textContent = 'Playing Studio Audio...';
+    } else {
+        // Fallback Web Speech API mode
+        const voiceContainer = ttsVoiceSelect.closest('.tts-voice');
+        if (voiceContainer) voiceContainer.style.display = '';
+
+        ttsPrepare();
+        if (TTS.sentences.length === 0) return;
+        ttsSpeak(fromIdx);
+    }
 }
 
 // ── Speak a single sentence, then chain to next ────────────────────────────
@@ -676,7 +707,11 @@ function ttsSpeak(idx) {
 // ── Pause ──────────────────────────────────────────────────────────────────
 function ttsPause() {
     if (!TTS.isPlaying) return;
-    window.speechSynthesis.pause();
+    if (TTS.studioAudioUrl && TTS.audioEl) {
+        TTS.audioEl.pause();
+    } else if (window.speechSynthesis) {
+        window.speechSynthesis.pause();
+    }
     TTS.isPaused  = true;
     TTS.isPlaying = false;
     ttsSetPlayingUI(false);
@@ -685,7 +720,11 @@ function ttsPause() {
 // ── Resume ─────────────────────────────────────────────────────────────────
 function ttsResume() {
     if (!TTS.isPaused) return;
-    window.speechSynthesis.resume();
+    if (TTS.studioAudioUrl && TTS.audioEl) {
+        TTS.audioEl.play();
+    } else if (window.speechSynthesis) {
+        window.speechSynthesis.resume();
+    }
     TTS.isPaused  = false;
     TTS.isPlaying = true;
     ttsSetPlayingUI(true);
@@ -693,7 +732,11 @@ function ttsResume() {
 
 // ── Stop completely ────────────────────────────────────────────────────────
 function ttsStop() {
-    window.speechSynthesis.cancel();
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (TTS.audioEl) {
+        TTS.audioEl.pause();
+        TTS.audioEl.currentTime = 0;
+    }
     TTS.isPlaying  = false;
     TTS.isPaused   = false;
     TTS.currentIdx = -1;

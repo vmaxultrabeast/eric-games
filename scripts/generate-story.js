@@ -7,10 +7,11 @@
 //   FIREBASE_SERVICE_ACCOUNT — JSON content of Firebase service account key
 // ==========================================================================
 
-const { GoogleGenAI }  = require('@google/genai');
-const admin            = require('firebase-admin');
+const { GoogleGenAI }     = require('@google/genai');
+const textToSpeech        = require('@google-cloud/text-to-speech');
+const admin               = require('firebase-admin');
 
-// ── Firebase init ──────────────────────────────────────────────────────────
+// ── Firebase & GCP init ────────────────────────────────────────────────────
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 admin.initializeApp({
     credential:    admin.credential.cert(serviceAccount),
@@ -18,6 +19,9 @@ admin.initializeApp({
 });
 const db      = admin.firestore();
 const storage = admin.storage();
+
+// ── TTS Client (uses same GCP service account) ────────────────────────────
+const ttsClient = new textToSpeech.TextToSpeechClient({ credentials: serviceAccount });
 
 // ── Gemini / Imagen client ─────────────────────────────────────────────────
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -103,7 +107,16 @@ async function main() {
         console.error('⚠️  Image generation failed (non-fatal):', imgErr.message);
     }
 
-    // 4. Save episode document to Firestore
+    // 4. Generate studio AI narration audio (Neural2 MP3)
+    let audioUrl = null;
+    try {
+        audioUrl = await generateAndUploadAudio(parsed.content, episodeNumber);
+        console.log(`🎙️  Studio Audio uploaded: ${audioUrl}`);
+    } catch (audioErr) {
+        console.error('⚠️  Audio generation failed (non-fatal):', audioErr.message);
+    }
+
+    // 5. Save episode document to Firestore
     const epId      = `episode-${String(episodeNumber).padStart(3, '0')}`;
     const epDocRef  = episodesRef.doc(epId);
 
@@ -115,6 +128,7 @@ async function main() {
         wordCount,
         summary:       parsed.summary,
         imageUrl:      imageUrl || null,
+        audioUrl:      audioUrl || null,
         imagePrompt:   parsed.imagePrompt || null,
         ratingSum:     0,
         ratingCount:   0,
@@ -176,6 +190,85 @@ async function generateAndUploadImage(parsed, episodeNumber) {
             metadata: {
                 episodeNumber: String(episodeNumber),
                 episodeTitle:  parsed.title,
+            },
+        },
+    });
+
+    await file.makePublic();
+    return `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+}
+
+// ==========================================================================
+// Generate & upload studio AI audio narration via GCP Text-to-Speech
+// ==========================================================================
+async function generateAndUploadAudio(storyContentText, episodeNumber) {
+    console.log('🎙️  Synthesizing Studio Neural2 audio narration...');
+
+    // 1. Strip markdown elements for clean TTS reading
+    let cleanText = storyContentText
+        .replace(/\*\*(.*?)\*\*/g, '$1')
+        .replace(/__(.*?)__/g, '$1')
+        .replace(/\*(.*?)\*/g, '$1')
+        .replace(/_(.*?)_/g, '$1')
+        .replace(/^---$/gm, '')
+        .replace(/\n{2,}/g, '\n\n')
+        .trim();
+
+    // 2. Chunk text into segments <= 4500 chars (GCP TTS limit is 5000)
+    const paragraphs = cleanText.split('\n\n');
+    const chunks = [];
+    let currentChunk = '';
+
+    for (const p of paragraphs) {
+        if ((currentChunk + '\n\n' + p).length > 4500) {
+            if (currentChunk) chunks.push(currentChunk);
+            currentChunk = p;
+        } else {
+            currentChunk = currentChunk ? (currentChunk + '\n\n' + p) : p;
+        }
+    }
+    if (currentChunk) chunks.push(currentChunk);
+
+    console.log(`🎙️  Synthesizing ${chunks.length} audio chunk(s)...`);
+
+    // 3. Synthesize each chunk with GCP Text-to-Speech (Neural2 narrator voice)
+    const audioBuffers = [];
+    for (let i = 0; i < chunks.length; i++) {
+        const [response] = await ttsClient.synthesizeSpeech({
+            input: { text: chunks[i] },
+            voice: {
+                languageCode: 'en-US',
+                name:         'en-US-Neural2-D', // Deep, cinematic male narrator
+                ssmlGender:   'MALE',
+            },
+            audioConfig: {
+                audioEncoding: 'MP3',
+                speakingRate:  0.96, // Slight slow pacing for dramatic effect
+                pitch:         -1.5, // Deeper narrator tone
+            },
+        });
+
+        if (response.audioContent) {
+            audioBuffers.push(Buffer.from(response.audioContent));
+        }
+    }
+
+    if (audioBuffers.length === 0) {
+        throw new Error('TTS returned no audio content');
+    }
+
+    const fullAudioBuffer = Buffer.concat(audioBuffers);
+
+    // 4. Upload MP3 to Firebase Storage
+    const bucket   = storage.bucket();
+    const fileName = `dino-island/episodes/episode-${String(episodeNumber).padStart(3, '0')}.mp3`;
+    const file     = bucket.file(fileName);
+
+    await file.save(fullAudioBuffer, {
+        metadata: {
+            contentType: 'audio/mpeg',
+            metadata: {
+                episodeNumber: String(episodeNumber),
             },
         },
     });
