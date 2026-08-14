@@ -359,20 +359,48 @@ async function generateAndUploadAudio(storyContentText, episodeNumber) {
         const fs = require('fs');
         const path = require('path');
 
-        console.log(`🎙️ Generating Expressive Studio Audio (en-US-BrianNeural) for ${chunks.length} text chunk(s)...`);
+        console.log(`🎙️ Generating Dramatic Studio Audiobook (en-US-GuyNeural with SSML Drama Engine) for ${chunks.length} chunk(s)...`);
         const chunkBuffers = [];
 
         for (let i = 0; i < chunks.length; i++) {
-            const tmpTxt = path.join(__dirname, `tmp_ep_${episodeNumber}_${i}.txt`);
+            const tmpXml = path.join(__dirname, `tmp_ep_${episodeNumber}_${i}.xml`);
             const tmpMp3 = path.join(__dirname, `tmp_ep_${episodeNumber}_${i}.mp3`);
-            fs.writeFileSync(tmpTxt, chunks[i], 'utf-8');
 
-            console.log(`  🔊 Synthesizing chunk ${i + 1}/${chunks.length}...`);
-            execSync(`edge-tts --file "${tmpTxt}" --voice en-US-BrianNeural --pitch="+2Hz" --rate="+0%" --write-media "${tmpMp3}"`);
+            // Escape XML entities
+            const safeChunk = chunks[i]
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&apos;');
+
+            // Wrap in Microsoft Neural Expressive SSML
+            const ssmlContent = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/10/synthesis/mstts" xml:lang="en-US">
+  <voice name="en-US-GuyNeural">
+    <mstts:expressive style="narrator-dramatic" styledegree="2.0">
+      <prosody rate="-4%" pitch="+1Hz">
+        ${safeChunk}
+      </prosody>
+    </mstts:expressive>
+  </voice>
+</speak>`;
+
+            fs.writeFileSync(tmpXml, ssmlContent, 'utf-8');
+
+            console.log(`  🎭 Synthesizing Dramatic Chunk ${i + 1}/${chunks.length}...`);
+            try {
+                execSync(`edge-tts --file "${tmpXml}" --write-media "${tmpMp3}"`);
+            } catch {
+                // Fallback to direct text if SSML style is unsupported on local CLI
+                const tmpTxt = path.join(__dirname, `tmp_ep_${episodeNumber}_${i}.txt`);
+                fs.writeFileSync(tmpTxt, chunks[i], 'utf-8');
+                execSync(`edge-tts --file "${tmpTxt}" --voice en-US-GuyNeural --rate="-5%" --write-media "${tmpMp3}"`);
+                try { fs.unlinkSync(tmpTxt); } catch {}
+            }
 
             if (fs.existsSync(tmpMp3)) {
                 chunkBuffers.push(fs.readFileSync(tmpMp3));
-                try { fs.unlinkSync(tmpTxt); fs.unlinkSync(tmpMp3); } catch {}
+                try { fs.unlinkSync(tmpXml); fs.unlinkSync(tmpMp3); } catch {}
             }
         }
 
