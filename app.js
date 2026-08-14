@@ -1630,6 +1630,9 @@ function initAuthModal() {
         }
 
         let isDragging = false;
+        gapProgressBarTrack.addEventListener('click', (e) => {
+            handleSeek(e);
+        });
         gapProgressBarTrack.addEventListener('mousedown', (e) => {
             isDragging = true;
             handleSeek(e);

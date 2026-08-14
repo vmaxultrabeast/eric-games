@@ -788,6 +788,9 @@ function initTTS() {
         }
 
         let isTrackDragging = false;
+        ttsProgressTrack.addEventListener('click', (e) => {
+            handleInAppSeek(e);
+        });
         ttsProgressTrack.addEventListener('mousedown', (e) => {
             isTrackDragging = true;
             handleInAppSeek(e);
