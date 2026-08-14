@@ -80,20 +80,45 @@ async function main() {
 
     console.log(`📖 Generating Episode ${episodeNumber}...`);
 
-    // 2. Generate story text with Gemini 1.5 Flash
-    const model = genAI.getGenerativeModel({
-        model: 'gemini-1.5-flash',
-        generationConfig: {
-            temperature: 0.88,
-            topP: 0.95,
-            maxOutputTokens: 8192,
-        }
-    });
-
+    // 2. Generate story text with Gemini (with automatic model fallback)
     const storyPrompt = buildStoryPrompt(episodeNumber, runningSummary);
-    const textResult  = await model.generateContent(storyPrompt);
-    const rawText     = textResult.response.text();
-    const parsed      = parseEpisodeResponse(rawText, episodeNumber);
+    const candidateModels = [
+        'gemini-1.5-flash-latest',
+        'gemini-1.5-flash-002',
+        'gemini-2.0-flash-exp',
+        'gemini-1.5-flash-001',
+        'gemini-1.5-flash',
+        'gemini-1.5-pro-latest'
+    ];
+
+    let rawText = null;
+    let usedModel = null;
+    for (const modelName of candidateModels) {
+        try {
+            console.log(`🤖 Trying Gemini model "${modelName}"...`);
+            const model = genAI.getGenerativeModel({
+                model: modelName,
+                generationConfig: {
+                    temperature: 0.88,
+                    topP: 0.95,
+                    maxOutputTokens: 8192,
+                }
+            });
+            const textResult = await model.generateContent(storyPrompt);
+            rawText = textResult.response.text();
+            usedModel = modelName;
+            console.log(`✨ Success with model "${modelName}"!`);
+            break;
+        } catch (err) {
+            console.warn(`⚠️ Model "${modelName}" failed (${err.message.split('\n')[0]}), trying next candidate...`);
+        }
+    }
+
+    if (!rawText) {
+        throw new Error('All candidate Gemini models failed to generate content.');
+    }
+
+    const parsed = parseEpisodeResponse(rawText, episodeNumber);
 
     const wordCount = parsed.content.split(/\s+/).length;
     console.log(`✍️  Story: "${parsed.title}" — ${wordCount} words`);
