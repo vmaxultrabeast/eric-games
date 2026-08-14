@@ -257,6 +257,9 @@ async function generateAndUploadImage(parsed, episodeNumber) {
         `Photorealistic, epic scale, Jurassic Park meets Pacific Rim style, 16:9 wide shot.`;
 
     const candidateModels = [
+        'gemini-3.1-flash-image',
+        'nano-banana-pro-preview',
+        'gemini-3-pro-image',
         'imagen-3.0-generate-002',
         'imagen-3.0-generate-001',
         'imagen-3.0-fast-generate-001'
@@ -284,25 +287,25 @@ async function generateAndUploadImage(parsed, episodeNumber) {
                 const json = await res.json();
                 if (json.generatedImages && json.generatedImages.length > 0) {
                     b64 = json.generatedImages[0].image.imageBytes;
-                    console.log(`✨ Imagen success using model "${mName}"`);
+                    console.log(`✨ Gemini Image success using model "${mName}"`);
                     break;
                 }
             }
         } catch (e) {
-            console.warn(`Imagen model "${mName}" note:`, e.message);
+            console.warn(`Gemini Image model "${mName}" note:`, e.message);
         }
     }
 
-    const enhancedPrompt = `Cinematic 8k movie still, epic concept art, Jurassic Park Pacific Rim hybrid, dramatic storm lighting, bioluminescent jungle fog, ultra detailed 16:9 widescreen shot: ${imagePrompt}`;
+    const enhancedPrompt = `Cinematic 8k movie still, photorealistic concept art, Jurassic Park aesthetics, dramatic storm lighting, bioluminescent jungle fog, epic 16:9 widescreen shot: ${imagePrompt}`;
 
     let imageBytes = null;
     if (b64) {
         imageBytes = Buffer.from(b64, 'base64');
     } else {
-        console.log('🎨 Generating ultra-HD Flux AI scene image...');
-        const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1280&height=720&model=flux&nologo=true&enhance=true&seed=${episodeNumber * 4242}`;
+        console.log('🎨 Generating ultra-HD Photorealistic Flux AI scene image...');
+        const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1280&height=720&model=flux-realism&nologo=true&enhance=true&seed=${episodeNumber * 8888}`;
         const pRes = await fetch(pollUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-        if (!pRes.ok) throw new Error(`Flux AI image fetch failed: ${pRes.status}`);
+        if (!pRes.ok) throw new Error(`Flux Realism AI image fetch failed: ${pRes.status}`);
         const ab = await pRes.arrayBuffer();
         imageBytes = Buffer.from(ab);
     }
