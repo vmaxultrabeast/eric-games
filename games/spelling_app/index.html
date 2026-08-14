@@ -671,7 +671,7 @@
       </table>
       <div class="rewards-note">
         Below 70% accuracy → 🚫 0 coins &nbsp;&bull;&nbsp; Exponential curve rewards precision<br>
-        <strong style="color:var(--warning)">Typing</strong> earns <strong>2.5×</strong> more DNA coins than Multiple Choice
+        <strong style="color:var(--primary)">English Spelling</strong> earns <strong>1.5× bonus</strong> DNA coins &nbsp;&bull;&nbsp; <strong style="color:var(--warning)">Typing</strong> earns <strong>2.5×</strong> more coins
       </div>
     </div>
 
@@ -2120,10 +2120,10 @@ function endSession() {
     troubleDiv.innerHTML = unique.map(w => `<span class="trouble-word">${w}</span>`).join('');
   }
 
-  // Award coins
-  const earned = calculateCoins(s.correct, s.words.length, s.mode, s.grade);
+  // Award coins (English receives 1.5x coin boost)
+  const earned = calculateCoins(s.correct, s.words.length, s.mode, s.grade, s.subject || 'english');
   const newTotal = addCoins(earned);
-  showCoinAward(earned, newTotal, s.mode, s.grade);
+  showCoinAward(earned, newTotal, s.mode, s.grade, s.subject || 'english');
 
   // Check 100% or 95%+ completion for 2-week unit lock
   recordSessionLockProgress(s.subject || 'english', s.grade, s.mode, pct);
@@ -2161,7 +2161,7 @@ const GRADE_MULT = { '1': 0.6, '2': 0.8, '3': 1.0, '4': 1.4, '5': 1.8, 'mix': 1.
 const GRADE_LABEL = { '1': 'Grade 1', '2': 'Grade 2', '3': 'Grade 3',
                        '4': 'Grade 4', '5': 'Grade 5', 'mix': 'Mix 🎢' };
 
-function calculateCoins(correct, total, mode, grade) {
+function calculateCoins(correct, total, mode, grade, subject = 'english') {
   const accuracy = correct / total;
   if (accuracy < 0.70) return 0;
   const normalized = (accuracy - 0.70) / 0.30; // 0→1 for 70%→100%
@@ -2169,12 +2169,13 @@ function calculateCoins(correct, total, mode, grade) {
   const perfectBonus = (correct === total) ? 100 : 0;
   const mm = MODE_MULT[mode]  || 1.0;
   const gm = GRADE_MULT[grade] || 1.0;
-  return Math.round((base + perfectBonus) * mm * gm);
+  const subjMult = (subject === 'english' || !subject) ? 1.5 : 1.0; // 1.5x coin reward multiplier for English
+  return Math.round((base + perfectBonus) * mm * gm * subjMult);
 }
 
 function maxCoins(mode, grade, subject = 'english') {
   const total = (subject === 'math') ? 25 : 50;
-  return calculateCoins(total, total, mode, grade);
+  return calculateCoins(total, total, mode, grade, subject);
 }
 
 function loadCoins() {
@@ -2192,7 +2193,7 @@ function updateWalletDisplay() {
   document.getElementById('wallet-amount').textContent = loadCoins().toLocaleString();
 }
 
-function showCoinAward(earned, newTotal, mode, grade) {
+function showCoinAward(earned, newTotal, mode, grade, subject = 'english') {
   const card  = document.getElementById('coin-award-card');
   const amt   = document.getElementById('coin-award-amount');
   const label = document.getElementById('coin-award-label');
@@ -2207,7 +2208,7 @@ function showCoinAward(earned, newTotal, mode, grade) {
     label.textContent = 'coins — reach 70% to earn coins';
     tot.textContent   = `Total: 🪙 ${newTotal.toLocaleString()} coins`;
   } else {
-    const perfect = maxCoins(mode, grade);
+    const perfect = maxCoins(mode, grade, subject);
     const isPerfect = (earned === perfect);
     card.className  = 'coin-award';
     amt.className   = 'coin-award-amount';
