@@ -633,9 +633,11 @@ function ttsStart(fromIdx) {
     if (TTS.audioEl) TTS.audioEl.pause();
     ttsHighlightClear();
 
-    // Check if current episode has studio MP3
+    // Check if current episode has studio MP3 (from Firestore audioUrl or static audio folder)
     const currentEp = episodes[currentEpIndex];
-    TTS.studioAudioUrl = (currentEp && currentEp.audioUrl) ? currentEp.audioUrl : null;
+    const epNum = currentEp ? currentEp.episodeNumber : 1;
+    const staticAudioPath = `audio/episode-${String(epNum).padStart(3, '0')}.mp3`;
+    TTS.studioAudioUrl = (currentEp && currentEp.audioUrl) ? currentEp.audioUrl : staticAudioPath;
 
     TTS.isPlaying = true;
     TTS.isPaused  = false;
