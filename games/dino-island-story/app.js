@@ -750,8 +750,8 @@ function ttsSpeak(idx) {
 
 // ── Pause ──────────────────────────────────────────────────────────────────
 function ttsPause() {
-    if (!TTS.isPlaying) return;
-    if (TTS.studioAudioUrl && TTS.audioEl) {
+    if (!TTS.isPlaying && !TTS.usingStudioAudio) return;
+    if (TTS.usingStudioAudio && TTS.audioEl) {
         TTS.audioEl.pause();
     } else if (window.speechSynthesis) {
         window.speechSynthesis.pause();
@@ -764,8 +764,8 @@ function ttsPause() {
 // ── Resume ─────────────────────────────────────────────────────────────────
 function ttsResume() {
     if (!TTS.isPaused) return;
-    if (TTS.studioAudioUrl && TTS.audioEl) {
-        TTS.audioEl.play();
+    if (TTS.usingStudioAudio && TTS.audioEl) {
+        TTS.audioEl.play().catch(err => console.warn('Resume failed:', err));
     } else if (window.speechSynthesis) {
         window.speechSynthesis.resume();
     }
