@@ -353,10 +353,23 @@ function buildStoryPrompt(episodeNumber, runningSummary) {
     const context = isFirst
         ? `This is the FIRST EPISODE. Introduce D-Rex escaping from Lab 7 containment during a violent Pacific storm.
 Show the chaos in vivid detail — the containment breach, Dr. Vera Osei's conflicted reaction, Chief Reyes mobilizing security.
-End with D-Rex vanishing into the jungle. MINIMUM 2,000 words.`
-        : `STORY SO FAR:\n${runningSummary}\n\nContinue naturally from where the story left off for Episode ${episodeNumber}. MINIMUM 2,000 words.`;
+End with D-Rex vanishing into the jungle.`
+        : `STORY SO FAR:\n${runningSummary}\n\nContinue naturally from where the story left off for Episode ${episodeNumber}.`;
 
     return `${STORY_BIBLE}
+
+---
+
+CRITICAL LENGTH REQUIREMENT:
+You MUST write a long, immersive episode containing AT LEAST 2,200 WORDS (2,200 to 2,800 words total).
+Do NOT write short summaries. Write out every single interaction, sensory detail, environment description, and line of dialogue in full prose.
+
+To reach the 2,200+ word length target, structure the story into 5 distinct, highly detailed scenes:
+- SCENE 1 (~450 words): Atmospheric opening, immediate aftermath of previous events, character perspectives and sensory detail.
+- SCENE 2 (~450 words): Tactical movement, jungle exploration, tracking signatures, or lab operations.
+- SCENE 3 (~550 words): Major action sequence, confrontation, or battle between hybrids/security forces with step-by-step physical choreography.
+- SCENE 4 (~450 words): Dramatic dialogue exchange, ethical dilemma, or lore reveal involving Dr. Vera Osei, Chief Reyes, or the Architect.
+- SCENE 5 (~450 words): High-tension climax and suspenseful cliffhanger hook for the next episode.
 
 ---
 
@@ -375,7 +388,7 @@ TITLE: [A dramatic episode title]
 IMAGE_PROMPT: [2-3 sentences describing the most cinematic scene from this episode for an AI image generator. Mention specific hybrids, environment details, lighting, mood. Photorealistic cinematic concept art style.]
 
 CONTENT:
-[Full episode text, MINIMUM 2,000 words (~10-minute read). Start with **Previously on Isla Fragmentum...** in bold. Third-person narrative. Rich sensory detail, strong action choreography, meaningful dialogue.]
+[Full episode text, MUST BE AT LEAST 2,200 WORDS (~10-minute read). Start with **Previously on Isla Fragmentum...** in bold. Third-person narrative. Rich sensory detail, strong action choreography, meaningful dialogue.]
 
 EPISODE_SUMMARY:
 [4-6 sentences summarizing this episode's key events, characters involved, and changes.]
