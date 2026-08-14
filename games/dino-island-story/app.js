@@ -85,6 +85,22 @@ const ttsSpeedBtns       = document.querySelectorAll('.tts-speed-btn');
 const ttsVoiceSelect     = document.getElementById('ttsVoiceSelect');
 const readerPanel        = document.getElementById('readerPanel');
 
+// ── TTS State ─────────────────────────────────────────────────────────────
+const TTS = {
+    sentences:      [],   // array of plain-text sentences
+    currentIdx:     -1,   // sentence currently being spoken
+    rate:           1.0,  // playback rate
+    pitch:          0.92, // storytelling pitch (slightly deeper, dramatic)
+    selectedVoice:  null,
+    voices:         [],
+    isPlaying:      false,
+    isPaused:       false,
+    utterance:      null,
+    studioAudioUrl: null, // MP3 URL if episode has pre-rendered studio audio
+    audioEl:        null, // HTMLAudioElement for studio MP3
+    usingStudioAudio: false,
+};
+
 // ── Init ───────────────────────────────────────────────────────────────────
 loadMyRatings();
 onAuthStateChanged(auth, (user) => { currentUser = user; });
@@ -484,22 +500,8 @@ function escHtml(str) {
 }
 
 // ==========================================================================
-// TTS — Web Speech API Story Reader
+// TTS — Web Speech API & Studio Narration Reader
 // ==========================================================================
-
-const TTS = {
-    sentences:      [],   // array of plain-text sentences
-    currentIdx:     -1,   // sentence currently being spoken
-    rate:           1.0,  // playback rate
-    pitch:          0.92, // storytelling pitch (slightly deeper, dramatic)
-    selectedVoice:  null,
-    voices:         [],
-    isPlaying:      false,
-    isPaused:       false,
-    utterance:      null,
-    studioAudioUrl: null, // MP3 URL if episode has pre-rendered studio audio
-    audioEl:        null, // HTMLAudioElement for studio MP3
-};
 
 function initTTS() {
     // 1. Initialize HTML5 Audio Element for studio MP3 narration
