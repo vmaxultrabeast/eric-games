@@ -26,8 +26,8 @@ function getBucket() {
 // ── TTS Client (uses same GCP service account) ────────────────────────────
 const ttsClient = new textToSpeech.TextToSpeechClient({ credentials: serviceAccount });
 
-// ── Gemini client ──────────────────────────────────────────────────────────
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// ── Gemini client (uses v1beta for Pro preview models) ────────────────────
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY, { apiVersion: 'v1beta' });
 
 // ==========================================================================
 // Story Bible
@@ -101,7 +101,6 @@ async function main() {
             // Prioritize Gemini Pro models for long-form story generation (10+ min chapters)
             const preferred = [
                 'gemini-3.1-pro-preview',
-                'gemini-2.5-pro',
                 'gemini-pro-latest',
                 'gemini-3.6-flash',
                 'gemini-3.5-flash',
@@ -118,39 +117,26 @@ async function main() {
     const candidateModels = [
         targetModelName,
         'gemini-3.1-pro-preview',
-        'gemini-2.5-pro',
         'gemini-pro-latest',
         'gemini-3.6-flash',
         'gemini-3.5-flash'
     ];
 
-    let activeModelName = 'gemini-3.6-flash';
+    let activeModelName = targetModelName;
     let rawText = null;
     for (const modelName of [...new Set(candidateModels)]) {
         try {
-            const model = genAI.getGenerativeModel(
-                { model: modelName, generationConfig: { temperature: 0.90, topP: 0.95, maxOutputTokens: 8192 } },
-                { apiVersion: 'v1beta' }
-            );
+            const model = genAI.getGenerativeModel({
+                model: modelName,
+                generationConfig: { temperature: 0.90, topP: 0.95, maxOutputTokens: 8192 }
+            });
             const textResult = await model.generateContent(storyPrompt);
             rawText = textResult.response.text();
             activeModelName = modelName;
-            console.log(`✨ Success with model "${modelName}" (v1beta API)!`);
+            console.log(`✨ Success with model "${modelName}"!`);
             break;
-        } catch (err1) {
-            try {
-                const model = genAI.getGenerativeModel(
-                    { model: modelName, generationConfig: { temperature: 0.90, topP: 0.95, maxOutputTokens: 8192 } },
-                    { apiVersion: 'v1' }
-                );
-                const textResult = await model.generateContent(storyPrompt);
-                rawText = textResult.response.text();
-                activeModelName = modelName;
-                console.log(`✨ Success with model "${modelName}" (v1 API)!`);
-                break;
-            } catch (err2) {
-                console.warn(`⚠️ Model "${modelName}" note:`, err2.message.split('\n')[0]);
-            }
+        } catch (err) {
+            console.warn(`⚠️ Model "${modelName}" note:`, err.message.split('\n')[0]);
         }
     }
 
@@ -181,10 +167,10 @@ ${parsed.content}
 
 Output ONLY the expanded story text, starting with **Previously on Isla Fragmentum...** in bold.`;
 
-            const expModel = genAI.getGenerativeModel(
-                { model: activeModelName, generationConfig: { temperature: 0.92, topP: 0.95, maxOutputTokens: 8192 } },
-                { apiVersion: 'v1beta' }
-            );
+            const expModel = genAI.getGenerativeModel({
+                model: activeModelName,
+                generationConfig: { temperature: 0.92, topP: 0.95, maxOutputTokens: 8192 }
+            });
             const expRes = await expModel.generateContent(expandPrompt);
             const expText = expRes.response.text().trim();
             if (expText && expText.length > parsed.content.length) {
