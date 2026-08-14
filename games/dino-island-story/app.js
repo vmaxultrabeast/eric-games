@@ -537,11 +537,29 @@ function initTTS() {
         }
     });
 
-    listenBtn.addEventListener('click', () => {
+    listenBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('🔊 Listen button clicked! currentEpIndex:', currentEpIndex);
+
+        // If no episode is currently selected, open the first episode
+        if (currentEpIndex < 0 && episodes.length > 0) {
+            openEpisode(0);
+        }
+
         if (TTS.isPlaying || TTS.isPaused) {
             ttsStop();
         } else {
             ttsStart(0);
+        }
+    });
+
+    // Sentence click delegation: click any sentence to start reading from there
+    storyContent.addEventListener('click', (e) => {
+        const span = e.target.closest('.story-sentence');
+        if (!span) return;
+        const si = parseInt(span.dataset.si, 10);
+        if (!isNaN(si)) {
+            ttsStart(si);
         }
     });
 
