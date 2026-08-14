@@ -14,11 +14,14 @@ const admin                 = require('firebase-admin');
 // ── Firebase & GCP init ────────────────────────────────────────────────────
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 admin.initializeApp({
-    credential:    admin.credential.cert(serviceAccount),
-    storageBucket: 'eric-arcade.firebasestorage.app',
+    credential: admin.credential.cert(serviceAccount),
 });
-const db      = admin.firestore();
-const storage = admin.storage();
+const db = admin.firestore();
+
+function getBucket() {
+    const bName = serviceAccount.project_id ? `${serviceAccount.project_id}.firebasestorage.app` : 'eric-arcade.firebasestorage.app';
+    return admin.storage().bucket(bName);
+}
 
 // ── TTS Client (uses same GCP service account) ────────────────────────────
 const ttsClient = new textToSpeech.TextToSpeechClient({ credentials: serviceAccount });
@@ -124,14 +127,14 @@ async function main() {
     let rawText = null;
     for (const modelName of [...new Set(candidateModels)]) {
         try {
-            // Try default (v1beta) first so pro models work
-            const model = genAI.getGenerativeModel({
-                model: modelName,
-                generationConfig: { temperature: 0.90, topP: 0.95, maxOutputTokens: 8192 }
-            });
+            // Target v1beta explicitly so gemini-3.1-pro-preview / gemini-2.5-pro work
+            const model = genAI.getGenerativeModel(
+                { model: modelName, generationConfig: { temperature: 0.90, topP: 0.95, maxOutputTokens: 8192 } },
+                { apiVersion: 'v1beta' }
+            );
             const textResult = await model.generateContent(storyPrompt);
             rawText = textResult.response.text();
-            console.log(`✨ Success with model "${modelName}"!`);
+            console.log(`✨ Success with model "${modelName}" (v1beta API)!`);
             break;
         } catch (err1) {
             try {
@@ -262,14 +265,14 @@ async function generateAndUploadImage(parsed, episodeNumber) {
     } else {
         console.log('🎨 Generating HD AI scene image via Pollinations AI fallback...');
         const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}?width=1280&height=720&nologo=true&seed=${episodeNumber * 1337}`;
-        const pRes = await fetch(pollUrl);
+        const pRes = await fetch(pollUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         if (!pRes.ok) throw new Error(`Pollinations image fetch failed: ${pRes.status}`);
         const ab = await pRes.arrayBuffer();
         imageBytes = Buffer.from(ab);
     }
 
     // Upload to Firebase Storage
-    const bucket   = storage.bucket();
+    const bucket   = getBucket();
     const fileName = `dino-island/episodes/episode-${String(episodeNumber).padStart(3, '0')}.jpg`;
     const file     = bucket.file(fileName);
 
@@ -363,7 +366,7 @@ async function generateAndUploadAudio(storyContentText, episodeNumber) {
     }
 
     // Upload MP3 to Firebase Storage
-    const bucket   = storage.bucket();
+    const bucket   = getBucket();
     const fileName = `dino-island/episodes/episode-${String(episodeNumber).padStart(3, '0')}.mp3`;
     const file     = bucket.file(fileName);
 
