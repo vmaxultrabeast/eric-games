@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Isla Fragmentum — Daily Dino Story | Eric's Arcade</title>
+    <meta name="description" content="A daily evolving story about hybrid dinosaurs on a secret island. A new episode drops every evening at 6 PM. Follow D-Rex and the hybrids of Isla Fragmentum.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Ambient background -->
+    <div class="ambient-bg">
+        <div class="ambient-blob blob-1"></div>
+        <div class="ambient-blob blob-2"></div>
+        <div class="ambient-blob blob-3"></div>
+        <div class="jungle-overlay"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../../index.html" class="back-btn" id="backBtn">
+                <i class="fa-solid fa-chevron-left"></i> Eric's Arcade
+            </a>
+            <div class="brand">
+                <div class="brand-icon">🦖</div>
+                <div class="brand-text">
+                    <span class="brand-title">ISLA FRAGMENTUM</span>
+                    <span class="brand-sub">Daily Dino Chronicles</span>
+                </div>
+            </div>
+            <div class="next-episode-chip" id="nextEpisodeChip">
+                <i class="fa-solid fa-clock"></i>
+                <span id="countdownLabel">Next episode in</span>
+                <span class="countdown-time" id="countdownTime">--:--:--</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <main class="main-layout">
+
+        <!-- ── Left Sidebar: Episode List ── -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fa-solid fa-book-open"></i> Episodes</h2>
+                <div class="episode-count-badge" id="episodeCountBadge">Loading...</div>
+            </div>
+
+            <!-- Loading state -->
+            <div class="sidebar-loading" id="sidebarLoading">
+                <i class="fa-solid fa-dna fa-spin"></i>
+                <span>Fetching chronicles...</span>
+            </div>
+
+            <!-- Episode list -->
+            <div class="episode-list" id="episodeList"></div>
+
+            <!-- No episodes yet -->
+            <div class="no-episodes hidden" id="noEpisodes">
+                <div class="no-ep-icon">🧬</div>
+                <p>The first episode drops tonight at 6 PM!</p>
+            </div>
+
+            <!-- Mobile toggle -->
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle episode list">
+                <i class="fa-solid fa-list"></i> Episodes
+            </button>
+        </aside>
+
+        <!-- ── Right Panel: Story Reader ── -->
+        <section class="reader-panel" id="readerPanel">
+
+            <!-- Welcome / empty state -->
+            <div class="welcome-state" id="welcomeState">
+                <div class="welcome-dna">🧬</div>
+                <h1 class="welcome-title">ISLA FRAGMENTUM</h1>
+                <p class="welcome-tagline">A new episode drops every evening at 6 PM.<br>Select an episode to begin reading.</p>
+                <div class="welcome-lore">
+                    <div class="lore-card">
+                        <span class="lore-icon">🦖</span>
+                        <div>
+                            <strong>D-Rex</strong>
+                            <p>Distortus Rex — a T-Rex / Spinosaurus / Velociraptor hybrid with glowing amber eyes and razor spinal fins.</p>
+                        </div>
+                    </div>
+                    <div class="lore-card">
+                        <span class="lore-icon">🏝️</span>
+                        <div>
+                            <strong>Isla Fragmentum</strong>
+                            <p>A remote volcanic island hiding Helix Corp's secret hybrid dinosaur research facility.</p>
+                        </div>
+                    </div>
+                    <div class="lore-card">
+                        <span class="lore-icon">⚗️</span>
+                        <div>
+                            <strong>Helix Corp</strong>
+                            <p>The research organization that creates hybrid dinosaurs by mixing DNA. Their experiments are about to escape control.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Episode reader -->
+            <article class="episode-reader hidden" id="episodeReader">
+                <!-- Episode image -->
+                <div class="episode-image-container" id="episodeImageContainer">
+                    <img class="episode-image" id="episodeImage" src="" alt="Episode illustration" loading="lazy">
+                    <div class="episode-image-overlay"></div>
+                    <div class="episode-number-badge" id="episodeNumberBadge">EP. 01</div>
+                </div>
+
+                <!-- Episode meta -->
+                <div class="episode-meta">
+                    <div class="episode-meta-left">
+                        <div class="hybrid-tags" id="hybridTags"></div>
+                        <h1 class="episode-title" id="episodeTitle">Episode Title</h1>
+                        <div class="episode-info-row">
+                            <span class="episode-date" id="episodeDate">
+                                <i class="fa-regular fa-calendar"></i> —
+                            </span>
+                            <span class="episode-read-time" id="episodeReadTime">
+                                <i class="fa-regular fa-clock"></i> — min read
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Read progress bar -->
+                <div class="read-progress-bar">
+                    <div class="read-progress-fill" id="readProgressFill"></div>
+                </div>
+
+                <!-- Story content -->
+                <div class="story-content" id="storyContent"></div>
+
+                <!-- ── Rating Section ── -->
+                <div class="rating-section" id="ratingSection">
+                    <div class="rating-divider"></div>
+                    <h3 class="rating-title">Rate this Episode</h3>
+                    <div class="star-rating-widget" id="starRatingWidget" role="group" aria-label="Rate this episode">
+                        <button class="star-btn" data-value="1" id="star1" aria-label="1 star"><i class="fa-star"></i></button>
+                        <button class="star-btn" data-value="2" id="star2" aria-label="2 stars"><i class="fa-star"></i></button>
+                        <button class="star-btn" data-value="3" id="star3" aria-label="3 stars"><i class="fa-star"></i></button>
+                        <button class="star-btn" data-value="4" id="star4" aria-label="4 stars"><i class="fa-star"></i></button>
+                        <button class="star-btn" data-value="5" id="star5" aria-label="5 stars"><i class="fa-star"></i></button>
+                    </div>
+                    <div class="rating-label" id="ratingLabel">Tap a star to rate</div>
+                    <div class="rating-stats" id="ratingStats">
+                        <div class="rating-average" id="ratingAverage">
+                            <span class="avg-stars" id="avgStarsDisplay">☆☆☆☆☆</span>
+                            <span class="avg-score" id="avgScoreDisplay">—</span>
+                        </div>
+                        <span class="rating-count" id="ratingCount">0 ratings</span>
+                    </div>
+                    <div class="already-rated-msg hidden" id="alreadyRatedMsg">
+                        <i class="fa-solid fa-check-circle"></i> You rated this episode <strong id="yourRatingDisplay"></strong> stars
+                    </div>
+                </div>
+
+                <!-- Episode navigation -->
+                <div class="episode-nav">
+                    <button class="ep-nav-btn" id="prevEpBtn" disabled>
+                        <i class="fa-solid fa-arrow-left"></i> Previous Episode
+                    </button>
+                    <button class="ep-nav-btn primary" id="nextEpBtn" disabled>
+                        Next Episode <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </article>
+
+        </section>
+    </main>
+
+    <!-- Mobile sidebar overlay -->
+    <div class="sidebar-overlay hidden" id="sidebarOverlay"></div>
+
+    <!-- Toast notification -->
+    <div class="toast hidden" id="toast">
+        <i class="fa-solid fa-star toast-icon"></i>
+        <span id="toastMessage">Rating saved!</span>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

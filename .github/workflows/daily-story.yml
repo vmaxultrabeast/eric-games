@@ -1,0 +1,43 @@
+name: 🦖 Daily DinoIsland Story
+
+on:
+  # Runs every day at 6 PM Pacific (01:00 UTC — PDT summer offset)
+  schedule:
+    - cron: '0 1 * * *'
+
+  # Also allows manual trigger from GitHub Actions tab (for testing)
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force generate even if an episode already exists for today'
+        required: false
+        default: 'false'
+
+jobs:
+  generate-episode:
+    name: Generate Story Episode
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: scripts/package.json
+
+      - name: 📦 Install dependencies
+        run: npm install
+        working-directory: scripts
+
+      - name: 🦖 Generate story episode
+        run: node generate-story.js
+        working-directory: scripts
+        env:
+          GEMINI_API_KEY:            ${{ secrets.GEMINI_API_KEY }}
+          FIREBASE_SERVICE_ACCOUNT:  ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FORCE_GENERATE:            ${{ github.event.inputs.force }}

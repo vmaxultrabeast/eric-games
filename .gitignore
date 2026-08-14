@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+scripts/node_modules/
+functions/node_modules/
+
+# Firebase service account key — NEVER commit this!
+scripts/serviceAccount.json
+serviceAccount.json
+*serviceAccount*.json
+
+# Firebase
+.firebase/
+firebase-debug.log
+.firebaserc.local
+
+# Environment
+.env
+.env.local
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
