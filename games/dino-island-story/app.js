@@ -735,12 +735,22 @@ function ttsSpeak(idx) {
     }
 
     utt.onend = () => {
-        if (!TTS.isPlaying) return;
+        if (!TTS.isPlaying && !TTS.isPaused) return;
         ttsSpeak(idx + 1);
     };
     utt.onerror = (e) => {
         if (e.error === 'interrupted' || e.error === 'canceled') return;
-        console.warn('TTS error:', e.error);
+        console.warn('TTS voice error:', e.error, 'Selected voice:', TTS.selectedVoice ? TTS.selectedVoice.name : 'default');
+        
+        // If the selected voice failed to speak, clear selectedVoice to fallback to default system voice
+        if (TTS.selectedVoice) {
+            console.warn('Falling back to default system voice due to voice error');
+            TTS.selectedVoice = null;
+            if (ttsVoiceSelect) ttsVoiceSelect.value = 'studio';
+            setTimeout(() => ttsSpeak(idx), 50);
+            return;
+        }
+
         ttsSpeak(idx + 1);
     };
 
