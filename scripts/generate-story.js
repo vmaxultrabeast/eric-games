@@ -219,32 +219,47 @@ async function generateAndUploadImage(parsed, episodeNumber) {
         `Dense tropical jungle, volcanic peaks, stormy dramatic atmosphere, bioluminescent plants. ` +
         `Photorealistic, epic scale, Jurassic Park meets Pacific Rim style, 16:9 wide shot.`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:generateImages?key=${process.env.GEMINI_API_KEY}`;
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            prompt: imagePrompt,
-            config: {
-                numberOfImages: 1,
-                aspectRatio: '16:9',
-                outputMimeType: 'image/jpeg',
-                personGeneration: 'DONT_ALLOW'
+    const candidateModels = [
+        'imagen-3.0-generate-002',
+        'imagen-3.0-generate-001',
+        'imagen-3.0-fast-generate-001'
+    ];
+
+    let b64 = null;
+    for (const mName of candidateModels) {
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${mName}:generateImages?key=${process.env.GEMINI_API_KEY}`;
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt: imagePrompt,
+                    config: {
+                        numberOfImages: 1,
+                        aspectRatio: '16:9',
+                        outputMimeType: 'image/jpeg',
+                        personGeneration: 'DONT_ALLOW'
+                    }
+                })
+            });
+
+            if (res.ok) {
+                const json = await res.json();
+                if (json.generatedImages && json.generatedImages.length > 0) {
+                    b64 = json.generatedImages[0].image.imageBytes;
+                    console.log(`✨ Imagen success using model "${mName}"`);
+                    break;
+                }
             }
-        })
-    });
-
-    if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Imagen API error ${res.status}: ${errText}`);
+        } catch (e) {
+            console.warn(`Imagen model "${mName}" note:`, e.message);
+        }
     }
 
-    const json = await res.json();
-    if (!json.generatedImages || json.generatedImages.length === 0) {
-        throw new Error('Imagen returned no images');
+    if (!b64) {
+        throw new Error('All Imagen 3 model endpoints returned non-200 responses.');
     }
 
-    const b64 = json.generatedImages[0].image.imageBytes;
     const imageBytes = Buffer.from(b64, 'base64');
 
     // Upload to Firebase Storage
@@ -267,10 +282,10 @@ async function generateAndUploadImage(parsed, episodeNumber) {
 }
 
 // ==========================================================================
-// Generate & upload studio AI audio narration via GCP Text-to-Speech
+// Generate & upload studio AI audio narration via GCP Text-to-Speech / edge-tts
 // ==========================================================================
 async function generateAndUploadAudio(storyContentText, episodeNumber) {
-    console.log('🎙️  Synthesizing Studio Neural2 audio narration...');
+    console.log('🎙️  Synthesizing Studio Neural audio narration...');
 
     // 1. Strip markdown elements for clean TTS reading
     let cleanText = storyContentText
@@ -282,7 +297,6 @@ async function generateAndUploadAudio(storyContentText, episodeNumber) {
         .replace(/\n{2,}/g, '\n\n')
         .trim();
 
-    // 2. Chunk text into segments <= 4500 chars (GCP TTS limit is 5000)
     const paragraphs = cleanText.split('\n\n');
     const chunks = [];
     let currentChunk = '';
@@ -297,48 +311,59 @@ async function generateAndUploadAudio(storyContentText, episodeNumber) {
     }
     if (currentChunk) chunks.push(currentChunk);
 
-    console.log(`🎙️  Synthesizing ${chunks.length} audio chunk(s)...`);
+    let fullAudioBuffer = null;
 
-    // 3. Synthesize each chunk with GCP Text-to-Speech (Neural2 narrator voice)
-    const audioBuffers = [];
-    for (let i = 0; i < chunks.length; i++) {
-        const [response] = await ttsClient.synthesizeSpeech({
-            input: { text: chunks[i] },
-            voice: {
-                languageCode: 'en-US',
-                name:         'en-US-Neural2-D', // Deep, cinematic male narrator
-                ssmlGender:   'MALE',
-            },
-            audioConfig: {
-                audioEncoding: 'MP3',
-                speakingRate:  0.96, // Slight slow pacing for dramatic effect
-                pitch:         -1.5, // Deeper narrator tone
-            },
-        });
+    // Try GCP Text-to-Speech API first
+    try {
+        const audioBuffers = [];
+        for (let i = 0; i < chunks.length; i++) {
+            const [response] = await ttsClient.synthesizeSpeech({
+                input: { text: chunks[i] },
+                voice: { languageCode: 'en-US', name: 'en-US-Neural2-D', ssmlGender: 'MALE' },
+                audioConfig: { audioEncoding: 'MP3', speakingRate: 0.96, pitch: -1.5 },
+            });
+            if (response.audioContent) audioBuffers.push(Buffer.from(response.audioContent));
+        }
+        if (audioBuffers.length > 0) fullAudioBuffer = Buffer.concat(audioBuffers);
+    } catch (gcpErr) {
+        console.warn('⚠️ GCP Text-to-Speech API unavailable (using edge-tts fallback):', gcpErr.message.split('\n')[0]);
+    }
 
-        if (response.audioContent) {
-            audioBuffers.push(Buffer.from(response.audioContent));
+    // Fallback to edge-tts via Python if GCP API is disabled/unbilled
+    if (!fullAudioBuffer) {
+        try {
+            const { execSync } = require('child_process');
+            const fs = require('fs');
+            const path = require('path');
+
+            const tmpTxt = path.join(__dirname, `tmp_ep_${episodeNumber}.txt`);
+            const tmpMp3 = path.join(__dirname, `tmp_ep_${episodeNumber}.mp3`);
+            fs.writeFileSync(tmpTxt, cleanText, 'utf-8');
+
+            console.log('🎙️ Generating free Neural MP3 via edge-tts...');
+            execSync(`edge-tts --file "${tmpTxt}" --voice en-US-ChristopherNeural --rate="-4%" --write-media "${tmpMp3}"`);
+
+            if (fs.existsSync(tmpMp3)) {
+                fullAudioBuffer = fs.readFileSync(tmpMp3);
+                try { fs.unlinkSync(tmpTxt); fs.unlinkSync(tmpMp3); } catch {}
+            }
+        } catch (pyErr) {
+            console.warn('⚠️ edge-tts fallback note:', pyErr.message);
         }
     }
 
-    if (audioBuffers.length === 0) {
-        throw new Error('TTS returned no audio content');
+    if (!fullAudioBuffer) {
+        throw new Error('Both GCP TTS and edge-tts audio synthesis attempts were skipped.');
     }
 
-    const fullAudioBuffer = Buffer.concat(audioBuffers);
-
-    // 4. Upload MP3 to Firebase Storage
+    // Upload MP3 to Firebase Storage
     const bucket   = storage.bucket();
     const fileName = `dino-island/episodes/episode-${String(episodeNumber).padStart(3, '0')}.mp3`;
     const file     = bucket.file(fileName);
 
     await file.save(fullAudioBuffer, {
-        metadata: {
-            contentType: 'audio/mpeg',
-            metadata: {
-                episodeNumber: String(episodeNumber),
-            },
-        },
+        metadata: { contentType: 'audio/mpeg', metadata: { episodeNumber: String(episodeNumber) } },
+        resumable: false,
     });
 
     await file.makePublic();
