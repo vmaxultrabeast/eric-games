@@ -783,6 +783,30 @@ body {
     color: var(--cyan);
 }
 
+/* Voice */
+.tts-voice { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+.tts-voice-select {
+    background: var(--card);
+    border: 1px solid var(--panel-border);
+    color: var(--text-muted);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-family: var(--font-ui);
+    max-width: 150px;
+    outline: none;
+    cursor: pointer;
+    transition: all var(--ease);
+}
+.tts-voice-select:hover, .tts-voice-select:focus {
+    border-color: rgba(0,240,255,0.3);
+    color: var(--cyan);
+}
+.tts-voice-select option {
+    background: #0d0f1a;
+    color: #fff;
+}
+
 /* Close */
 .tts-close-btn {
     width: 28px; height: 28px;

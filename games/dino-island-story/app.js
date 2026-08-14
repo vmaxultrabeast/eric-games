@@ -82,6 +82,7 @@ const ttsRestartBtn      = document.getElementById('ttsRestartBtn');
 const ttsStopBtn         = document.getElementById('ttsStopBtn');
 const ttsCloseBtn        = document.getElementById('ttsCloseBtn');
 const ttsSpeedBtns       = document.querySelectorAll('.tts-speed-btn');
+const ttsVoiceSelect     = document.getElementById('ttsVoiceSelect');
 const readerPanel        = document.getElementById('readerPanel');
 
 // ── Init ───────────────────────────────────────────────────────────────────
@@ -493,6 +494,9 @@ const TTS = {
     sentences:    [],   // array of plain-text sentences
     currentIdx:   -1,   // sentence currently being spoken
     rate:         1.0,  // playback rate
+    pitch:        0.92, // storytelling pitch (slightly deeper, dramatic)
+    selectedVoice: null,
+    voices:       [],
     isPlaying:    false,
     isPaused:     false,
     utterance:    null,
@@ -503,6 +507,22 @@ function initTTS() {
         listenBtn.style.display = 'none';
         return;
     }
+
+    // Populate voices & handle async loading in Chrome/Edge/Safari
+    populateVoices();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = populateVoices;
+    }
+
+    ttsVoiceSelect.addEventListener('change', () => {
+        const name = ttsVoiceSelect.value;
+        TTS.selectedVoice = TTS.voices.find(v => v.name === name) || null;
+        if (TTS.isPlaying && TTS.currentIdx >= 0) {
+            const idx = TTS.currentIdx;
+            window.speechSynthesis.cancel();
+            setTimeout(() => ttsStart(idx), 80);
+        }
+    });
 
     listenBtn.addEventListener('click', () => {
         if (TTS.isPlaying || TTS.isPaused) {
@@ -539,6 +559,57 @@ function initTTS() {
     // Stop TTS when user switches episodes
     prevEpBtn.addEventListener('click', ttsStop);
     nextEpBtn.addEventListener('click', ttsStop);
+}
+
+// ── Voice Ranking & Selection ─────────────────────────────────────────────
+function scoreVoice(v) {
+    let score = 0;
+    const name = (v.name || '').toLowerCase();
+    const lang = (v.lang || '').toLowerCase();
+
+    if (lang.startsWith('en')) score += 10;
+    if (lang === 'en-us') score += 5;
+
+    // Quality keywords
+    if (name.includes('natural')) score += 30;
+    if (name.includes('online')) score += 20;
+    if (name.includes('neural')) score += 25;
+    if (name.includes('google')) score += 20;
+    if (name.includes('premium')) score += 25;
+    if (name.includes('enhanced')) score += 20;
+    if (name.includes('studio')) score += 30;
+
+    // Preferred storytelling voices
+    if (name.includes('guy') || name.includes('christopher') || name.includes('daniel') || name.includes('evan') || name.includes('ryan')) {
+        score += 15;
+    }
+
+    return score;
+}
+
+function populateVoices() {
+    const raw = speechSynthesis.getVoices() || [];
+    if (raw.length === 0) return;
+
+    // Filter to English voices & sort by quality score
+    const englishVoices = raw.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+    const list = englishVoices.length > 0 ? englishVoices : raw;
+
+    list.sort((a, b) => scoreVoice(b) - scoreVoice(a));
+    TTS.voices = list;
+
+    // Clean up voice names for display
+    ttsVoiceSelect.innerHTML = list.map(v => {
+        let label = v.name.replace(/Microsoft |Google |Apple /gi, '').replace(/ (Natural|Online \(Natural\))/gi, ' ✨');
+        if (label.length > 22) label = label.substring(0, 20) + '…';
+        return `<option value="${escHtml(v.name)}">${escHtml(label)}</option>`;
+    }).join('');
+
+    // Default to the top-ranked voice
+    if (!TTS.selectedVoice && list.length > 0) {
+        TTS.selectedVoice = list[0];
+        ttsVoiceSelect.value = list[0].name;
+    }
 }
 
 // ── Prepare sentences from current episode story ───────────────────────────
@@ -581,8 +652,12 @@ function ttsSpeak(idx) {
 
     const utt = new SpeechSynthesisUtterance(TTS.sentences[idx]);
     utt.rate = TTS.rate;
-    utt.pitch = 1;
-    utt.lang = 'en-US';
+    utt.pitch = TTS.pitch;
+    if (TTS.selectedVoice) {
+        utt.voice = TTS.selectedVoice;
+    } else {
+        utt.lang = 'en-US';
+    }
 
     utt.onend = () => {
         if (!TTS.isPlaying) return;
