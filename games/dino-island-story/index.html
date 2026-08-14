@@ -107,11 +107,18 @@
 
             <!-- Episode reader -->
             <article class="episode-reader hidden" id="episodeReader">
-                <!-- Episode image -->
+                <!-- Episode image & Hero Audio Banner -->
                 <div class="episode-image-container" id="episodeImageContainer">
                     <img class="episode-image" id="episodeImage" src="" alt="Episode illustration" loading="lazy">
                     <div class="episode-image-overlay"></div>
                     <div class="episode-number-badge" id="episodeNumberBadge">EP. 01</div>
+                    <button class="hero-play-btn" id="heroPlayBtn" title="Play Audiobook Narration">
+                        <div class="hero-play-icon"><i class="fa-solid fa-play"></i></div>
+                        <div class="hero-play-text">
+                            <span class="hero-play-title">LISTEN TO AUDIOBOOK</span>
+                            <span class="hero-play-sub">Studio AI Narration</span>
+                        </div>
+                    </button>
                 </div>
 
                 <!-- Episode meta -->
@@ -124,7 +131,7 @@
                                 <i class="fa-regular fa-calendar"></i> —
                             </span>
                             <span class="episode-read-time" id="episodeReadTime">
-                                <i class="fa-regular fa-clock"></i> — min read
+                                <i class="fa-solid fa-headphones"></i> — min narration
                             </span>
                             <button class="listen-btn" id="listenBtn" title="Listen to this episode">
                                 <i class="fa-solid fa-volume-high"></i>
@@ -134,13 +141,24 @@
                     </div>
                 </div>
 
+                <!-- Transcript Toggle Accordion -->
+                <div class="transcript-section">
+                    <button class="toggle-transcript-btn" id="toggleTranscriptBtn">
+                        <i class="fa-solid fa-file-lines"></i>
+                        <span id="toggleTranscriptText">Show Text Transcript</span>
+                        <i class="fa-solid fa-chevron-down chevron-icon"></i>
+                    </button>
+                </div>
+
                 <!-- Read progress bar -->
                 <div class="read-progress-bar">
                     <div class="read-progress-fill" id="readProgressFill"></div>
                 </div>
 
-                <!-- Story content -->
-                <div class="story-content" id="storyContent"></div>
+                <!-- Story content (Hidden transcript by default) -->
+                <div class="story-transcript-container transcript-hidden" id="transcriptContainer">
+                    <div class="story-content" id="storyContent"></div>
+                </div>
 
                 <!-- ── Rating Section ── -->
                 <div class="rating-section" id="ratingSection">

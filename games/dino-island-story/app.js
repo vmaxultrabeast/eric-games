@@ -218,6 +218,14 @@ function openEpisode(idx) {
     // Scroll to top
     document.querySelector('.reader-panel').scrollTo({ top: 0, behavior: 'smooth' });
 
+    // Reset transcript container to hidden by default
+    const transcriptContainer  = document.getElementById('transcriptContainer');
+    const toggleTranscriptBtn  = document.getElementById('toggleTranscriptBtn');
+    const toggleTranscriptText = document.getElementById('toggleTranscriptText');
+    if (transcriptContainer) transcriptContainer.classList.add('transcript-hidden');
+    if (toggleTranscriptBtn) toggleTranscriptBtn.classList.remove('open');
+    if (toggleTranscriptText) toggleTranscriptText.textContent = 'Show Text Transcript';
+
     // Episode image (fallback to cover.png if null)
     const imgSrc = ep.imageUrl || 'cover.png';
     episodeImage.src = imgSrc;
@@ -542,6 +550,32 @@ function initTTS() {
             ttsStart(0);
         }
     });
+
+    const heroPlayBtn = document.getElementById('heroPlayBtn');
+    if (heroPlayBtn) {
+        heroPlayBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if ('speechSynthesis' in window && window.speechSynthesis) window.speechSynthesis.resume();
+            if (currentEpIndex < 0 && episodes.length > 0) openEpisode(0);
+            if (TTS.isPlaying || TTS.isPaused) ttsStop();
+            else ttsStart(0);
+        });
+    }
+
+    const toggleTranscriptBtn  = document.getElementById('toggleTranscriptBtn');
+    const toggleTranscriptText = document.getElementById('toggleTranscriptText');
+    const transcriptContainer  = document.getElementById('transcriptContainer');
+
+    if (toggleTranscriptBtn && transcriptContainer) {
+        toggleTranscriptBtn.addEventListener('click', () => {
+            const isHidden = transcriptContainer.classList.contains('transcript-hidden');
+            transcriptContainer.classList.toggle('transcript-hidden', !isHidden);
+            toggleTranscriptBtn.classList.toggle('open', isHidden);
+            if (toggleTranscriptText) {
+                toggleTranscriptText.textContent = isHidden ? 'Hide Text Transcript' : 'Show Text Transcript';
+            }
+        });
+    }
 
     // 3. Sentence click delegation: click any sentence to start reading from there
     storyContent.addEventListener('click', (e) => {
