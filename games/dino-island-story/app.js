@@ -141,6 +141,10 @@ function subscribeToEpisodes() {
         sidebarLoading.classList.add('hidden');
         noEpisodes.classList.add('hidden');
         episodeCountBadge.textContent = `${episodes.length} episode${episodes.length !== 1 ? 's' : ''}`;
+        const scEpCountIsla = document.getElementById('scEpCountIsla');
+        if (scEpCountIsla) {
+            scEpCountIsla.textContent = `${episodes.length} Episode${episodes.length !== 1 ? 's' : ''} · Studio Audio`;
+        }
 
         renderEpisodeList();
 
@@ -631,10 +635,18 @@ function initTTS() {
     }
 
     if (seriesCardIsla) {
-        seriesCardIsla.addEventListener('click', () => {
+        seriesCardIsla.addEventListener('click', (e) => {
+            e.preventDefault();
             showSeriesDetail();
-            if (currentEpIndex < 0 && episodes.length > 0) {
-                openEpisode(0);
+            if (episodes.length > 0) {
+                const targetIdx = currentEpIndex >= 0 ? currentEpIndex : 0;
+                openEpisode(targetIdx);
+                if ('speechSynthesis' in window && window.speechSynthesis) {
+                    window.speechSynthesis.resume();
+                }
+                setTimeout(() => {
+                    ttsStart(0);
+                }, 150);
             }
         });
     }
