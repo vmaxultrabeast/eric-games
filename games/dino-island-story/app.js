@@ -616,6 +616,8 @@ function initTTS() {
             if (!TTS.usingStudioAudio || !TTS.audioEl.duration) return;
             const pct = Math.floor((TTS.audioEl.currentTime / TTS.audioEl.duration) * 100);
             ttsSentenceCounter.textContent = `🎙️ Studio Narration: ${pct}%`;
+            const ttsProgressFill = document.getElementById('ttsProgressFill');
+            if (ttsProgressFill) ttsProgressFill.style.width = `${pct}%`;
             broadcastAudioState();
         });
         TTS.audioEl.addEventListener('play', broadcastAudioState);
@@ -760,7 +762,9 @@ function initTTS() {
         if (data.action === 'play') ttsResume();
         else if (data.action === 'pause') ttsPause();
         else if (data.action === 'stop') ttsStop();
-        else if (data.action === 'next') {
+        else if (data.action === 'seek') {
+            seekAudioToPercent(data.percent);
+        } else if (data.action === 'next') {
             if (currentEpIndex + 1 < episodes.length) {
                 openEpisode(currentEpIndex + 1);
                 ttsStart(0);
@@ -772,6 +776,29 @@ function initTTS() {
             }
         }
     });
+
+    // In-App Progress Track Seeking
+    const ttsProgressTrack = document.getElementById('ttsProgressTrack');
+    if (ttsProgressTrack) {
+        function handleInAppSeek(e) {
+            const rect = ttsProgressTrack.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const pct = Math.max(0, Math.min(100, (clickX / rect.width) * 100));
+            seekAudioToPercent(pct);
+        }
+
+        let isTrackDragging = false;
+        ttsProgressTrack.addEventListener('mousedown', (e) => {
+            isTrackDragging = true;
+            handleInAppSeek(e);
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (isTrackDragging) handleInAppSeek(e);
+        });
+        window.addEventListener('mouseup', () => {
+            isTrackDragging = false;
+        });
+    }
 
     // 3. Sentence click delegation
     if (storyContent) {
@@ -883,6 +910,22 @@ function populateVoices() {
 
     ttsVoiceSelect.innerHTML = studioOption + voiceOptions;
     ttsVoiceSelect.value = 'studio';
+}
+
+function seekAudioToPercent(pct) {
+    if (pct === undefined || pct < 0 || pct > 100) return;
+
+    if (TTS.usingStudioAudio && TTS.audioEl && TTS.audioEl.duration) {
+        TTS.audioEl.currentTime = (pct / 100) * TTS.audioEl.duration;
+        const ttsProgressFill = document.getElementById('ttsProgressFill');
+        if (ttsProgressFill) ttsProgressFill.style.width = `${pct}%`;
+        broadcastAudioState();
+    } else if (TTS.sentences && TTS.sentences.length > 0) {
+        const targetSentence = Math.floor((pct / 100) * TTS.sentences.length);
+        const ttsProgressFill = document.getElementById('ttsProgressFill');
+        if (ttsProgressFill) ttsProgressFill.style.width = `${pct}%`;
+        ttsStart(targetSentence);
+    }
 }
 
 // ── Prepare sentences from current episode story ───────────────────────────

@@ -1590,7 +1590,15 @@ function initAuthModal() {
         playerEl.classList.remove('hidden');
         if (data.title) gapTitle.textContent = data.title;
         if (data.seriesTitle) gapSeriesTag.textContent = data.seriesTitle;
-        if (data.coverUrl) gapCoverImg.src = data.coverUrl;
+        if (data.coverUrl) {
+            let coverPath = data.coverUrl;
+            if (coverPath.startsWith('http://') || coverPath.startsWith('https://')) {
+                gapCoverImg.src = coverPath;
+            } else {
+                coverPath = coverPath.replace(/^\//, '').replace(/^games\/dino-island-story\//, '');
+                gapCoverImg.src = 'games/dino-island-story/' + coverPath;
+            }
+        }
         if (data.progressPercent !== undefined) gapProgress.style.width = `${data.progressPercent}%`;
 
         isAudioPlaying = !!data.isPlaying;
@@ -1601,6 +1609,38 @@ function initAuthModal() {
         }
         if (gapWaves) gapWaves.classList.toggle('hidden', !isAudioPlaying);
     });
+
+    // Scrubbable Progress Bar seeking
+    const gapProgressBarTrack = document.querySelector('.gap-progress-bar');
+    if (gapProgressBarTrack) {
+        function handleSeek(e) {
+            const rect = gapProgressBarTrack.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const pct = Math.max(0, Math.min(100, (clickX / rect.width) * 100));
+            if (gapProgress) gapProgress.style.width = `${pct}%`;
+
+            const iframe = document.getElementById('gameIframe');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({
+                    type: 'AUDIOBOOK_COMMAND',
+                    action: 'seek',
+                    percent: pct
+                }, '*');
+            }
+        }
+
+        let isDragging = false;
+        gapProgressBarTrack.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            handleSeek(e);
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging) handleSeek(e);
+        });
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+    }
 
     if (gapPlayBtn) {
         gapPlayBtn.addEventListener('click', () => {
