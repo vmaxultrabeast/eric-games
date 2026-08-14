@@ -502,41 +502,25 @@ const TTS = {
 };
 
 function initTTS() {
-    if (!('speechSynthesis' in window) && !TTS.audioEl) {
-        listenBtn.style.display = 'none';
-        return;
+    // 1. Initialize HTML5 Audio Element for studio MP3 narration
+    try {
+        TTS.audioEl = new Audio();
+        TTS.audioEl.addEventListener('ended', ttsStop);
+        TTS.audioEl.addEventListener('timeupdate', () => {
+            if (!TTS.usingStudioAudio || !TTS.audioEl.duration) return;
+            const pct = Math.floor((TTS.audioEl.currentTime / TTS.audioEl.duration) * 100);
+            ttsSentenceCounter.textContent = `🎙️ Studio Narration: ${pct}%`;
+        });
+        TTS.audioEl.addEventListener('error', (e) => {
+            console.warn('Studio MP3 playback error, falling back to Web Speech API:', e);
+            TTS.usingStudioAudio = false;
+            ttsFallbackWebSpeech(TTS.currentIdx >= 0 ? TTS.currentIdx : 0);
+        });
+    } catch (e) {
+        console.warn('Audio element init error:', e);
     }
 
-    // Initialize HTML5 audio element for studio narration
-    TTS.audioEl = new Audio();
-    TTS.audioEl.addEventListener('ended', ttsStop);
-    TTS.audioEl.addEventListener('timeupdate', () => {
-        if (!TTS.usingStudioAudio || !TTS.audioEl.duration) return;
-        const pct = Math.floor((TTS.audioEl.currentTime / TTS.audioEl.duration) * 100);
-        ttsSentenceCounter.textContent = `🎙️ Studio Narration: ${pct}%`;
-    });
-    TTS.audioEl.addEventListener('error', (e) => {
-        console.warn('Studio MP3 playback error, falling back to Web Speech API:', e);
-        TTS.usingStudioAudio = false;
-        ttsFallbackWebSpeech(TTS.currentIdx >= 0 ? TTS.currentIdx : 0);
-    });
-
-    // Populate voices & handle async loading in Chrome/Edge/Safari
-    populateVoices();
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = populateVoices;
-    }
-
-    ttsVoiceSelect.addEventListener('change', () => {
-        const name = ttsVoiceSelect.value;
-        TTS.selectedVoice = TTS.voices.find(v => v.name === name) || null;
-        if (TTS.isPlaying && TTS.currentIdx >= 0 && !TTS.studioAudioUrl) {
-            const idx = TTS.currentIdx;
-            window.speechSynthesis.cancel();
-            setTimeout(() => ttsStart(idx), 80);
-        }
-    });
-
+    // 2. ALWAYS attach listen button click listener
     listenBtn.addEventListener('click', (e) => {
         e.preventDefault();
         console.log('🔊 Listen button clicked! currentEpIndex:', currentEpIndex);
@@ -553,7 +537,7 @@ function initTTS() {
         }
     });
 
-    // Sentence click delegation: click any sentence to start reading from there
+    // 3. Sentence click delegation: click any sentence to start reading from there
     storyContent.addEventListener('click', (e) => {
         const span = e.target.closest('.story-sentence');
         if (!span) return;
@@ -563,15 +547,14 @@ function initTTS() {
         }
     });
 
+    // 4. Control buttons
     ttsPlayPauseBtn.addEventListener('click', () => {
         if (TTS.isPaused) ttsResume();
         else if (TTS.isPlaying) ttsPause();
     });
 
     ttsRestartBtn.addEventListener('click', () => ttsStart(0));
-
     ttsStopBtn.addEventListener('click', ttsStop);
-
     ttsCloseBtn.addEventListener('click', ttsStop);
 
     ttsSpeedBtns.forEach(btn => {
@@ -580,9 +563,9 @@ function initTTS() {
             ttsSpeedBtns.forEach(b => b.classList.toggle('active', b === btn));
             if (TTS.audioEl) TTS.audioEl.playbackRate = TTS.rate;
 
-            if (TTS.isPlaying && TTS.currentIdx >= 0 && !TTS.studioAudioUrl) {
+            if (TTS.isPlaying && TTS.currentIdx >= 0 && !TTS.usingStudioAudio) {
                 const idx = TTS.currentIdx;
-                window.speechSynthesis.cancel();
+                if (window.speechSynthesis) window.speechSynthesis.cancel();
                 setTimeout(() => ttsStart(idx), 80);
             }
         });
@@ -591,6 +574,24 @@ function initTTS() {
     // Stop TTS when user switches episodes
     prevEpBtn.addEventListener('click', ttsStop);
     nextEpBtn.addEventListener('click', ttsStop);
+
+    // 5. Populate Web Speech voices if supported
+    if ('speechSynthesis' in window && window.speechSynthesis) {
+        populateVoices();
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = populateVoices;
+        }
+
+        ttsVoiceSelect.addEventListener('change', () => {
+            const name = ttsVoiceSelect.value;
+            TTS.selectedVoice = TTS.voices.find(v => v.name === name) || null;
+            if (TTS.isPlaying && TTS.currentIdx >= 0 && !TTS.usingStudioAudio) {
+                const idx = TTS.currentIdx;
+                window.speechSynthesis.cancel();
+                setTimeout(() => ttsStart(idx), 80);
+            }
+        });
+    }
 }
 
 // ── Voice Ranking & Selection ─────────────────────────────────────────────
