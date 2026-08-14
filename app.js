@@ -9,6 +9,17 @@ import { pullAllSaves, pullGameSave, pushGameSave, pushAllLocalSaves, saveUserPr
 // ==========================================================================
 const GAMES_REGISTRY = [
     {
+        id: 'dino-island-story',
+        title: 'Isla Fragmentum',
+        category: 'story',
+        description: 'A new episode of this evolving hybrid-dinosaur adventure drops every evening at 6 PM! Follow D-Rex — the escaped Distortus Rex — as he battles rival hybrids across Isla Fragmentum. Listen to studio audio narration, rate each episode, and watch the saga unfold!',
+        folder: 'games/dino-island-story',
+        cover: 'games/dino-island-story/cover.png',
+        controls: 'Click an episode to read or listen. Tap the stars to rate each episode. A new chapter arrives every evening at 6 PM.',
+        addedDate: '2026-08-13',
+        updatedDate: '2026-08-13'
+    },
+    {
         id: 'neon-snake',
         title: 'Neon Snake',
         category: 'arcade',
@@ -162,17 +173,6 @@ const GAMES_REGISTRY = [
         controls: 'Draw a slope on the canvas, then click Ride! Space / ↑ Arrow to jump. T to spin trick. Esc to stop.',
         addedDate: '2026-07-29',
         updatedDate: '2026-07-29'
-    },
-    {
-        id: 'dino-island-story',
-        title: 'Isla Fragmentum',
-        category: 'story',
-        description: 'A new episode of this evolving hybrid-dinosaur adventure drops every evening at 6 PM! Follow D-Rex — the escaped Distortus Rex — as he battles rival hybrids across Isla Fragmentum. Rate each episode and watch the saga unfold, one chapter at a time.',
-        folder: 'games/dino-island-story',
-        cover: 'games/dino-island-story/cover.png',
-        controls: 'Click an episode to read. Tap the stars to rate each episode. A new chapter arrives every evening at 6 PM.',
-        addedDate: '2026-08-13',
-        updatedDate: '2026-08-13'
     }
     // New games can be easily appended here in the future
 ];
