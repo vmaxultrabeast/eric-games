@@ -843,32 +843,37 @@ function initTTS() {
         console.warn('Audio element init error:', e);
     }
 
-    // 2. ALWAYS attach listen button click listener
-    if (listenBtn) {
-        listenBtn.addEventListener('click', (e) => {
+    // 2. ALWAYS attach listen button click listeners
+    function handlePlayEpisodeClick(e) {
+        if (e) {
             e.preventDefault();
+            e.stopPropagation();
+        }
 
-            if ('speechSynthesis' in window && window.speechSynthesis) {
-                window.speechSynthesis.resume();
-            }
+        if ('speechSynthesis' in window && window.speechSynthesis) {
+            window.speechSynthesis.resume();
+        }
 
-            if (currentEpIndex < 0 && episodes.length > 0) {
-                openEpisode(0);
-            }
+        if (currentEpIndex < 0 && episodes.length > 0) {
+            openEpisode(0);
+        }
 
-            if (TTS.playingEpIndex === currentEpIndex) {
-                if (TTS.isPlaying) {
-                    ttsPause();
-                } else if (TTS.isPaused) {
-                    ttsResume();
-                } else {
-                    ttsStart(0);
-                }
+        if (TTS.playingEpIndex === currentEpIndex) {
+            if (TTS.isPlaying) {
+                ttsPause();
+            } else if (TTS.isPaused) {
+                ttsResume();
             } else {
                 ttsStart(0);
             }
-        });
+        } else {
+            ttsStart(0);
+        }
     }
+
+    if (listenBtn) listenBtn.addEventListener('click', handlePlayEpisodeClick);
+    const listenBtnMeta = document.getElementById('listenBtnMeta');
+    if (listenBtnMeta) listenBtnMeta.addEventListener('click', handlePlayEpisodeClick);
 
     const heroPlayBtn = document.getElementById('heroPlayBtn');
     if (heroPlayBtn) {
@@ -1426,8 +1431,30 @@ function ttsStop() {
 
 // ── Update play/pause button icon and waveform ─────────────────────────────
 function ttsSetPlayingUI(playing) {
-    ttsPlayPauseIcon.className = playing ? 'fa-solid fa-pause' : 'fa-solid fa-play';
-    ttsWaveform.classList.toggle('playing', playing);
+    if (ttsPlayPauseIcon) ttsPlayPauseIcon.className = playing ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+    if (ttsWaveform) ttsWaveform.classList.toggle('playing', playing);
+
+    const isCurrentEpActive = (playing || TTS.isPaused) && TTS.playingEpIndex === currentEpIndex;
+    const isPlayingCurrent = playing && TTS.playingEpIndex === currentEpIndex;
+
+    const btnImage = document.getElementById('listenBtn');
+    const btnMeta  = document.getElementById('listenBtnMeta');
+
+    [btnImage, btnMeta].forEach(btn => {
+        if (!btn) return;
+        const icon = btn.querySelector('i');
+        const text = btn.querySelector('span');
+
+        if (isPlayingCurrent) {
+            if (icon) icon.className = 'fa-solid fa-pause';
+            if (text) text.textContent = 'Pause Episode';
+            btn.classList.add('listening');
+        } else {
+            if (icon) icon.className = 'fa-solid fa-play';
+            if (text) text.textContent = isCurrentEpActive ? 'Resume Episode' : 'Play Episode';
+            btn.classList.remove('listening');
+        }
+    });
 }
 
 // ── Highlight a sentence span ──────────────────────────────────────────────

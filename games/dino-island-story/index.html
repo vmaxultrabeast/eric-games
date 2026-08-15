@@ -198,10 +198,10 @@
             <!-- Episode reader -->
             <article class="episode-reader hidden" id="episodeReader">
                 <!-- Episode image -->
-                <div class="episode-image-container" id="episodeImageContainer">
+                <div class="episode-image-container" id="episodeImageContainer" style="position:relative;">
                     <img class="episode-image" id="episodeImage" src="images/hybrid-dino-cover.png" alt="Episode illustration" loading="lazy">
                     <div class="episode-number-badge" id="episodeNumberBadge">EP. 01</div>
-                    <button class="play-episode-btn" id="listenBtn" title="Play Episode">
+                    <button class="play-episode-btn listen-btn" id="listenBtn" title="Play Episode" style="position:absolute;bottom:14px;left:14px;z-index:99;display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg, #00f0ff, #a855f7);border:1px solid #ffffff;color:#ffffff;padding:8px 20px;border-radius:24px;font-family:var(--font-logo);font-size:0.85rem;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(0,240,255,0.5);">
                         <i class="fa-solid fa-play"></i>
                         <span>Play Episode</span>
                     </button>
@@ -219,6 +219,10 @@
                             <span class="episode-read-time" id="episodeReadTime">
                                 <i class="fa-solid fa-headphones"></i> — min narration
                             </span>
+                            <button class="play-episode-btn-meta listen-btn-meta" id="listenBtnMeta" title="Play Episode" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg, #00f0ff, #a855f7);border:1px solid #ffffff;color:#ffffff;padding:6px 16px;border-radius:20px;font-family:var(--font-logo);font-size:0.78rem;font-weight:800;cursor:pointer;box-shadow:0 2px 10px rgba(0,240,255,0.4);margin-left:12px;">
+                                <i class="fa-solid fa-play"></i>
+                                <span>Play Episode</span>
+                            </button>
                         </div>
                     </div>
                 </div>
