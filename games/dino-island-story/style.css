@@ -1198,18 +1198,26 @@ body {
 .sc-thumb-container {
     position: relative;
     width: 100%;
-    aspect-ratio: 16/9;
+    height: 220px;
     overflow: hidden;
-    background: #000;
+    background: rgba(7, 8, 13, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
 }
 .sc-thumb {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
     transition: transform 0.4s ease;
+    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.6));
 }
 .series-card:hover .sc-thumb {
-    transform: scale(1.05);
+    transform: scale(1.04);
 }
 
 .sc-status-badge {

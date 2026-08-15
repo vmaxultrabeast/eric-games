@@ -124,9 +124,11 @@ It hit the eastern wall with both hands. The gel panels absorbed the first impac
         audioUrl: 'audio/episode-001.mp3',
         imageUrl: 'images/hybrid-dino-cover.png',
         publishedAt: '2026-08-14T18:00:00Z',
-        averageRating: 5.0,
         ratingCount: 1,
         hybrids: ['D-Rex (Alpha-7)']
+    }
+];
+
 let activeSeriesId   = 'hybrid-dino-experiment';
 let unsubscribeRemoteEps = null;
 
@@ -292,9 +294,13 @@ function renderEpisodeList() {
             .map(h => `<span class="ep-hybrid-chip">${h}</span>`)
             .join('');
 
+        const defaultCover = activeSeriesId === 'cosmic-treehouse-explorers' ? 'images/cosmic-treehouse-cover.png' : 'images/hybrid-dino-cover.png';
+        const epImg = (ep.imageUrl && ep.imageUrl.trim() !== '') ? ep.imageUrl : defaultCover;
+
         item.innerHTML = `
-            <div class="ep-number-col">
-                <span class="ep-number">${String(ep.episodeNumber).padStart(2, '0')}</span>
+            <div class="ep-number-col" style="display:flex;flex-direction:column;align-items:center;">
+                <img src="${epImg}" alt="${escHtml(ep.title)}" class="ep-list-thumb" style="width:42px;height:42px;border-radius:6px;object-fit:cover;border:1px solid rgba(255,255,255,0.15);">
+                <span class="ep-number" style="font-size:0.7rem;margin-top:4px;">EP.${String(ep.episodeNumber).padStart(2, '0')}</span>
             </div>
             <div class="ep-info">
                 <div class="ep-title-text">${escHtml(ep.title)}</div>
@@ -339,8 +345,9 @@ function openEpisode(idx) {
     if (toggleTranscriptBtn) toggleTranscriptBtn.classList.remove('open');
     if (toggleTranscriptText) toggleTranscriptText.textContent = 'Show Text Transcript';
 
-    // Episode image (fallback to cinematic cover artwork if null)
-    const imgSrc = (ep.imageUrl && ep.imageUrl !== '') ? ep.imageUrl : 'images/hybrid-dino-cover.png';
+    // Episode image (fallback to active series cover artwork if null)
+    const defaultCover = activeSeriesId === 'cosmic-treehouse-explorers' ? 'images/cosmic-treehouse-cover.png' : 'images/hybrid-dino-cover.png';
+    const imgSrc = (ep.imageUrl && ep.imageUrl.trim() !== '') ? ep.imageUrl : defaultCover;
     episodeImage.src = imgSrc;
     episodeImage.alt = `Illustration for Episode ${ep.episodeNumber}: ${ep.title}`;
     episodeImageCont.style.display = '';
