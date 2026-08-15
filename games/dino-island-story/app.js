@@ -439,7 +439,7 @@ function openEpisode(idx) {
 
     // Duration (audio narration length)
     const wc = ep.wordCount || (ep.content || '').split(/\s+/).length;
-    const mins = Math.max(1, Math.round(wc / 150));
+    const mins = ep.durationMinutes || Math.max(1, Math.round(wc / 145));
     episodeReadTime.innerHTML = `<i class="fa-solid fa-clock"></i> ${mins} min narration`;
 
     // Story content — convert markdown-ish to HTML
