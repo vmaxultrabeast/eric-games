@@ -288,7 +288,7 @@ async function generateAndUploadImage(parsed, episodeNumber) {
         }
     }
 
-    const enhancedPrompt = `Cinematic 8k movie still, photorealistic concept art, Jurassic Park aesthetics, dramatic storm lighting, bioluminescent jungle fog, epic 16:9 widescreen shot: ${imagePrompt}`;
+    const enhancedPrompt = `Cinematic 8k movie still, photorealistic concept art, Jurassic Park aesthetics, dramatic storm lighting, bioluminescent jungle fog, epic 16:9 widescreen shot: ${rawPrompt}`;
 
     let imageBytes = null;
     if (b64) {
