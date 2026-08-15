@@ -1613,6 +1613,9 @@ function initAuthModal() {
         if (data.type === 'MINIMIZE_ARCADE_MODAL') {
             const modal = document.getElementById('gameModal');
             if (modal) modal.classList.remove('active');
+            document.body.style.overflow = '';
+            const abIframe = document.getElementById('audiobookIframe');
+            if (abIframe) abIframe.className = 'audiobook-frame-offscreen';
             isClosedByUser = false;
             return;
         }

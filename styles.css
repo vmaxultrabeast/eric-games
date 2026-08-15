@@ -2238,6 +2238,9 @@ footer {
     z-index: 9999 !important;
     display: block !important;
 }
+#gameModal:not(.active) ~ #audiobookIframe:not(.audiobook-frame-offscreen) {
+    display: none !important;
+}
 #audiobookIframe.audiobook-frame-active {
     position: fixed !important;
     top: calc(50% + 24px) !important;
