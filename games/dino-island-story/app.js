@@ -833,7 +833,14 @@ function initTTS() {
         if (seriesDetailView) seriesDetailView.classList.remove('hidden');
     }
 
-    function playOrOpenSeries() {
+    function openSeriesDetail() {
+        showSeriesDetail();
+        if (episodes.length > 0 && currentEpIndex === -1) {
+            openEpisode(0);
+        }
+    }
+
+    function playSeriesAndStartAudio() {
         showSeriesDetail();
         if (episodes.length > 0) {
             const targetIdx = currentEpIndex >= 0 ? currentEpIndex : 0;
@@ -876,7 +883,7 @@ function initTTS() {
         seriesCardIsla.addEventListener('click', (e) => {
             e.preventDefault();
             selectSeries('hybrid-dino-experiment');
-            playOrOpenSeries();
+            openSeriesDetail();
         });
     }
 
@@ -885,7 +892,7 @@ function initTTS() {
         seriesCardCosmic.addEventListener('click', (e) => {
             e.preventDefault();
             selectSeries('cosmic-treehouse-explorers');
-            playOrOpenSeries();
+            openSeriesDetail();
         });
     }
 
@@ -895,7 +902,7 @@ function initTTS() {
             e.preventDefault();
             e.stopPropagation();
             selectSeries('hybrid-dino-experiment');
-            playOrOpenSeries();
+            playSeriesAndStartAudio();
         });
     }
 
@@ -905,7 +912,7 @@ function initTTS() {
             e.preventDefault();
             e.stopPropagation();
             selectSeries('cosmic-treehouse-explorers');
-            playOrOpenSeries();
+            playSeriesAndStartAudio();
         });
     }
 
