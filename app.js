@@ -352,24 +352,31 @@ async function launchGame(gameId) {
     modalGameControls.textContent = game.controls;
 
     const audiobookIframe = document.getElementById('audiobookIframe');
+    const modalBody = document.getElementById('modalBody');
 
     if (gameId === 'dino-island-story') {
         if (audiobookIframe) {
             if (!audiobookIframe.src || audiobookIframe.src === 'about:blank' || audiobookIframe.src.endsWith('/')) {
                 audiobookIframe.src = `${game.folder}/index.html?v=${Date.now()}`;
             }
-            audiobookIframe.classList.remove('hidden');
+            if (modalBody && audiobookIframe.parentElement !== modalBody) {
+                modalBody.appendChild(audiobookIframe);
+            }
+            audiobookIframe.className = 'audiobook-frame-active';
         }
         if (gameIframe) {
-            gameIframe.classList.add('hidden');
+            gameIframe.style.display = 'none';
             gameIframe.src = '';
         }
     } else {
         if (audiobookIframe) {
-            audiobookIframe.classList.add('hidden');
+            if (audiobookIframe.parentElement !== document.body) {
+                document.body.appendChild(audiobookIframe);
+            }
+            audiobookIframe.className = 'audiobook-frame-offscreen';
         }
         if (gameIframe) {
-            gameIframe.classList.remove('hidden');
+            gameIframe.style.display = 'block';
             gameIframe.src = `${game.folder}/index.html?v=${Date.now()}`;
         }
     }
@@ -386,6 +393,14 @@ async function closeGame() {
         await pushGameSave(uid, _activeGameId);
     }
     _activeGameId = null;
+
+    const audiobookIframe = document.getElementById('audiobookIframe');
+    if (audiobookIframe) {
+        if (audiobookIframe.parentElement !== document.body) {
+            document.body.appendChild(audiobookIframe);
+        }
+        audiobookIframe.className = 'audiobook-frame-offscreen';
+    }
 
     gameModal.classList.remove('active');
     document.body.style.overflow = ''; // Restore scrolling
@@ -1684,10 +1699,7 @@ function initAuthModal() {
         gapMaximize.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const modal = document.getElementById('gameModal');
-            if (modal) {
-                modal.classList.add('active');
-            }
+            launchGame('dino-island-story');
         });
     }
 

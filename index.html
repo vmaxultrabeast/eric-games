@@ -180,7 +180,6 @@
             </div>
             <div class="modal-body" id="modalBody">
                 <iframe src="" id="gameIframe" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
-                <iframe src="" id="audiobookIframe" class="hidden" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
             </div>
             <div class="modal-footer">
                 <div class="modal-info">
@@ -424,6 +423,9 @@
             </form>
         </div>
     </div>
+
+    <!-- Persistent Background Audiobook Iframe -->
+    <iframe id="audiobookIframe" src="" class="audiobook-frame-offscreen" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
 
     <!-- Main Logic Script (ES Module) -->
     <script type="module" src="app.js?v=1.7.3"></script>
