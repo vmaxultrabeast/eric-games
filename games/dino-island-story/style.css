@@ -187,6 +187,15 @@ body {
     padding-top: var(--header-h);
     position: relative;
     z-index: 1;
+    width: 100%;
+}
+
+.series-detail-view {
+    display: flex;
+    width: 100%;
+    height: calc(100vh - var(--header-h));
+    flex: 1;
+    min-width: 0;
 }
 
 /* ── Sidebar ── */
@@ -351,9 +360,10 @@ body {
 
 /* ── Welcome State ── */
 .welcome-state {
-    max-width: 680px;
+    max-width: 900px;
+    width: 100%;
     margin: 0 auto;
-    padding: 70px 32px 60px;
+    padding: 60px 32px;
     text-align: center;
 }
 .welcome-dna { font-size: 3.5rem; margin-bottom: 20px; animation: spinSlow 10s linear infinite; }
@@ -398,7 +408,7 @@ body {
 .lore-card p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.55; }
 
 /* ── Episode Reader ── */
-.episode-reader { max-width: 800px; margin: 0 auto; padding-bottom: 80px; }
+.episode-reader { max-width: 1050px; width: 100%; margin: 0 auto; padding-bottom: 80px; }
 
 /* Episode image */
 .episode-image-container {
@@ -1045,9 +1055,9 @@ body {
 
 .series-collection-view {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1550px;
     margin: 0 auto;
-    padding: 32px 24px;
+    padding: 32px 36px;
 }
 .sc-hero {
     text-align: center;
