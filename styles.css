@@ -1058,18 +1058,48 @@ footer {
     color: var(--text-main);
 }
 
-/* Fullscreen modal adjustments */
-.modal-content.fullscreen {
-    width: 100vw;
-    height: 100vh;
-    max-width: 100vw;
-    border-radius: 0;
-    border: none;
+/* Fullscreen modal adjustments (both Virtual CSS Fullscreen and Native Browser Fullscreen) */
+.modal-content.fullscreen,
+.modal-overlay:fullscreen .modal-content,
+.modal-overlay:-webkit-full-screen .modal-content {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-shadow: none !important;
+    transform: none !important;
 }
 
-.modal-content.fullscreen .modal-body {
-    flex-grow: 1;
-    aspect-ratio: auto;
+.modal-content.fullscreen .modal-body,
+.modal-overlay:fullscreen .modal-body,
+.modal-overlay:-webkit-full-screen .modal-body {
+    flex: 1 1 0% !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    aspect-ratio: unset !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.modal-content.fullscreen .modal-body iframe,
+.modal-content.fullscreen .audiobook-frame-active,
+.modal-overlay:fullscreen .modal-body iframe,
+.modal-overlay:fullscreen .audiobook-frame-active,
+.modal-overlay:-webkit-full-screen .modal-body iframe,
+.modal-overlay:-webkit-full-screen .audiobook-frame-active {
+    width: 100% !important;
+    height: 100% !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    border: none !important;
+    display: block !important;
 }
 
 /* Audiobook iframe state styles */
