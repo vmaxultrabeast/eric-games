@@ -469,33 +469,37 @@ body {
 .episode-info-row i { margin-right: 4px; }
 .episode-read-time { color: var(--cyan); opacity: 0.8; }
 
-/* Listen button */
-.listen-btn {
+/* Play Episode Overlay Button */
+.play-episode-btn {
+    position: absolute;
+    bottom: 12px;
+    left: 14px;
+    z-index: 5;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    background: rgba(0,240,255,0.08);
-    border: 1px solid rgba(0,240,255,0.3);
-    color: var(--cyan);
-    padding: 5px 14px;
-    border-radius: 20px;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(0,240,255,0.9), rgba(189,0,255,0.9));
+    border: 1px solid rgba(255,255,255,0.35);
+    color: #ffffff;
+    padding: 7px 18px;
+    border-radius: 22px;
     font-family: var(--font-logo);
-    font-size: 0.68rem;
-    font-weight: 700;
+    font-size: 0.76rem;
+    font-weight: 800;
     cursor: pointer;
-    transition: all var(--ease);
-    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    letter-spacing: 0.8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5), 0 0 12px rgba(0,240,255,0.35);
+    backdrop-filter: blur(8px);
 }
-.listen-btn:hover {
-    background: rgba(0,240,255,0.15);
-    box-shadow: 0 0 12px var(--cyan-glow);
-    transform: translateY(-1px);
+.play-episode-btn:hover {
+    transform: scale(1.04) translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0,240,255,0.6);
 }
-.listen-btn.listening {
-    background: var(--cyan);
-    color: var(--bg);
-    box-shadow: 0 0 18px var(--cyan-glow);
-    animation: listenPulse 1.8s ease-in-out infinite;
+.play-episode-btn.listening {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #34d399;
+    box-shadow: 0 0 18px rgba(16,185,129,0.6);
 }
 @keyframes listenPulse {
     0%, 100% { box-shadow: 0 0 10px var(--cyan-glow); }

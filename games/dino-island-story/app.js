@@ -856,8 +856,14 @@ function initTTS() {
                 openEpisode(0);
             }
 
-            if (TTS.isPlaying || TTS.isPaused) {
-                ttsStop();
+            if (TTS.playingEpIndex === currentEpIndex) {
+                if (TTS.isPlaying) {
+                    ttsPause();
+                } else if (TTS.isPaused) {
+                    ttsResume();
+                } else {
+                    ttsStart(0);
+                }
             } else {
                 ttsStart(0);
             }
