@@ -361,6 +361,7 @@ window.launchGame = async function launchGame(gameId) {
             if (!audiobookIframe.src || audiobookIframe.src === 'about:blank' || audiobookIframe.src.endsWith('/')) {
                 audiobookIframe.src = `${game.folder}/index.html?v=${Date.now()}`;
             }
+            audiobookIframe.className = '';
             audiobookIframe.style.display = 'block';
         }
         if (gameIframe) {
