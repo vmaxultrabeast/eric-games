@@ -98,8 +98,8 @@ async function main() {
     // 2. Generate story text with Gemini (with dynamic model discovery)
     const storyPrompt = buildStoryPrompt(episodeNumber, runningSummary);
 
-    // Auto-discover available models for this API key
-    let targetModelName = 'gemini-1.5-flash';
+    // Auto-discover available models for this API key via Google ModelService
+    let candidateModels = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-latest'];
     try {
         console.log('🔍 Discovering available models for API key...');
         const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`);
@@ -109,30 +109,22 @@ async function main() {
                 .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
                 .map(m => m.name.replace('models/', ''));
 
-            console.log('📋 Available models for key:', valid.join(', '));
-            // Prioritize production Gemini Flash & Pro models with generous rate limits
-            const preferred = [
-                'gemini-1.5-pro',
-                'gemini-2.5-flash',
-                'gemini-2.0-flash',
-                'gemini-1.5-flash'
-            ];
-            const found = preferred.find(p => valid.includes(p)) || valid[0];
-            if (found) targetModelName = found;
+            if (valid.length > 0) {
+                console.log('📋 Live models available for key:', valid.join(', '));
+                // Sort to prefer Pro models if key supports them, followed by Flash models
+                const proModels   = valid.filter(m => m.includes('pro'));
+                const flashModels = valid.filter(m => m.includes('flash'));
+                const otherModels = valid.filter(m => !m.includes('pro') && !m.includes('flash'));
+                candidateModels   = [...proModels, ...flashModels, ...otherModels];
+            }
         }
     } catch (e) {
         console.warn('⚠️ Model discovery note:', e.message);
     }
 
-    console.log(`🤖 Selected Gemini model for long-form story: "${targetModelName}"`);
-    const candidateModels = [
-        'gemini-1.5-pro',
-        'gemini-2.5-flash',
-        'gemini-2.0-flash',
-        'gemini-1.5-flash'
-    ];
+    console.log(`🤖 Model attempt order:`, candidateModels.slice(0, 5).join(', '));
 
-    let activeModelName = targetModelName;
+    let activeModelName = candidateModels[0];
     let rawText = null;
     for (const modelName of [...new Set(candidateModels)]) {
         try {
