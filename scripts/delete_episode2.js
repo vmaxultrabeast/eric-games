@@ -9,31 +9,38 @@ admin.initializeApp({
 const db = admin.firestore();
 
 async function cleanup() {
-    console.log('🧹 Cleaning up Episode 2 from Firestore...');
+    console.log('🧹 Cleaning up episodes > 1 from Firestore...');
 
-    const storyRef    = db.collection('dino-island').doc('story');
-    const episodesRef = storyRef.collection('episodes');
+    const path1Ref = db.collection('dino-island').doc('episodes').collection('all');
+    const path2Ref = db.collection('dino-island').doc('story').collection('episodes');
 
-    // Fetch all episodes > 1
-    const snapshot = await episodesRef.where('episodeNumber', '>', 1).get();
+    const snap1 = await path1Ref.where('episodeNumber', '>', 1).get();
+    const snap2 = await path2Ref.where('episodeNumber', '>', 1).get();
 
-    if (snapshot.empty) {
-        console.log('ℹ️ No episodes after Episode 1 found.');
-    } else {
-        const batch = db.batch();
-        snapshot.docs.forEach(doc => {
-            console.log(`🗑️ Deleting doc: ${doc.id}`);
-            batch.delete(doc.ref);
-        });
-        await batch.commit();
-    }
+    // Also check for doc id episode-002 specifically
+    const doc2_1 = await path1Ref.doc('episode-002').get();
+    const doc2_2 = await path2Ref.doc('episode-002').get();
+
+    const batch = db.batch();
+    if (!snap1.empty) snap1.docs.forEach(doc => { console.log(`🗑️ Deleting path1 doc: ${doc.id}`); batch.delete(doc.ref); });
+    if (!snap2.empty) snap2.docs.forEach(doc => { console.log(`🗑️ Deleting path2 doc: ${doc.id}`); batch.delete(doc.ref); });
+    if (doc2_1.exists) { console.log(`🗑️ Deleting path1 episode-002`); batch.delete(doc2_1.ref); }
+    if (doc2_2.exists) { console.log(`🗑️ Deleting path2 episode-002`); batch.delete(doc2_2.ref); }
+
+    await batch.commit();
 
     // Reset story metadata back to Episode 1
-    await storyRef.set({
+    await db.collection('dino-island').doc('story').set({
         totalEpisodes:       1,
         latestEpisodeNumber: 1,
         latestEpisodeTitle:  'The Breaking of Lab 7',
         lastGeneratedAt:     admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    await db.collection('dino-island').doc('episodes').set({
+        totalEpisodes:       1,
+        latestEpisodeNumber: 1,
+        latestEpisodeTitle:  'The Breaking of Lab 7',
     }, { merge: true });
 
     console.log('✅ Cleaned up! Story metadata reset to Episode 1.');
