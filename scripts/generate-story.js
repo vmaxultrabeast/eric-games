@@ -12,7 +12,22 @@ const textToSpeech          = require('@google-cloud/text-to-speech');
 const admin                 = require('firebase-admin');
 
 // ── Firebase & GCP init ────────────────────────────────────────────────────
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+let serviceAccount;
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } catch {
+        serviceAccount = require('./serviceAccount.json');
+    }
+} else {
+    try {
+        serviceAccount = require('./serviceAccount.json');
+    } catch {
+        console.error('❌ Service account key not found.');
+        process.exit(1);
+    }
+}
+
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
 });
