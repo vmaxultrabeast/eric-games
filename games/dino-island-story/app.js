@@ -870,7 +870,9 @@ function initTTS() {
             openEpisode(0);
         }
 
-        if (TTS.playingEpIndex === currentEpIndex) {
+        const isSameEpisode = (TTS.playingSeriesId === activeSeriesId) && (TTS.playingEpIndex === currentEpIndex);
+
+        if (isSameEpisode) {
             if (TTS.isPlaying) {
                 ttsPause();
             } else if (TTS.isPaused) {
