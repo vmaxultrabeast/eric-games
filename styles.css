@@ -2226,8 +2226,8 @@ footer {
     background: rgba(239, 68, 68, 0.1);
 }
 
-/* ── Persistent Off-Screen & Active Audiobook Frame ── */
-.audiobook-frame-offscreen {
+/* ── Persistent Off-Screen & Active Audiobook Frame (No DOM re-parenting) ── */
+#audiobookIframe.audiobook-frame-offscreen {
     position: fixed !important;
     top: -9999px !important;
     left: -9999px !important;
@@ -2238,14 +2238,16 @@ footer {
     z-index: -1 !important;
     display: block !important;
 }
-.audiobook-frame-active {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
+#audiobookIframe.audiobook-frame-active {
+    position: fixed !important;
+    top: calc(50% + 24px) !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: min(94vw, 1280px) !important;
+    height: calc(min(88vh, 820px) - 52px) !important;
+    border-radius: 0 0 16px 16px !important;
+    z-index: 10001 !important;
     opacity: 1 !important;
     pointer-events: auto !important;
-    z-index: 10 !important;
     display: block !important;
 }
