@@ -1443,8 +1443,9 @@ function ttsSetPlayingUI(playing) {
     const icon = btnImage.querySelector('i');
     const text = btnImage.querySelector('span');
 
-    const isThisEpPlaying = playing && TTS.playingEpIndex === currentEpIndex;
-    const isThisEpPaused  = TTS.isPaused && TTS.playingEpIndex === currentEpIndex;
+    const isSameSeries = TTS.playingSeriesId === activeSeriesId;
+    const isThisEpPlaying = playing && isSameSeries && TTS.playingEpIndex === currentEpIndex;
+    const isThisEpPaused  = TTS.isPaused && isSameSeries && TTS.playingEpIndex === currentEpIndex;
 
     if (isThisEpPlaying) {
         if (icon) icon.className = 'fa-solid fa-pause';
