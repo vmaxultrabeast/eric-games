@@ -1613,6 +1613,14 @@ function initAuthModal() {
         const data = event.data;
         if (!data) return;
 
+        if (data.type === 'GAME_SAVE_UPDATE' && data.gameId) {
+            const uid = window._arcadeUser?.uid;
+            if (uid && typeof pushGameSave === 'function') {
+                pushGameSave(uid, data.gameId);
+            }
+            return;
+        }
+
         if (data.type === 'MINIMIZE_ARCADE_MODAL') {
             const modal = document.getElementById('gameModal');
             if (modal) modal.classList.remove('active');

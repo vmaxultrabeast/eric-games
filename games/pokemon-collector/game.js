@@ -4181,6 +4181,9 @@ let collectionFilter = "all";
 // ==========================================================================
 function saveState() {
     localStorage.setItem("pokemon_collector_state", JSON.stringify(gameState));
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'GAME_SAVE_UPDATE', gameId: 'pokemon-collector' }, '*');
+    }
 }
 
 function loadState() {
