@@ -126,27 +126,6 @@ It hit the eastern wall with both hands. The gel panels absorbed the first impac
         averageRating: 5.0,
         ratingCount: 1,
         hybrids: ['D-Rex (Alpha-7)']
-    },
-    {
-        id: 'ep2-static',
-        episodeNumber: 2,
-        title: 'Clash of Apex Hybrids',
-        content: `**Previously on The Hybrid Dinosaur Experiment...** D-Rex escaped containment at Lab 7 and vanished into the stormy volcanic jungle.
-
-D-Rex moved through the midnight rain like a ghost wrapped in twelve meters of muscle and keratin. The storm raged overhead, but to D-Rex, every drop of water was telemetry. The scent of ozone from Lab 7 was fading, replaced by the damp earth and ancient moss of Isla Fragmentum's high ridge.
-
-Suddenly, a terrifying roar shattered the jungle canopy. From the shadow of the volcanic ridge emerged Volt-Raptor — a spliced apex hunter with electric bioluminescent fins and raptor agility.
-
-The two apex hybrids circled each other in the torrential downpour. Sparks crackled along Volt-Raptor's dorsal spikes as it lunged forward with blinding speed. But D-Rex anticipates the strike, pivoting with immense strength and sweeping its tail across the jungle floor.
-
-A roaring battle echoed across the island as security teams scrambled to contain the dual threat. The Hybrid Dinosaur Experiment had entered a dangerous new phase.`,
-        summary: 'D-Rex encounters Volt-Raptor on the high volcanic ridge as a colossal storm battle begins.',
-        audioUrl: 'audio/episode-002.mp3',
-        imageUrl: 'images/episode-002.jpg',
-        publishedAt: '2026-08-15T18:00:00Z',
-        averageRating: 5.0,
-        ratingCount: 1,
-        hybrids: ['D-Rex', 'Volt-Raptor']
     }
 ];
 
@@ -961,18 +940,20 @@ function initTTS() {
             window.speechSynthesis.onvoiceschanged = populateVoices;
         }
 
-        ttsVoiceSelect.addEventListener('change', () => {
-            const val = ttsVoiceSelect.value;
-            if (val === 'studio') {
-                TTS.selectedVoice = null;
-                ttsStart(0);
-            } else {
-                TTS.selectedVoice = TTS.voices.find(v => v.name === val) || null;
-                TTS.usingStudioAudio = false;
-                if (TTS.audioEl) TTS.audioEl.pause();
-                ttsFallbackWebSpeech(TTS.currentIdx >= 0 ? TTS.currentIdx : 0);
-            }
-        });
+        if (ttsVoiceSelect) {
+            ttsVoiceSelect.addEventListener('change', () => {
+                const val = ttsVoiceSelect.value;
+                if (val === 'studio') {
+                    TTS.selectedVoice = null;
+                    ttsStart(0);
+                } else {
+                    TTS.selectedVoice = TTS.voices.find(v => v.name === val) || null;
+                    TTS.usingStudioAudio = false;
+                    if (TTS.audioEl) TTS.audioEl.pause();
+                    ttsFallbackWebSpeech(TTS.currentIdx >= 0 ? TTS.currentIdx : 0);
+                }
+            });
+        }
     }
 }
 
@@ -1012,16 +993,17 @@ function populateVoices() {
     list.sort((a, b) => scoreVoice(b) - scoreVoice(a));
     TTS.voices = list;
 
-    // Clean up voice names for display, with Studio Narrator option at top
-    const studioOption = `<option value="studio">🎙️ Studio Narrator (HD)</option>`;
-    const voiceOptions = list.map(v => {
-        let label = v.name.replace(/Microsoft |Google |Apple /gi, '').replace(/ (Natural|Online \(Natural\))/gi, ' ✨');
-        if (label.length > 22) label = label.substring(0, 20) + '…';
-        return `<option value="${escHtml(v.name)}">${escHtml(label)}</option>`;
-    }).join('');
+    if (ttsVoiceSelect) {
+        const studioOption = `<option value="studio">🎙️ Studio Narrator (HD)</option>`;
+        const voiceOptions = list.map(v => {
+            let label = v.name.replace(/Microsoft |Google |Apple /gi, '').replace(/ (Natural|Online \(Natural\))/gi, ' ✨');
+            if (label.length > 22) label = label.substring(0, 20) + '…';
+            return `<option value="${escHtml(v.name)}">${escHtml(label)}</option>`;
+        }).join('');
 
-    ttsVoiceSelect.innerHTML = studioOption + voiceOptions;
-    ttsVoiceSelect.value = 'studio';
+        ttsVoiceSelect.innerHTML = studioOption + voiceOptions;
+        ttsVoiceSelect.value = 'studio';
+    }
 }
 
 function seekAudioToPercent(pct) {
@@ -1073,7 +1055,7 @@ function ttsStart(fromIdx) {
     if (targetAudioUrl && TTS.audioEl && (!TTS.selectedVoice)) {
         // Attempt Studio MP3 Mode
         TTS.usingStudioAudio = true;
-        const voiceContainer = ttsVoiceSelect.closest('.tts-voice');
+        const voiceContainer = ttsVoiceSelect ? ttsVoiceSelect.closest('.tts-voice') : null;
         if (voiceContainer) voiceContainer.style.display = '';
 
         TTS.audioEl.src = targetAudioUrl;
@@ -1095,7 +1077,7 @@ function ttsStart(fromIdx) {
 
 function ttsFallbackWebSpeech(fromIdx) {
     TTS.usingStudioAudio = false;
-    const voiceContainer = ttsVoiceSelect.closest('.tts-voice');
+    const voiceContainer = ttsVoiceSelect ? ttsVoiceSelect.closest('.tts-voice') : null;
     if (voiceContainer) voiceContainer.style.display = '';
 
     ttsPrepare();
