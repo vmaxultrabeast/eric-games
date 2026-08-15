@@ -265,10 +265,11 @@ async function generateAndUploadImage(parsed, episodeNumber) {
         `epic 16:9 widescreen composition, ultra-sharp focus, vivid color grade: ${rawPrompt}`;
 
     const candidateModels = [
+        'nano-banana-pro-preview',
+        'gemini-2.5-flash-image',
         'imagen-3.0-generate-002',
         'imagen-3.0-fast-generate-001',
-        'imagen-3.0-generate-001',
-        'gemini-2.5-flash-image'
+        'imagen-3.0-generate-001'
     ];
 
     let b64 = null;
