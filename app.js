@@ -354,6 +354,9 @@ window.launchGame = async function launchGame(gameId) {
     const audiobookIframe = document.getElementById('audiobookIframe');
 
     if (gameId === 'dino-island-story') {
+        const globalAudioPlayer = document.getElementById('globalAudioPlayer');
+        if (globalAudioPlayer) globalAudioPlayer.classList.add('hidden');
+
         if (audiobookIframe) {
             if (!audiobookIframe.src || audiobookIframe.src === 'about:blank' || audiobookIframe.src.endsWith('/')) {
                 audiobookIframe.src = `${game.folder}/index.html?v=${Date.now()}`;
@@ -1626,7 +1629,10 @@ function initAuthModal() {
             isClosedByUser = false;
         }
 
-        if (isClosedByUser && !data.isPlaying) {
+        const gameModal = document.getElementById('gameModal');
+        const isAudiobookMaximized = _activeGameId === 'dino-island-story' && gameModal && gameModal.classList.contains('active');
+
+        if (isAudiobookMaximized || (isClosedByUser && !data.isPlaying)) {
             playerEl.classList.add('hidden');
             return;
         }
