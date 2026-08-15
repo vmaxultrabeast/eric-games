@@ -273,8 +273,8 @@ function openEpisode(idx) {
     if (toggleTranscriptBtn) toggleTranscriptBtn.classList.remove('open');
     if (toggleTranscriptText) toggleTranscriptText.textContent = 'Show Text Transcript';
 
-    // Episode image (fallback to cover.png if null)
-    const imgSrc = ep.imageUrl || 'cover.png';
+    // Episode image (fallback to cinematic cover artwork if null)
+    const imgSrc = (ep.imageUrl && ep.imageUrl !== '') ? ep.imageUrl : 'images/hybrid-dino-cover.png';
     episodeImage.src = imgSrc;
     episodeImage.alt = `Illustration for Episode ${ep.episodeNumber}: ${ep.title}`;
     episodeImageCont.style.display = '';

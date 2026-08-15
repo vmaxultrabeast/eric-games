@@ -358,42 +358,31 @@ async function generateAndUploadAudio(storyContentText, episodeNumber) {
         const chunkBuffers = [];
 
         for (let i = 0; i < chunks.length; i++) {
-            const tmpXml = path.join(__dirname, `tmp_ep_${episodeNumber}_${i}.xml`);
+            const tmpTxt = path.join(__dirname, `tmp_ep_${episodeNumber}_${i}.txt`);
             const tmpMp3 = path.join(__dirname, `tmp_ep_${episodeNumber}_${i}.mp3`);
 
-            // Escape XML entities
-            const safeChunk = chunks[i]
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&apos;');
+            // Strip any raw markdown symbols for narration clarity
+            const cleanText = chunks[i]
+                .replace(/\*\*/g, '')
+                .replace(/__/g, '')
+                .replace(/\*/g, '')
+                .replace(/_/g, '')
+                .replace(/---/g, '');
 
-            // Wrap in Microsoft Neural Expressive SSML
-            const ssmlContent = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/10/synthesis/mstts" xml:lang="en-US">
-  <voice name="en-US-AndrewMultilingualNeural">
-    <prosody rate="-3%" pitch="-1Hz">
-      ${safeChunk}
-    </prosody>
-  </voice>
-</speak>`;
-
-            fs.writeFileSync(tmpXml, ssmlContent, 'utf-8');
+            fs.writeFileSync(tmpTxt, cleanText, 'utf-8');
 
             console.log(`  🎭 Synthesizing Dramatic Chunk ${i + 1}/${chunks.length}...`);
             try {
-                execSync(`edge-tts --file "${tmpXml}" --write-media "${tmpMp3}"`);
-            } catch {
-                // Fallback to direct text if SSML style is unsupported on local CLI
-                const tmpTxt = path.join(__dirname, `tmp_ep_${episodeNumber}_${i}.txt`);
-                fs.writeFileSync(tmpTxt, chunks[i], 'utf-8');
                 execSync(`edge-tts --file "${tmpTxt}" --voice en-US-AndrewMultilingualNeural --rate="-4%" --write-media "${tmpMp3}"`);
-                try { fs.unlinkSync(tmpTxt); } catch {}
+            } catch (err) {
+                console.warn(`  ⚠️ Chunk ${i + 1} narration note:`, err.message);
+            } finally {
+                try { if (fs.existsSync(tmpTxt)) fs.unlinkSync(tmpTxt); } catch {}
             }
 
             if (fs.existsSync(tmpMp3)) {
                 chunkBuffers.push(fs.readFileSync(tmpMp3));
-                try { fs.unlinkSync(tmpXml); fs.unlinkSync(tmpMp3); } catch {}
+                try { fs.unlinkSync(tmpMp3); } catch {}
             }
         }
 

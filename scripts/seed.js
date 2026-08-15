@@ -140,7 +140,7 @@ const EPISODE_1 = {
     hybrids:       ['D-Rex'],
     wordCount:     2247,
     content:       CONTENT,
-    imageUrl:      null,
+    imageUrl:      'images/hybrid-dino-cover.png',
     imagePrompt:   'Cinematic concept art: D-Rex, a massive asymmetrical hybrid dinosaur with glowing amber eyes and razor spinal fins, bursting through a concrete research facility wall at night. Red emergency strobe lights, lightning in the stormy sky above the tropical jungle, scientists fleeing. Bioluminescent plants at the jungle edge, volcanic peaks silhouetted against storm clouds. Photorealistic, Jurassic Park meets Pacific Rim, dramatic wide shot.',
     summary:       'D-Rex breaks out of Lab 7 during a Pacific storm by exploiting the backup power failure. Dr. Vera Osei and Chief Reyes witness the escape. D-Rex steps over all security personnel without harming them, then vanishes into the jungle. Vera feels conflicted awe at its intelligence and will to survive.',
     ratingSum:     0,

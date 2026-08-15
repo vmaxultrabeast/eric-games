@@ -1,8 +1,10 @@
+import os
 import asyncio
 import edge_tts
 
-TEXT_FILE = "episode1_text.txt"
-OUTPUT_MP3 = "episode-001.mp3"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+TEXT_FILE = os.path.join(SCRIPT_DIR, "episode1_text.txt")
+OUTPUT_MP3 = os.path.join(SCRIPT_DIR, "episode-001.mp3")
 VOICE = "en-US-AndrewMultilingualNeural"  # Natural HD Studio Male Narrator
 
 async def main():
