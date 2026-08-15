@@ -112,11 +112,10 @@ async function main() {
             console.log('📋 Available models for key:', valid.join(', '));
             // Prioritize production Gemini Flash & Pro models with generous rate limits
             const preferred = [
+                'gemini-1.5-pro',
                 'gemini-2.5-flash',
                 'gemini-2.0-flash',
-                'gemini-1.5-flash',
-                'gemini-1.5-pro',
-                'gemini-2.5-pro'
+                'gemini-1.5-flash'
             ];
             const found = preferred.find(p => valid.includes(p)) || valid[0];
             if (found) targetModelName = found;
@@ -127,11 +126,10 @@ async function main() {
 
     console.log(`🤖 Selected Gemini model for long-form story: "${targetModelName}"`);
     const candidateModels = [
-        targetModelName,
+        'gemini-1.5-pro',
         'gemini-2.5-flash',
         'gemini-2.0-flash',
-        'gemini-1.5-flash',
-        'gemini-1.5-pro'
+        'gemini-1.5-flash'
     ];
 
     let activeModelName = targetModelName;
