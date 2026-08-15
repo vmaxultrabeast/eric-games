@@ -250,16 +250,18 @@ Output ONLY the expanded story text, starting with **Previously on Isla Fragment
 // Generate & upload episode image via Imagen 3
 // ==========================================================================
 async function generateAndUploadImage(parsed, episodeNumber) {
-    const imagePrompt = parsed.imagePrompt ||
-        `Cinematic digital concept art: A dramatic scene from a dinosaur island adventure. ` +
+    const rawPrompt = parsed.imagePrompt ||
+        `A dramatic scene from a dinosaur island adventure story. ` +
         `Episode "${parsed.title}". Featured hybrids: ${parsed.hybrids.join(', ')}. ` +
-        `Dense tropical jungle, volcanic peaks, stormy dramatic atmosphere, bioluminescent plants. ` +
-        `Photorealistic, epic scale, Jurassic Park meets Pacific Rim style, 16:9 wide shot.`;
+        `Dense tropical jungle, volcanic peaks, stormy dramatic atmosphere, bioluminescent plants.`;
+
+    const nanoBanaPrompt = `Cinematic 8K masterpiece movie still, photorealistic concept art, high definition hyper-detailed 3D render, ` +
+        `Jurassic Park apex hybrid dinosaur aesthetic, dramatic volumetric storm lighting, bioluminescent volcanic jungle fog, ` +
+        `epic 16:9 widescreen composition, ultra-sharp focus, vivid color grade: ${rawPrompt}`;
 
     const candidateModels = [
-        'gemini-3.1-flash-image',
         'nano-banana-pro-preview',
-        'gemini-3-pro-image',
+        'gemini-2.5-flash-image',
         'imagen-3.0-generate-002',
         'imagen-3.0-generate-001',
         'imagen-3.0-fast-generate-001'
@@ -273,7 +275,7 @@ async function generateAndUploadImage(parsed, episodeNumber) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    prompt: imagePrompt,
+                    prompt: nanoBanaPrompt,
                     config: {
                         numberOfImages: 1,
                         aspectRatio: '16:9',
@@ -287,7 +289,7 @@ async function generateAndUploadImage(parsed, episodeNumber) {
                 const json = await res.json();
                 if (json.generatedImages && json.generatedImages.length > 0) {
                     b64 = json.generatedImages[0].image.imageBytes;
-                    console.log(`✨ Gemini Image success using model "${mName}"`);
+                    console.log(`✨ Nano Bana / Gemini Image success using model "${mName}"`);
                     break;
                 }
             }
