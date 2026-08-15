@@ -127,6 +127,63 @@ It hit the eastern wall with both hands. The gel panels absorbed the first impac
         averageRating: 5.0,
         ratingCount: 1,
         hybrids: ['D-Rex (Alpha-7)']
+let activeSeriesId   = 'hybrid-dino-experiment';
+let unsubscribeRemoteEps = null;
+
+const FALLBACK_COSMIC_EPISODES = [
+    {
+        id: 'cosmic-ep1-static',
+        seriesId: 'cosmic-treehouse-explorers',
+        episodeNumber: 1,
+        title: 'The Crystal Nebulae Rescue',
+        summary: 'Leo, Maya, and Spark open the treehouse star-portal into Sector 4 — The Crystal Nebulae — where a rare glowing Emberfox is trapped inside an ancient energy grid.',
+        audioUrl: 'audio/cosmic-episode-001.mp3',
+        imageUrl: 'images/cosmic-episode-001.jpg',
+        publishedAt: '2026-08-15T18:00:00Z',
+        averageRating: 5.0,
+        ratingCount: 1,
+        hybrids: ['Spark (Electric Sprite)', 'Crystal Emberfox'],
+        content: `**Welcome to The Cosmic Treehouse Explorers!**
+
+The oak tree in Leo and Maya’s backyard looked like any ordinary treehouse from the outside. But behind the bookshelf on the top floor hid a humming brass console embedded with glowing starlight dials. 
+
+"Portal alignment locked," ten-year-old Leo declared, adjusting his star-chart goggles. His map screen glowed with blue grid lines showing Sector 4 — a floating cluster of glowing purple asteroids known as the Crystal Nebulae. "Route is clear, Maya. We’ve got twenty minutes before the atmospheric shift."
+
+Nine-year-old Maya tapped her modified encyclopedia tablet, her eyes lighting up. "Sensors are picking up a distress pulse! It's a Crystal Emberfox — a rare elemental creature whose fur glows like molten sapphire. Its tail is trapped in an ancient orbital energy grid!"
+
+Suddenly, a bright yellow fluffball zapped across the console with a cheery *BZZZT!* Spark, their energetic companion creature, did a mid-air somersault, sparking tiny harmless blue lightning bolts from his fluffy ears. 
+
+"Stay focused, Sparky," Maya laughed, scratching him behind the ears. "No chasing shiny space-dust today!"
+
+Leo pulled the main lever. With a soft chime, the treehouse trapdoor opened into swirling violet starlight. The trio stepped through the portal onto a floating crystal platform. The air smelled like ozone and fresh rain. 
+
+Fifty yards away, the Emberfox whimpered. It was trapped inside a glowing cage made of interlocking light beams. Above the cage rested an ancient alien lock wheel covered in glowing geometric symbols.
+
+"The barrier is locked with a light-frequency cipher," Maya noted, scanning the glyphs with her tablet. "We need to align three matching energy colors — Red, Teal, and Gold — in exact sequence to disarm the power field!"
+
+"I've got the route," Leo called out, studying the power conduit lines running under the crystal floor. "If we redirect the energy from the main conduit, the lock wheel will rotate. But we need a high-voltage surge to jumpstart the circuit board."
+
+"Spark, that's your cue!" Maya pointed to the primary power socket on the side of the lock pedestal. 
+
+Spark chirped eagerly, hovering over the socket. But just as he prepared to discharge, a shimmering silver space-beetle buzzed past his nose. Spark's eyes widened. *BZZZT!* He zoomed off, chasing the shiny beetle around a floating crystal spire.
+
+"Spark, no!" Leo groaned. "Come back!"
+
+Maya pulled a shiny foil wrapper from her pocket and held it in the sunlight. "Over here, Sparky! Check out this ultra-shiny prize!"
+
+Spark froze mid-air, zipped back instantly, and landed squarely on the socket, mesmerized by the foil. *ZAPPP!* A bright golden surge of electricity shot from Spark's ears directly into the pedestal!
+
+The lock wheel spun rapidly. Maya tapped the glowing glyphs in order: "Triangle! Diamond! Spiral!"
+
+*CLACK-ZRRRT!* 
+
+The purple light beams dissolved into sparkling starlight dust. The Crystal Emberfox bounded out of the cage, nuzzling Maya’s hand before doing a joyful leap into the sky. Maya’s tablet chimed as it recorded the creature's data: *Rescue Cataloged: Crystal Emberfox — Status: Safe.*
+
+"Great teamwork," Leo smiled, tapping his star-chart. "First rescue of the day is a success!"
+
+Suddenly, Maya’s tablet beeped with a deep crimson alert. "Leo, look! Sector 9 just activated — the Floating Lava Isles. And whatever is trapped there is twice as big!"
+
+Leo grinned, adjusting his goggles. "Set coordinates for Sector 9. The adventure is just getting started!"`
     }
 ];
 
@@ -178,15 +235,24 @@ function applyEpisodes(newEps) {
     }
 }
 
-// ── Subscribe to all episodes in Firestore ────────────────────────────────
-function subscribeToEpisodes() {
-    // 1. Immediately apply local fallback episodes so UI never hangs
-    applyEpisodes(FALLBACK_EPISODES);
+// ── Subscribe to episodes for active series in Firestore ──────────────────
+function subscribeToEpisodes(seriesId = 'hybrid-dino-experiment') {
+    if (unsubscribeRemoteEps) {
+        try { unsubscribeRemoteEps(); } catch(e){}
+    }
 
-    // 2. Subscribe to Firebase Firestore for live updates
+    activeSeriesId = seriesId;
+    currentEpIndex = -1;
+
+    const fallbacks = seriesId === 'cosmic-treehouse-explorers' ? FALLBACK_COSMIC_EPISODES : FALLBACK_EPISODES;
+    applyEpisodes(fallbacks);
+
     try {
-        const episodesRef = collection(db, 'dino-island', 'story', 'episodes');
-        onSnapshot(episodesRef, (snapshot) => {
+        const pathCol = seriesId === 'cosmic-treehouse-explorers'
+            ? collection(db, 'cosmic-treehouse', 'episodes', 'all')
+            : collection(db, 'dino-island', 'story', 'episodes');
+
+        unsubscribeRemoteEps = onSnapshot(pathCol, (snapshot) => {
             if (!snapshot || snapshot.empty) return;
             const remoteEps = snapshot.docs
                 .map(d => ({ id: d.id, ...d.data() }))
@@ -195,10 +261,10 @@ function subscribeToEpisodes() {
                 applyEpisodes(remoteEps);
             }
         }, (err) => {
-            console.warn('Firestore snapshot error (using local fallback episodes):', err);
+            console.warn('Firestore snapshot notice:', err);
         });
     } catch (e) {
-        console.warn('Firestore init error (using local fallback episodes):', e);
+        console.warn('Firestore init notice:', e);
     }
 }
 
@@ -789,9 +855,29 @@ function initTTS() {
         }
     }
 
+    function selectSeries(seriesId) {
+        if (activeSeriesId !== seriesId) {
+            subscribeToEpisodes(seriesId);
+        }
+        const cardIsla   = document.getElementById('seriesCardIsla');
+        const cardCosmic = document.getElementById('seriesCardCosmic');
+        if (cardIsla)   cardIsla.classList.toggle('active-series', seriesId === 'hybrid-dino-experiment');
+        if (cardCosmic) cardCosmic.classList.toggle('active-series', seriesId === 'cosmic-treehouse-explorers');
+    }
+
     if (seriesCardIsla) {
         seriesCardIsla.addEventListener('click', (e) => {
             e.preventDefault();
+            selectSeries('hybrid-dino-experiment');
+            playOrOpenSeries();
+        });
+    }
+
+    const seriesCardCosmic = document.getElementById('seriesCardCosmic');
+    if (seriesCardCosmic) {
+        seriesCardCosmic.addEventListener('click', (e) => {
+            e.preventDefault();
+            selectSeries('cosmic-treehouse-explorers');
             playOrOpenSeries();
         });
     }
@@ -801,6 +887,17 @@ function initTTS() {
         scPlayBtnIsla.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
+            selectSeries('hybrid-dino-experiment');
+            playOrOpenSeries();
+        });
+    }
+
+    const scPlayBtnCosmic = document.getElementById('scPlayBtnCosmic');
+    if (scPlayBtnCosmic) {
+        scPlayBtnCosmic.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            selectSeries('cosmic-treehouse-explorers');
             playOrOpenSeries();
         });
     }
