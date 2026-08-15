@@ -90,6 +90,8 @@ const readerPanel        = document.getElementById('readerPanel');
 const TTS = {
     sentences:      [],   // array of plain-text sentences
     currentIdx:     -1,   // sentence currently being spoken
+    playingEpIndex: -1,   // index of episode currently playing/loaded in audio player
+    playingSeriesId: null, // seriesId of episode currently playing
     rate:           1.0,  // playback rate
     pitch:          0.92, // storytelling pitch (slightly deeper, dramatic)
     selectedVoice:  null,
@@ -301,11 +303,15 @@ function renderEpisodeList() {
             .map(h => `<span class="ep-hybrid-chip">${h}</span>`)
             .join('');
 
-        const seriesCover = activeSeriesId === 'cosmic-treehouse-explorers' ? 'images/cosmic-treehouse-cover.png' : 'images/hybrid-dino-cover.png';
+        const seriesCover = activeSeriesId === 'cosmic-treehouse-explorers'
+            ? 'images/cosmic-treehouse-cover.png'
+            : activeSeriesId === 'time-loop-lunchbox'
+            ? 'images/time-loop-lunchbox-cover.png'
+            : 'images/hybrid-dino-cover.png';
         const epImg = seriesCover;
 
-        const wc = ep.wordCount || (ep.content || '').split(/\s+/).length;
-        const durMins = Math.max(1, Math.round(wc / 150));
+        const wc = ep.wordCount || (ep.content || '').replace(/<[^>]+>/g, '').split(/\s+/).filter(Boolean).length;
+        const durMins = ep.durationMinutes || Math.max(1, Math.round(wc / 145));
 
         item.innerHTML = `
             <div class="ep-number-col" style="display:flex;flex-direction:column;align-items:center;">
@@ -330,6 +336,31 @@ function renderEpisodeList() {
 
         episodeList.appendChild(item);
     });
+}
+
+// ── Update player bar UI for active playing episode ────────────────────────
+function updatePlayerBarUI(idx) {
+    if (idx < 0 || idx >= episodes.length) return;
+    const ep = episodes[idx];
+    const seriesTitle = activeSeriesId === 'cosmic-treehouse-explorers'
+        ? 'The Cosmic Treehouse Explorers'
+        : activeSeriesId === 'time-loop-lunchbox'
+        ? 'The Time-Loop Lunchbox'
+        : 'The Hybrid Dinosaur Experiment';
+
+    const seriesCover = activeSeriesId === 'cosmic-treehouse-explorers'
+        ? 'images/cosmic-treehouse-cover.png'
+        : activeSeriesId === 'time-loop-lunchbox'
+        ? 'images/time-loop-lunchbox-cover.png'
+        : 'images/hybrid-dino-cover.png';
+
+    const ttsSeriesTag = document.getElementById('ttsSeriesTag');
+    const ttsEpisodeTitle = document.getElementById('ttsEpisodeTitle');
+    const ttsCoverImg = document.getElementById('ttsCoverImg');
+
+    if (ttsSeriesTag) ttsSeriesTag.textContent = seriesTitle;
+    if (ttsEpisodeTitle) ttsEpisodeTitle.textContent = `EP. ${String(ep.episodeNumber).padStart(2, '0')} — ${ep.title}`;
+    if (ttsCoverImg) ttsCoverImg.src = seriesCover;
 }
 
 // ── Open an episode ───────────────────────────────────────────────────────
@@ -358,13 +389,7 @@ function openEpisode(idx) {
     if (toggleTranscriptBtn) toggleTranscriptBtn.classList.remove('open');
     if (toggleTranscriptText) toggleTranscriptText.textContent = 'Show Text Transcript';
 
-    // Episode image & Player Info (always use series cover artwork)
-    const seriesTitle = activeSeriesId === 'cosmic-treehouse-explorers'
-        ? 'The Cosmic Treehouse Explorers'
-        : activeSeriesId === 'time-loop-lunchbox'
-        ? 'The Time-Loop Lunchbox'
-        : 'The Hybrid Dinosaur Experiment';
-
+    // Episode image & Reader Header
     const seriesCover = activeSeriesId === 'cosmic-treehouse-explorers'
         ? 'images/cosmic-treehouse-cover.png'
         : activeSeriesId === 'time-loop-lunchbox'
@@ -374,13 +399,10 @@ function openEpisode(idx) {
     episodeImage.alt = `Illustration for Episode ${ep.episodeNumber}: ${ep.title}`;
     episodeImageCont.style.display = '';
 
-    const ttsSeriesTag = document.getElementById('ttsSeriesTag');
-    const ttsEpisodeTitle = document.getElementById('ttsEpisodeTitle');
-    const ttsCoverImg = document.getElementById('ttsCoverImg');
-
-    if (ttsSeriesTag) ttsSeriesTag.textContent = seriesTitle;
-    if (ttsEpisodeTitle) ttsEpisodeTitle.textContent = `EP. ${String(ep.episodeNumber).padStart(2, '0')} — ${ep.title}`;
-    if (ttsCoverImg) ttsCoverImg.src = seriesCover;
+    // Only update the player bar UI if an audio track is NOT currently playing/paused from another episode
+    if ((!TTS.isPlaying && !TTS.isPaused) || TTS.playingEpIndex === idx) {
+        updatePlayerBarUI(idx);
+    }
 
     // Badge
     episodeNumberBadge.textContent = `EP. ${String(ep.episodeNumber).padStart(2, '0')}`;
@@ -739,13 +761,14 @@ function updateResumeUI() {
 // ==========================================================================
 
 function broadcastAudioState() {
-    const ep = episodes[currentEpIndex];
+    const activeEpIdx = (TTS.playingEpIndex >= 0 && TTS.playingEpIndex < episodes.length) ? TTS.playingEpIndex : currentEpIndex;
+    const ep = episodes[activeEpIdx];
     const duration = (TTS.audioEl && TTS.audioEl.duration) ? TTS.audioEl.duration : 1;
     const currentTime = (TTS.audioEl && TTS.audioEl.currentTime) ? TTS.audioEl.currentTime : 0;
     const pct = TTS.usingStudioAudio ? Math.floor((currentTime / duration) * 100) : 50;
 
-    if (currentEpIndex >= 0) {
-        saveAudiobookProgress(currentEpIndex, pct, currentTime);
+    if (activeEpIdx >= 0) {
+        saveAudiobookProgress(activeEpIdx, pct, currentTime);
     }
 
     const seriesTitle = activeSeriesId === 'cosmic-treehouse-explorers'
@@ -1245,6 +1268,11 @@ function ttsStart(fromIdx) {
     TTS.isPlaying = true;
     TTS.isPaused  = false;
     TTS.currentIdx = fromIdx;
+    TTS.playingEpIndex = currentEpIndex;
+    TTS.playingSeriesId = activeSeriesId;
+
+    // Update player bar to match the episode actively starting playback
+    updatePlayerBarUI(currentEpIndex);
 
     // UI: show bar, animate listen button
     listenBtn.classList.add('listening');
