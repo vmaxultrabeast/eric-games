@@ -192,11 +192,30 @@ The lock wheel spun rapidly. Maya tapped the glowing glyphs in order: "Triangle!
 
 The purple light beams dissolved into sparkling starlight dust. The Crystal Emberfox bounded out of the cage, nuzzling Maya’s hand before doing a joyful leap into the sky. Maya’s tablet chimed as it recorded the creature's data: *Rescue Cataloged: Crystal Emberfox — Status: Safe.*
 
-"Great teamwork," Leo smiled, tapping his star-chart. "First rescue of the day is a success!"
+"Great teamwork," Leo smiled, tapping his star-chart. "First rescue of the day is a success!"`
+    }
+];
 
-Suddenly, Maya’s tablet beeped with a deep crimson alert. "Leo, look! Sector 9 just activated — the Floating Lava Isles. And whatever is trapped there is twice as big!"
+const FALLBACK_TIMELOOP_EPISODES = [
+    {
+        id: 'timeloop-ep1-static',
+        seriesId: 'time-loop-lunchbox',
+        episodeNumber: 1,
+        title: 'The Spaghetti Incident',
+        summary: 'Oliver accidentally spills marinara sauce across the principal’s carpet—until a twist of his thermos rewinds time by five minutes.',
+        audioUrl: 'audio/timeloop-episode-001.mp3',
+        imageUrl: 'images/time-loop-lunchbox-cover.png',
+        publishedAt: '2026-08-15T18:00:00Z',
+        averageRating: 5.0,
+        ratingCount: 1,
+        hybrids: ['Oliver', 'Quantum Thermos'],
+        content: `**Welcome to The Time-Loop Lunchbox!**
 
-Leo grinned, adjusting his goggles. "Set coordinates for Sector 9. The adventure is just getting started!"`
+Fifth-grader Oliver Henderson considered himself a master of staying under the radar. But on a Tuesday afternoon at Oak Creek Elementary, disaster struck in the cafeteria. 
+
+A stray dodgeball ricocheted off a lunch tray, sending Oliver's thermos flying. As he twisted the metallic lid, a bright blue pulse of light rippled through the air. The clock on the wall spun backward, cafeteria chatter reversed in pitch, and Oliver found himself standing back at the start of lunch—five minutes earlier, holding his untouched thermos.
+
+Oliver had discovered the ultimate secret: twisting his vintage thermos rewound time by exactly five minutes. Just enough to fix embarrassing mistakes, prevent catastrophic lunch spills, and ace surprise quizzes. But as Oliver soon learns, bending the laws of physics comes with unexpected, hilarious, and universe-shattering consequences!`
     }
 ];
 
@@ -1305,7 +1324,11 @@ function ttsStart(fromIdx) {
 
     const currentEp = episodes[currentEpIndex];
     const epNum = currentEp ? currentEp.episodeNumber : 1;
-    const staticAudioPath = `audio/episode-${String(epNum).padStart(3, '0')}.mp3`;
+    const staticAudioPath = activeSeriesId === 'cosmic-treehouse-explorers'
+        ? `audio/cosmic-episode-${String(epNum).padStart(3, '0')}.mp3`
+        : activeSeriesId === 'time-loop-lunchbox'
+        ? `audio/timeloop-episode-${String(epNum).padStart(3, '0')}.mp3`
+        : `audio/episode-${String(epNum).padStart(3, '0')}.mp3`;
     const targetAudioUrl = (currentEp && currentEp.audioUrl && currentEp.audioUrl.trim()) ? currentEp.audioUrl : staticAudioPath;
 
     TTS.isPlaying = true;
