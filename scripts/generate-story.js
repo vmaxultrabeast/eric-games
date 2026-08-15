@@ -110,13 +110,13 @@ async function main() {
                 .map(m => m.name.replace('models/', ''));
 
             console.log('📋 Available models for key:', valid.join(', '));
-            // Prioritize Gemini Pro models for long-form story generation (10+ min chapters)
+            // Prioritize production Gemini Flash & Pro models with generous rate limits
             const preferred = [
-                'gemini-3.1-pro-preview',
-                'gemini-pro-latest',
-                'gemini-3.6-flash',
-                'gemini-3.5-flash',
-                'gemini-flash-latest'
+                'gemini-2.5-flash',
+                'gemini-2.0-flash',
+                'gemini-1.5-flash',
+                'gemini-1.5-pro',
+                'gemini-2.5-pro'
             ];
             const found = preferred.find(p => valid.includes(p)) || valid[0];
             if (found) targetModelName = found;
@@ -125,13 +125,13 @@ async function main() {
         console.warn('⚠️ Model discovery note:', e.message);
     }
 
-    console.log(`🤖 Selected Pro model for long-form story: "${targetModelName}"`);
+    console.log(`🤖 Selected Gemini model for long-form story: "${targetModelName}"`);
     const candidateModels = [
         targetModelName,
-        'gemini-3.1-pro-preview',
-        'gemini-pro-latest',
-        'gemini-3.6-flash',
-        'gemini-3.5-flash'
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-1.5-flash',
+        'gemini-1.5-pro'
     ];
 
     let activeModelName = targetModelName;
