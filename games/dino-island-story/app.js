@@ -32,6 +32,7 @@ let currentEpIndex  = -1;      // index into episodes[]
 let currentUser     = null;    // Firebase Auth user (or null)
 let hoverValue      = 0;       // currently hovered star
 let myRatings       = {};      // { episodeId: starValue } — loaded from localStorage
+let savedUserProgress = null;
 
 // ── DOM refs ──────────────────────────────────────────────────────────────
 const sidebarLoading     = document.getElementById('sidebarLoading');
@@ -128,8 +129,6 @@ It hit the eastern wall with both hands. The gel panels absorbed the first impac
         hybrids: ['D-Rex (Alpha-7)']
     }
 ];
-
-let savedUserProgress = null;
 
 // ── Init ───────────────────────────────────────────────────────────────────
 loadMyRatings();
@@ -1040,7 +1039,7 @@ function ttsStart(fromIdx) {
     const currentEp = episodes[currentEpIndex];
     const epNum = currentEp ? currentEp.episodeNumber : 1;
     const staticAudioPath = `audio/episode-${String(epNum).padStart(3, '0')}.mp3`;
-    const targetAudioUrl = (currentEp && currentEp.audioUrl) ? currentEp.audioUrl : staticAudioPath;
+    const targetAudioUrl = (currentEp && currentEp.audioUrl && currentEp.audioUrl.trim()) ? currentEp.audioUrl : staticAudioPath;
 
     TTS.isPlaying = true;
     TTS.isPaused  = false;
