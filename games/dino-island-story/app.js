@@ -192,7 +192,7 @@ The lock wheel spun rapidly. Maya tapped the glowing glyphs in order: "Triangle!
 
 The purple light beams dissolved into sparkling starlight dust. The Crystal Emberfox bounded out of the cage, nuzzling Maya’s hand before doing a joyful leap into the sky. Maya’s tablet chimed as it recorded the creature's data: *Rescue Cataloged: Crystal Emberfox — Status: Safe.*
 
-"Great teamwork," Leo smiled, tapping his star-chart. "First rescue of the day is a success!"`
+"Great teamwork," Leo smiled, tapping his star-chart. "First rescue of the day is a success!`
     }
 ];
 
