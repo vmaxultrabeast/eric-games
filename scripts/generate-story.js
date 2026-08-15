@@ -71,6 +71,7 @@ NEW HYBRID CREATION RULE:
 
 AUDIOBOOK NARRATIVE SCRIPTING (CRITICAL):
 This story is primarily consumed as a STUDIO AI AUDIOBOOK NARRATION for 8–10 year old listeners!
+- ALWAYS start the episode content at the very beginning with the spoken announcement: "Episode [Number]: [Episode Title]." (e.g. "Episode 3: The Breaking of Lab 7.")
 - Write specifically for spoken audio performance: short punchy sentence rhythm, dramatic pauses (...), and vivid cinematic pacing.
 - Include exciting onomatopoeia sound effects (KABOOM!, ZZZZT!, THUD-THUD-THUD, SKRRRREEECH!, ROAAAR!) that the neural narrator performs with maximum energy!
 - Emphasize rich spatial audio descriptions (echoing metal corridors, dripping lava caves, hum of high-voltage fences, heavy jungle rainfall).
@@ -78,7 +79,7 @@ This story is primarily consumed as a STUDIO AI AUDIOBOOK NARRATION for 8–10 y
 
 EPISODE STRUCTURE:
 Each episode MUST be a 10 to 12-minute audiobook chapter (approximately 2,200–2,800 words total).
-- A thrilling episode title
+- MUST begin with: "Episode [Number]: [Episode Title]."
 - Bold **Previously on Isla Fragmentum...** recap line
 - 5 distinct action-packed scenes
 - At least 1 epic hybrid vs. hybrid battle or security mech showdown
@@ -113,10 +114,10 @@ async function main() {
     try {
         const pastSnap = await episodesRef.orderBy('episodeNumber', 'asc').get();
         if (!pastSnap.empty) {
-            allPastHistory = pastSnap.docs.map(d => {
-                const ep = d.data();
-                return `[EPISODE ${ep.episodeNumber}: "${ep.title}"]\nSummary: ${ep.summary}\nFeatured: ${(ep.hybrids||[]).join(', ')}`;
-            }).join('\n\n');
+            allPastHistory = pastSnap.docs.map(doc => {
+                const ep = doc.data();
+                return `### Episode ${ep.episodeNumber}: ${ep.title}\nSummary: ${ep.summary || ''}\n`;
+            }).join('\n');
         }
     } catch (e) {
         console.warn('⚠️ Past episodes query note:', e.message);
@@ -158,7 +159,7 @@ async function main() {
         try {
             const model = genAI.getGenerativeModel({
                 model: modelName,
-                systemInstruction: `You are the lead sci-fi author for the ISLA FRAGMENTUM daily audiobook series. Every single episode MUST be written as a full 10-minute audio narration (~1,500 to 1,800 words). You NEVER write short summaries, outlines, or bullet points. You write immersive multi-paragraph narrative prose with rich dialogue, sensory details, and step-by-step action.`,
+                systemInstruction: `You are the lead sci-fi author for the ISLA FRAGMENTUM daily audiobook series. Every single episode MUST be written as a full 10-minute audio narration (~1,500 to 1,800 words). The narration script MUST ALWAYS begin at the top with: "Episode [Number]: [Episode Title]." You write immersive multi-paragraph narrative prose with rich dialogue, sensory details, and step-by-step action.`,
                 generationConfig: { temperature: 0.92, topP: 0.95, maxOutputTokens: 8192 }
             });
             const textResult = await model.generateContent(storyPrompt);

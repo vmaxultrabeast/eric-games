@@ -208,7 +208,7 @@ async function run() {
         try {
             const model = genAI.getGenerativeModel({
                 model: mName,
-                systemInstruction: `You are an expert children's adventure author writing chapters for 8-10 year olds. You write engaging, fast-paced prose with clever puzzle-solving, humor, and teamwork.`,
+                systemInstruction: `You are an expert children's adventure author writing chapters for 8-10 year olds. Every single episode MUST be written as a full 10-minute audio narration (~1,500 to 1,800 words). The narration script MUST ALWAYS begin at the very top with the spoken announcement: "Episode [Number]: [Episode Title]." You write engaging, fast-paced prose with clever puzzle-solving, humor, and teamwork.`,
                 generationConfig: { temperature: 0.92, topP: 0.95, maxOutputTokens: 8192 }
             });
             const result = await model.generateContent(prompt);
