@@ -960,12 +960,14 @@ footer {
 }
 
 .modal-header {
-    background: rgba(20, 22, 37, 0.4);
+    background: rgba(20, 22, 37, 0.95);
     border-bottom: 1px solid var(--border-color);
     padding: 1rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
+    z-index: 1005;
 }
 
 .modal-title-group {
@@ -2246,10 +2248,11 @@ footer {
     top: calc(50% + 24px) !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    width: min(94vw, 1280px) !important;
-    height: calc(min(88vh, 820px) - 52px) !important;
-    border-radius: 0 0 16px 16px !important;
-    z-index: 10001 !important;
+    width: min(90vw, 960px) !important;
+    height: calc(min(90vw, 960px) * 9 / 16) !important;
+    max-height: calc(85vh - 56px) !important;
+    border-radius: 0 0 20px 20px !important;
+    z-index: 1001 !important;
     opacity: 1 !important;
     pointer-events: auto !important;
     display: block !important;
