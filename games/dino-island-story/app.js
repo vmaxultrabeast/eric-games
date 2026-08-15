@@ -965,6 +965,11 @@ function scoreVoice(v) {
     if (lang.startsWith('en')) score += 10;
     if (lang === 'en-us') score += 5;
 
+    // Heavily prioritize male narrator voices matching Andrew Studio Narrator
+    if (name.includes('andrew') || name.includes('guy') || name.includes('david') || name.includes('christopher') || name.includes('ryan') || name.includes('george') || name.includes('male') || name.includes('steffan') || name.includes('daniel')) {
+        score += 60;
+    }
+
     // Quality keywords
     if (name.includes('natural')) score += 30;
     if (name.includes('online')) score += 20;
@@ -974,9 +979,9 @@ function scoreVoice(v) {
     if (name.includes('enhanced')) score += 20;
     if (name.includes('studio')) score += 30;
 
-    // Preferred storytelling voices
-    if (name.includes('guy') || name.includes('christopher') || name.includes('daniel') || name.includes('evan') || name.includes('ryan')) {
-        score += 15;
+    // Heavily penalize female voices so male narrator is always selected
+    if (name.includes('zira') || name.includes('samantha') || name.includes('victoria') || name.includes('karen') || name.includes('female') || name.includes('aria') || name.includes('jenny') || name.includes('michelle') || name.includes('hazel')) {
+        score -= 100;
     }
 
     return score;
