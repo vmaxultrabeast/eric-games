@@ -51,23 +51,22 @@ SETTING & PREMISE:
 Leo and Maya operate a secret cosmic waystation out of their backyard treehouse. Behind a brass console on the top floor lies a starlight portal opening to mysterious floating space sectors across the galaxy. In each episode, they explore new sectors to rescue and catalog rare elemental creatures trapped by environmental hazards or ancient alien locks.
 `;
 
-function buildCosmicPrompt(episodeNumber, runningSummary) {
+function buildCosmicPrompt(episodeNumber, runningSummary, allPastHistory) {
     const isFirst = episodeNumber === 1;
 
     const context = isFirst
         ? `This is Episode 1. Leo, Maya, and Spark open the treehouse portal to Sector 4 — The Crystal Nebulae — and rescue a glowing Crystal Emberfox trapped in an orbital light cage.`
-        : `STORY SO FAR:\n${runningSummary}\n\nContinue naturally for Episode ${episodeNumber}. Introduce a new floating space sector (e.g. Sector 9 — The Floating Lava Isles, Sector 12 — The Gravity Caverns, or Sector 7 — The Solar Reef) and a new rare elemental creature in distress.`;
+        : `COMPLETE CHRONOLOGICAL STORY HISTORY (ALL PAST EPISODES):\n${allPastHistory || 'Episode 1: Rescued Crystal Emberfox in Sector 4.'}\n\nLATEST CUMULATIVE RUNNING SUMMARY:\n${runningSummary}\n\nContinue naturally for Episode ${episodeNumber}. Introduce a new floating space sector (e.g. Sector 9 — The Floating Lava Isles, Sector 12 — The Gravity Caverns, or Sector 7 — The Solar Reef) and a new rare elemental creature in distress, building directly upon previous rescues and character bonds.`;
 
     return `${COSMIC_STORY_BIBLE}
 
 ---
 
-CRITICAL LENGTH & STYLE DIRECTIVE:
-You MUST write a fun, detailed 800 to 1,200-word chapter for 3rd-5th graders.
-Use short, visually appealing paragraphs and engaging dialogue.
-Include clever problem-solving, teamwork, Spark's humorous distraction, and a satisfying creature rescue, ending with a teaser for the next sector.
+CRITICAL LENGTH & AUDIO DURATION DIRECTIVE:
+You MUST write a fun, detailed 1,500 to 1,800-word chapter (~10-minute audio narration read).
+Write 12-16 engaging, multi-paragraph scenes for 3rd-5th graders with rich dialogue, clever puzzle solving, teamwork, Spark's electrical surge, and a suspenseful cliffhanger/teaser for the next sector.
 
-Do NOT use markdown headers (#, ##, ###) or hashtags anywhere in the text. Write plain narrative prose.
+Do NOT write brief outlines or summaries. Write full, complete narrative prose. Do NOT use markdown headers (#, ##) or hashtags anywhere in the text.
 
 ---
 
@@ -86,7 +85,7 @@ TITLE: [A fun, dramatic episode title]
 IMAGE_PROMPT: [2-3 sentences describing the main scene for visual reference]
 
 CONTENT:
-[Full episode narrative prose. 800-1,200 words. Start with **Previously on The Cosmic Treehouse Explorers...** in bold if Episode > 1. Plain prose only.]
+[Full episode narrative prose. MUST BE 1,500 TO 1,800 WORDS (~10-minute read). Start with **Previously on The Cosmic Treehouse Explorers...** in bold if Episode > 1. Plain prose only.]
 
 EPISODE_SUMMARY:
 [4-6 sentences summarizing this episode's key events and creature rescue.]
@@ -157,7 +156,7 @@ async function synthesizeAudio(content, epNum) {
 async function run() {
     console.log('🚀 Generating Next Episode for The Cosmic Treehouse Explorers...');
 
-    // 1. Fetch current story state from Firestore
+    // 1. Fetch current story state and history of ALL past episodes from Firestore
     const storyDocRef = db.collection('cosmic-treehouse').doc('story');
     const storySnap   = await storyDocRef.get();
 
@@ -170,7 +169,21 @@ async function run() {
         runningSummary = data.runningSummary || runningSummary;
     }
 
+    let allPastHistory = '';
+    try {
+        const pastSnap = await db.collection('cosmic-treehouse').doc('episodes').collection('all').orderBy('episodeNumber', 'asc').get();
+        if (!pastSnap.empty) {
+            allPastHistory = pastSnap.docs.map(d => {
+                const ep = d.data();
+                return `[EPISODE ${ep.episodeNumber}: "${ep.title}"]\nSummary: ${ep.summary}\nRescued Creatures: ${(ep.hybrids||[]).join(', ')}`;
+            }).join('\n\n');
+        }
+    } catch (e) {
+        console.warn('Past cosmic episodes query note:', e.message);
+    }
+
     console.log(`📖 Generating Episode ${episodeNumber}...`);
+    const prompt = buildCosmicPrompt(episodeNumber, runningSummary, allPastHistory);
 
     // Dynamic Model Discovery
     let candidateModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];

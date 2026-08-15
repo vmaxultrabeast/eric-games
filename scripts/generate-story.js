@@ -108,10 +108,24 @@ async function main() {
         runningSummary   = data.runningSummary  || '';
     }
 
+    // 1. Fetch complete chronological story history of ALL past episodes
+    let allPastHistory = '';
+    try {
+        const pastSnap = await episodesRef.orderBy('episodeNumber', 'asc').get();
+        if (!pastSnap.empty) {
+            allPastHistory = pastSnap.docs.map(d => {
+                const ep = d.data();
+                return `[EPISODE ${ep.episodeNumber}: "${ep.title}"]\nSummary: ${ep.summary}\nFeatured: ${(ep.hybrids||[]).join(', ')}`;
+            }).join('\n\n');
+        }
+    } catch (e) {
+        console.warn('⚠️ Past episodes query note:', e.message);
+    }
+
     console.log(`📖 Generating Episode ${episodeNumber}...`);
 
     // 2. Generate story text with Gemini (with dynamic model discovery)
-    const storyPrompt = buildStoryPrompt(episodeNumber, runningSummary);
+    const storyPrompt = buildStoryPrompt(episodeNumber, runningSummary, allPastHistory);
 
     // Auto-discover available models for this API key via Google ModelService
     let candidateModels = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-latest'];
@@ -126,7 +140,6 @@ async function main() {
 
             if (valid.length > 0) {
                 console.log('📋 Live models available for key:', valid.join(', '));
-                // Sort to prefer Pro models if key supports them, followed by Flash models
                 const proModels   = valid.filter(m => m.includes('pro'));
                 const flashModels = valid.filter(m => m.includes('flash'));
                 const otherModels = valid.filter(m => !m.includes('pro') && !m.includes('flash'));
@@ -145,7 +158,7 @@ async function main() {
         try {
             const model = genAI.getGenerativeModel({
                 model: modelName,
-                systemInstruction: `You are an expert sci-fi novelist writing long-form, highly detailed chapter books (2,200+ words per chapter). You NEVER summarize or outline. You write rich, multi-paragraph prose filled with sensory descriptions, full dialogue exchanges, and step-by-step physical action choreography.`,
+                systemInstruction: `You are the lead sci-fi author for the ISLA FRAGMENTUM daily audiobook series. Every single episode MUST be written as a full 10-minute audio narration (~1,500 to 1,800 words). You NEVER write short summaries, outlines, or bullet points. You write immersive multi-paragraph narrative prose with rich dialogue, sensory details, and step-by-step action.`,
                 generationConfig: { temperature: 0.92, topP: 0.95, maxOutputTokens: 8192 }
             });
             const textResult = await model.generateContent(storyPrompt);
@@ -467,14 +480,14 @@ async function generateAndUploadAudio(storyContentText, episodeNumber) {
 // ==========================================================================
 // Build the Gemini prompt
 // ==========================================================================
-function buildStoryPrompt(episodeNumber, runningSummary) {
+function buildStoryPrompt(episodeNumber, runningSummary, allPastHistory) {
     const isFirst = episodeNumber === 1;
 
     const context = isFirst
         ? `This is the FIRST EPISODE. Introduce D-Rex escaping from Lab 7 containment during a violent Pacific storm.
 Show the chaos in vivid detail — the containment breach, Dr. Vera Osei's conflicted reaction, Chief Reyes mobilizing security.
 End with D-Rex vanishing into the jungle.`
-        : `STORY SO FAR:\n${runningSummary}\n\nContinue naturally from where the story left off for Episode ${episodeNumber}.`;
+        : `COMPLETE CHRONOLOGICAL STORY HISTORY (ALL PAST EPISODES):\n${allPastHistory || 'Episode 1: D-Rex breached containment.'}\n\nLATEST CUMULATIVE RUNNING SUMMARY:\n${runningSummary}\n\nContinue naturally for Episode ${episodeNumber}, building directly upon all character arcs, hybrid encounters, and plot developments from the past episodes above.`;
 
     return `${STORY_BIBLE}
 
