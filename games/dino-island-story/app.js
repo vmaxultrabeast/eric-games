@@ -1029,7 +1029,7 @@ function seekAudioToPercent(pct) {
 // ── Prepare sentences from current episode story ───────────────────────────
 function ttsPrepare() {
     const spans = storyContent.querySelectorAll('.story-sentence');
-    TTS.sentences = Array.from(spans).map(s => s.textContent.trim()).filter(Boolean);
+    TTS.sentences = Array.from(spans).map(s => s.textContent.replace(/#+/g, '').replace(/[\*\_\~]/g, '').trim()).filter(Boolean);
 }
 
 // ── Start reading from a given sentence index ──────────────────────────────

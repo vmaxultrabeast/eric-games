@@ -361,13 +361,15 @@ async function generateAndUploadAudio(storyContentText, episodeNumber) {
             const tmpTxt = path.join(__dirname, `tmp_ep_${episodeNumber}_${i}.txt`);
             const tmpMp3 = path.join(__dirname, `tmp_ep_${episodeNumber}_${i}.mp3`);
 
-            // Strip any raw markdown symbols for narration clarity
+            // Strip any raw markdown header hashes, hashtags, and formatting symbols for clean narration
             const cleanText = chunks[i]
+                .replace(/#+/g, '')
                 .replace(/\*\*/g, '')
                 .replace(/__/g, '')
                 .replace(/\*/g, '')
                 .replace(/_/g, '')
-                .replace(/---/g, '');
+                .replace(/---/g, '')
+                .replace(/[`~]/g, '');
 
             fs.writeFileSync(tmpTxt, cleanText, 'utf-8');
 
@@ -475,7 +477,7 @@ TITLE: [A dramatic episode title]
 IMAGE_PROMPT: [2-3 sentences describing the most cinematic scene from this episode for an AI image generator. Mention specific hybrids, environment details, lighting, mood. Photorealistic cinematic concept art style.]
 
 CONTENT:
-[Full episode text, MUST BE AT LEAST 2,200 WORDS (~10-minute read). Start with **Previously on Isla Fragmentum...** in bold. Third-person narrative. Rich sensory detail, strong action choreography, meaningful dialogue.]
+[Full episode text, MUST BE AT LEAST 2,200 WORDS (~10-minute read). Start with **Previously on Isla Fragmentum...** in bold. Third-person narrative. Do NOT use markdown headers (#, ##, ###) or hashtags anywhere in the text. Write plain narrative prose.]
 
 EPISODE_SUMMARY:
 [4-6 sentences summarizing this episode's key events, characters involved, and changes.]

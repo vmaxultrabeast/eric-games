@@ -11,8 +11,8 @@ async def main():
     with open(TEXT_FILE, "r", encoding="utf-8") as f:
         text = f.read()
 
-    # Clean markdown
-    text = text.replace("**", "").replace("__", "").replace("*", "").replace("_", "").replace("---", "")
+    # Clean markdown headers, hashtags, and formatting
+    text = text.replace("#", "").replace("**", "").replace("__", "").replace("*", "").replace("_", "").replace("---", "").replace("`", "")
 
     print(f"Generating studio Neural MP3 narration using {VOICE}...")
     communicate = edge_tts.Communicate(text, VOICE, rate="-4%", pitch="-2Hz")
