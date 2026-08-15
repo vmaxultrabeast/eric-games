@@ -758,7 +758,11 @@ function initTTS() {
         TTS.audioEl.addEventListener('timeupdate', () => {
             if (!TTS.usingStudioAudio || !TTS.audioEl.duration) return;
             const pct = Math.floor((TTS.audioEl.currentTime / TTS.audioEl.duration) * 100);
-            ttsSentenceCounter.textContent = `🎙️ Studio Narration: ${pct}%`;
+            const curMins = Math.floor(TTS.audioEl.currentTime / 60);
+            const curSecs = Math.floor(TTS.audioEl.currentTime % 60);
+            const durMins = Math.floor(TTS.audioEl.duration / 60);
+            const durSecs = Math.floor(TTS.audioEl.duration % 60);
+            ttsSentenceCounter.textContent = `${curMins}:${String(curSecs).padStart(2, '0')} / ${durMins}:${String(durSecs).padStart(2, '0')}`;
             const ttsProgressFill = document.getElementById('ttsProgressFill');
             if (ttsProgressFill) ttsProgressFill.style.width = `${pct}%`;
             broadcastAudioState();
@@ -1031,6 +1035,16 @@ function initTTS() {
     if (ttsStopBtn) ttsStopBtn.addEventListener('click', ttsStop);
     if (ttsCloseBtn) ttsCloseBtn.addEventListener('click', ttsStop);
 
+    const ttsNextBtn = document.getElementById('ttsNextBtn');
+    if (ttsNextBtn) {
+        ttsNextBtn.addEventListener('click', () => {
+            if (currentEpIndex + 1 < episodes.length) {
+                openEpisode(currentEpIndex + 1);
+                ttsStart(0);
+            }
+        });
+    }
+
     ttsSpeedBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             TTS.rate = parseFloat(btn.dataset.rate);
@@ -1184,7 +1198,7 @@ function ttsStart(fromIdx) {
         const playPromise = TTS.audioEl.play();
         if (playPromise !== undefined) {
             playPromise.then(() => {
-                ttsSentenceCounter.textContent = '🎙️ Studio Narration...';
+                ttsSentenceCounter.textContent = '0:00';
             }).catch(err => {
                 console.warn('Studio MP3 play rejected, executing Web Speech fallback:', err);
                 TTS.usingStudioAudio = false;
