@@ -280,15 +280,19 @@
         </div>
         <div class="tts-bar-inner">
 
-            <!-- Waveform animation -->
-            <div class="tts-waveform" id="ttsWaveform" aria-hidden="true">
-                <span></span><span></span><span></span><span></span>
-                <span></span><span></span><span></span><span></span>
+            <!-- Episode Cover Thumbnail & Waveform -->
+            <div class="tts-thumb-container">
+                <img id="ttsCoverImg" src="images/hybrid-dino-cover.png" alt="Episode Cover" class="tts-thumb-img">
+                <div class="tts-waveform" id="ttsWaveform" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span>
+                </div>
             </div>
 
-            <!-- Sentence progress -->
+            <!-- Series Name & Episode Title Info -->
             <div class="tts-info">
-                <span class="tts-sentence-counter" id="ttsSentenceCounter">— / —</span>
+                <span class="tts-series-tag" id="ttsSeriesTag">The Hybrid Dinosaur Experiment</span>
+                <span class="tts-episode-title" id="ttsEpisodeTitle">EP. 01 — The Breaking of Lab 7</span>
+                <span class="tts-sentence-counter" id="ttsSentenceCounter">0:00 / 0:00</span>
             </div>
 
             <!-- Controls -->
@@ -307,18 +311,15 @@
                 </button>
             </div>
 
-            <!-- Speed selector -->
+            <!-- Speed selector (0.8x, 1x, 1.3x) -->
             <div class="tts-speed">
                 <label class="tts-speed-label">Speed</label>
                 <div class="tts-speed-btns">
-                    <button class="tts-speed-btn" data-rate="0.8"  id="speed08">0.8×</button>
+                    <button class="tts-speed-btn" data-rate="0.8" id="speed08">0.8×</button>
                     <button class="tts-speed-btn active" data-rate="1.0" id="speed10">1×</button>
-                    <button class="tts-speed-btn" data-rate="1.3"  id="speed13">1.3×</button>
-                    <button class="tts-speed-btn" data-rate="1.6"  id="speed16">1.6×</button>
+                    <button class="tts-speed-btn" data-rate="1.3" id="speed13">1.3×</button>
                 </div>
             </div>
-
-
 
             <!-- Close -->
             <button class="tts-close-btn" id="ttsCloseBtn" title="Close player">

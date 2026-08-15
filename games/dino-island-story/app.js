@@ -351,12 +351,21 @@ function openEpisode(idx) {
     if (toggleTranscriptBtn) toggleTranscriptBtn.classList.remove('open');
     if (toggleTranscriptText) toggleTranscriptText.textContent = 'Show Text Transcript';
 
-    // Episode image (fallback to active series cover artwork if null)
+    // Episode image & Player Info (fallback to active series cover artwork if null)
+    const seriesTitle = activeSeriesId === 'cosmic-treehouse-explorers' ? 'The Cosmic Treehouse Explorers' : 'The Hybrid Dinosaur Experiment';
     const defaultCover = activeSeriesId === 'cosmic-treehouse-explorers' ? 'images/cosmic-treehouse-cover.png' : 'images/hybrid-dino-cover.png';
     const imgSrc = (ep.imageUrl && ep.imageUrl.trim() !== '') ? ep.imageUrl : defaultCover;
     episodeImage.src = imgSrc;
     episodeImage.alt = `Illustration for Episode ${ep.episodeNumber}: ${ep.title}`;
     episodeImageCont.style.display = '';
+
+    const ttsSeriesTag = document.getElementById('ttsSeriesTag');
+    const ttsEpisodeTitle = document.getElementById('ttsEpisodeTitle');
+    const ttsCoverImg = document.getElementById('ttsCoverImg');
+
+    if (ttsSeriesTag) ttsSeriesTag.textContent = seriesTitle;
+    if (ttsEpisodeTitle) ttsEpisodeTitle.textContent = `EP. ${String(ep.episodeNumber).padStart(2, '0')} — ${ep.title}`;
+    if (ttsCoverImg) ttsCoverImg.src = imgSrc;
 
     // Badge
     episodeNumberBadge.textContent = `EP. ${String(ep.episodeNumber).padStart(2, '0')}`;
@@ -724,13 +733,16 @@ function broadcastAudioState() {
         saveAudiobookProgress(currentEpIndex, pct, currentTime);
     }
 
+    const seriesTitle = activeSeriesId === 'cosmic-treehouse-explorers' ? 'The Cosmic Treehouse Explorers' : 'The Hybrid Dinosaur Experiment';
+    const defaultCover = activeSeriesId === 'cosmic-treehouse-explorers' ? 'images/cosmic-treehouse-cover.png' : 'images/hybrid-dino-cover.png';
+
     if (window.parent && window.parent !== window) {
         window.parent.postMessage({
             type: 'AUDIOBOOK_STATE',
             isPlaying: TTS.isPlaying,
-            title: ep ? `Ep. ${ep.episodeNumber}: ${ep.title}` : 'The Hybrid Dinosaur Experiment',
-            seriesTitle: 'The Hybrid Dinosaur Experiment',
-            coverUrl: ep && ep.imageUrl ? ep.imageUrl : 'images/hybrid-dino-cover.png',
+            title: ep ? `Ep. ${ep.episodeNumber}: ${ep.title}` : seriesTitle,
+            seriesTitle: seriesTitle,
+            coverUrl: ep && ep.imageUrl ? ep.imageUrl : defaultCover,
             progressPercent: pct
         }, '*');
     }
