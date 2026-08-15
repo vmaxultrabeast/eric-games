@@ -1651,10 +1651,31 @@ function saveProgress() {
 
 function saveSessionState() {
   if (currentSession) {
-    localStorage.setItem('dinoscript_current_session', JSON.stringify(currentSession));
+    const jsonStr = JSON.stringify(currentSession);
+    localStorage.setItem('dinoscript_current_session', jsonStr);
+
+    if (window._dinoFirestore) {
+      const user = getArcadeUser();
+      if (user && user.uid) {
+        try {
+          window._dinoFirestore.collection('users').doc(user.uid).collection('saves').doc('dinoscript_session').set({
+            sessionData: jsonStr,
+            savedAt: new Date().toISOString()
+          }, { merge: true }).catch(() => {});
+        } catch(e) {}
+      }
+    }
   } else {
     localStorage.removeItem('dinoscript_current_session');
     localStorage.removeItem('spelling_bee_current_session');
+    if (window._dinoFirestore) {
+      const user = getArcadeUser();
+      if (user && user.uid) {
+        try {
+          window._dinoFirestore.collection('users').doc(user.uid).collection('saves').doc('dinoscript_session').delete().catch(() => {});
+        } catch(e) {}
+      }
+    }
   }
 }
 
@@ -1662,18 +1683,41 @@ function loadSessionState() {
   try {
     const d = localStorage.getItem('dinoscript_current_session') || localStorage.getItem('spelling_bee_current_session');
     if (d) {
-      currentSession = JSON.parse(d);
-      document.getElementById('start-screen').classList.add('hidden');
-      document.getElementById('end-screen').classList.add('hidden');
-      document.getElementById('quiz-screen').classList.remove('hidden');
-      showCurrentWord();
-      return true;
+      const parsed = JSON.parse(d);
+      if (parsed && parsed.words && Array.isArray(parsed.words) && typeof parsed.current === 'number' && parsed.current < parsed.words.length) {
+        currentSession = parsed;
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+
+        if (currentSession.subject) {
+          document.querySelectorAll('#subject-selector .sel-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.subject === currentSession.subject);
+          });
+        }
+        if (currentSession.grade) {
+          document.querySelectorAll('#grade-selector .sel-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.grade === String(currentSession.grade));
+          });
+        }
+        if (currentSession.mode) {
+          document.querySelectorAll('#mode-selector .sel-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.mode === currentSession.mode);
+          });
+        }
+
+        showCurrentWord();
+        return true;
+      }
     }
   } catch (e) {
     console.error("Failed to load session state", e);
   }
   return false;
 }
+
+// Automatically restore active unit session on page load
+loadSessionState();
 
 // ==========================================================
 // SESSION
@@ -4117,6 +4161,20 @@ function setupDinoFirebase() {
           try {
             const hybrids = loadSavedHybrids();
             hybrids.forEach(h => publishToCommunity(h));
+          } catch(e) {}
+
+          // Cloud session sync for unit persistence
+          try {
+            window._dinoFirestore.collection('users').doc(user.uid).collection('saves').doc('dinoscript_session').get()
+              .then(docSnap => {
+                if (docSnap.exists && docSnap.data().sessionData) {
+                  const cloudSession = docSnap.data().sessionData;
+                  if (!localStorage.getItem('dinoscript_current_session')) {
+                    localStorage.setItem('dinoscript_current_session', cloudSession);
+                    loadSessionState();
+                  }
+                }
+              }).catch(() => {});
           } catch(e) {}
         }
       });
