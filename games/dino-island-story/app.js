@@ -297,6 +297,9 @@ function renderEpisodeList() {
         const defaultCover = activeSeriesId === 'cosmic-treehouse-explorers' ? 'images/cosmic-treehouse-cover.png' : 'images/hybrid-dino-cover.png';
         const epImg = (ep.imageUrl && ep.imageUrl.trim() !== '') ? ep.imageUrl : defaultCover;
 
+        const wc = ep.wordCount || (ep.content || '').split(/\s+/).length;
+        const durMins = Math.max(1, Math.round(wc / 150));
+
         item.innerHTML = `
             <div class="ep-number-col" style="display:flex;flex-direction:column;align-items:center;">
                 <img src="${epImg}" alt="${escHtml(ep.title)}" class="ep-list-thumb" style="width:42px;height:42px;border-radius:6px;object-fit:cover;border:1px solid rgba(255,255,255,0.15);">
@@ -304,7 +307,10 @@ function renderEpisodeList() {
             </div>
             <div class="ep-info">
                 <div class="ep-title-text">${escHtml(ep.title)}</div>
-                ${date ? `<div class="ep-date-text">${date}</div>` : ''}
+                <div class="ep-meta-mini" style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--cyan);margin:2px 0;">
+                    <span><i class="fa-solid fa-clock"></i> ${durMins} min</span>
+                    ${date ? `<span style="color:var(--text-dim);">· ${date}</span>` : ''}
+                </div>
                 ${avgText ? `<div class="ep-rating-mini">${avgText}</div>` : ''}
                 <div class="ep-hybrids-mini">${hybridHtml}</div>
             </div>
@@ -369,10 +375,10 @@ function openEpisode(idx) {
         : '';
     episodeDate.innerHTML = `<i class="fa-regular fa-calendar"></i> ${dateStr}`;
 
-    // Read time (avg 220 wpm)
+    // Duration (audio narration length)
     const wc = ep.wordCount || (ep.content || '').split(/\s+/).length;
-    const mins = Math.ceil(wc / 220);
-    episodeReadTime.innerHTML = `<i class="fa-regular fa-clock"></i> ${mins} min read`;
+    const mins = Math.max(1, Math.round(wc / 150));
+    episodeReadTime.innerHTML = `<i class="fa-solid fa-clock"></i> ${mins} min narration`;
 
     // Story content — convert markdown-ish to HTML
     storyContent.innerHTML = renderStoryContent(ep.content || '');
