@@ -708,31 +708,17 @@ body {
 }
 
 /* TTS Thumbnail & Waveform */
-.tts-thumb-container {
-    position: relative;
-    width: 44px;
-    height: 44px;
+.tts-thumb-img {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    max-width: 44px !important;
+    max-height: 44px !important;
     border-radius: 8px;
-    overflow: hidden;
+    object-fit: cover;
     flex-shrink: 0;
     border: 1px solid rgba(255, 255, 255, 0.15);
-    background: #000;
-}
-.tts-thumb-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-.tts-thumb-container .tts-waveform {
-    position: absolute;
-    inset: 0;
-    background: rgba(7, 8, 13, 0.65);
-    backdrop-filter: blur(2px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    padding: 0 4px;
 }
 
 /* TTS info */
