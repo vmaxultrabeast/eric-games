@@ -364,7 +364,7 @@ async function generateAndUploadAudio(storyContentText, episodeNumber) {
         const fs = require('fs');
         const path = require('path');
 
-        console.log(`🎙️ Generating Dramatic Studio Audiobook (en-US-GuyNeural with SSML Drama Engine) for ${chunks.length} chunk(s)...`);
+        console.log(`🎙️ Generating Dramatic Studio Audiobook (en-US-AndrewMultilingualNeural HD Narrator) for ${chunks.length} chunk(s)...`);
         const chunkBuffers = [];
 
         for (let i = 0; i < chunks.length; i++) {
@@ -381,12 +381,10 @@ async function generateAndUploadAudio(storyContentText, episodeNumber) {
 
             // Wrap in Microsoft Neural Expressive SSML
             const ssmlContent = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/10/synthesis/mstts" xml:lang="en-US">
-  <voice name="en-US-GuyNeural">
-    <mstts:expressive style="narrator-dramatic" styledegree="2.0">
-      <prosody rate="-4%" pitch="+1Hz">
-        ${safeChunk}
-      </prosody>
-    </mstts:expressive>
+  <voice name="en-US-AndrewMultilingualNeural">
+    <prosody rate="-3%" pitch="-1Hz">
+      ${safeChunk}
+    </prosody>
   </voice>
 </speak>`;
 
@@ -399,7 +397,7 @@ async function generateAndUploadAudio(storyContentText, episodeNumber) {
                 // Fallback to direct text if SSML style is unsupported on local CLI
                 const tmpTxt = path.join(__dirname, `tmp_ep_${episodeNumber}_${i}.txt`);
                 fs.writeFileSync(tmpTxt, chunks[i], 'utf-8');
-                execSync(`edge-tts --file "${tmpTxt}" --voice en-US-GuyNeural --rate="-5%" --write-media "${tmpMp3}"`);
+                execSync(`edge-tts --file "${tmpTxt}" --voice en-US-AndrewMultilingualNeural --rate="-4%" --write-media "${tmpMp3}"`);
                 try { fs.unlinkSync(tmpTxt); } catch {}
             }
 

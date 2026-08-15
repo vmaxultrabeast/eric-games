@@ -993,16 +993,20 @@ body {
 
 /* ── Series Collection Grid & App Header Buttons ── */
 .header-actions { display: flex; align-items: center; gap: 10px; }
-.nav-collections-btn, .minimize-app-btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 8px 16px;
-    border-radius: 20px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid var(--panel-border);
-    color: var(--text-muted);
+.nav-collections-btn, .minimize-app-btn, .tts-voice-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 16px;
+    background: rgba(0, 240, 255, 0.08);
+    border: 1px solid rgba(0, 240, 255, 0.25);
+    color: var(--cyan);
     font-family: var(--font-ui);
-    font-size: 0.8rem; font-weight: 700;
-    cursor: pointer;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
     transition: all var(--ease);
 }
 .nav-collections-btn:hover, .minimize-app-btn:hover {
