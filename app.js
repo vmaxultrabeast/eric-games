@@ -352,7 +352,6 @@ window.launchGame = async function launchGame(gameId) {
     if (modalGameControls) modalGameControls.textContent = game.controls;
 
     const audiobookIframe = document.getElementById('audiobookIframe');
-    const modalBody       = document.getElementById('modalBody');
 
     if (gameId === 'dino-island-story') {
         const globalAudioPlayer = document.getElementById('globalAudioPlayer');
@@ -362,10 +361,7 @@ window.launchGame = async function launchGame(gameId) {
             if (!audiobookIframe.src || audiobookIframe.src === 'about:blank' || audiobookIframe.src.endsWith('/')) {
                 audiobookIframe.src = `${game.folder}/index.html?v=${Date.now()}`;
             }
-            if (modalBody && audiobookIframe.parentNode !== modalBody) {
-                modalBody.appendChild(audiobookIframe);
-            }
-            audiobookIframe.className = 'audiobook-frame-active';
+            audiobookIframe.style.display = 'block';
         }
         if (gameIframe) {
             gameIframe.style.display = 'none';
@@ -373,10 +369,7 @@ window.launchGame = async function launchGame(gameId) {
         }
     } else {
         if (audiobookIframe) {
-            if (audiobookIframe.parentNode !== document.body) {
-                document.body.appendChild(audiobookIframe);
-            }
-            audiobookIframe.className = 'audiobook-frame-offscreen';
+            audiobookIframe.style.display = 'none';
         }
         if (gameIframe) {
             gameIframe.style.display = 'block';
@@ -396,12 +389,12 @@ window.closeGame = async function closeGame() {
     }
     _activeGameId = null;
 
-    const audiobookIframe = document.getElementById('audiobookIframe');
-    if (audiobookIframe) {
-        if (audiobookIframe.parentNode !== document.body) {
-            document.body.appendChild(audiobookIframe);
-        }
-        audiobookIframe.className = 'audiobook-frame-offscreen';
+    if (gameModal) gameModal.classList.remove('active');
+    document.body.style.overflow = ''; // Restore scrolling
+
+    // Unload regular game iframe to stop arcade game audio/loops (audiobook iframe stays alive)
+    if (gameIframe) {
+        gameIframe.src = '';
     }
 
     if (gameModal) gameModal.classList.remove('active');
