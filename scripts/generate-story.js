@@ -145,7 +145,8 @@ async function main() {
         try {
             const model = genAI.getGenerativeModel({
                 model: modelName,
-                generationConfig: { temperature: 0.90, topP: 0.95, maxOutputTokens: 8192 }
+                systemInstruction: `You are an expert sci-fi novelist writing long-form, highly detailed chapter books (2,200+ words per chapter). You NEVER summarize or outline. You write rich, multi-paragraph prose filled with sensory descriptions, full dialogue exchanges, and step-by-step physical action choreography.`,
+                generationConfig: { temperature: 0.92, topP: 0.95, maxOutputTokens: 8192 }
             });
             const textResult = await model.generateContent(storyPrompt);
             rawText = textResult.response.text();
@@ -507,7 +508,7 @@ TITLE: [A dramatic episode title]
 IMAGE_PROMPT: [2-3 sentences describing the most cinematic scene from this episode for an AI image generator. Mention specific hybrids, environment details, lighting, mood. Photorealistic cinematic concept art style.]
 
 CONTENT:
-[Full episode text, MUST BE AT LEAST 2,200 WORDS (~10-minute read). Start with **Previously on Isla Fragmentum...** in bold. Third-person narrative. Do NOT use markdown headers (#, ##, ###) or hashtags anywhere in the text. Write plain narrative prose.]
+[Full episode text. MUST BE AT LEAST 15-20 DETAILED PARAGRAPHS (2,200 to 2,800 words total). Start with **Previously on Isla Fragmentum...** in bold. Do NOT write outlines, bullet points, or brief summaries. Write complete, expansive narrative prose with full character dialogue, environmental descriptions, and action choreography. Do NOT use markdown headers (#, ##) or hashtags anywhere in the text.]
 
 EPISODE_SUMMARY:
 [4-6 sentences summarizing this episode's key events, characters involved, and changes.]
