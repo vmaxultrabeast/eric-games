@@ -265,54 +265,73 @@ async function generateAndUploadImage(parsed, episodeNumber) {
         `epic 16:9 widescreen composition, ultra-sharp focus, vivid color grade: ${rawPrompt}`;
 
     const candidateModels = [
-        'nano-banana-pro-preview',
-        'gemini-2.5-flash-image',
         'imagen-3.0-generate-002',
+        'imagen-3.0-fast-generate-001',
         'imagen-3.0-generate-001',
-        'imagen-3.0-fast-generate-001'
+        'gemini-2.5-flash-image'
     ];
 
     let b64 = null;
-    for (const mName of candidateModels) {
-        try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${mName}:generateImages?key=${process.env.GEMINI_API_KEY}`;
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    prompt: nanoBanaPrompt,
-                    config: {
-                        numberOfImages: 1,
-                        aspectRatio: '16:9',
-                        outputMimeType: 'image/jpeg',
-                        personGeneration: 'DONT_ALLOW'
-                    }
-                })
-            });
+    const apiKey = process.env.GEMINI_API_KEY;
 
-            if (res.ok) {
-                const json = await res.json();
-                if (json.generatedImages && json.generatedImages.length > 0) {
-                    b64 = json.generatedImages[0].image.imageBytes;
-                    console.log(`✨ Nano Bana / Gemini Image success using model "${mName}"`);
-                    break;
+    if (apiKey) {
+        for (const mName of candidateModels) {
+            try {
+                // 1. Try Imagen 3 :predict API
+                const predictUrl = `https://generativelanguage.googleapis.com/v1beta/models/${mName}:predict?key=${apiKey}`;
+                const pRes = await fetch(predictUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        instances: [{ prompt: nanoBanaPrompt }],
+                        parameters: { sampleCount: 1, aspectRatio: '16:9', outputOptions: { mimeType: 'image/jpeg' } }
+                    })
+                });
+
+                if (pRes.ok) {
+                    const json = await pRes.json();
+                    if (json.predictions && json.predictions.length > 0 && json.predictions[0].bytesBase64Encoded) {
+                        b64 = json.predictions[0].bytesBase64Encoded;
+                        console.log(`✨ Imagen 3 / Gemini Image success using model "${mName}" (:predict)`);
+                        break;
+                    }
                 }
+
+                // 2. Try :generateImages API
+                const genUrl = `https://generativelanguage.googleapis.com/v1beta/models/${mName}:generateImages?key=${apiKey}`;
+                const gRes = await fetch(genUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: nanoBanaPrompt,
+                        config: { numberOfImages: 1, aspectRatio: '16:9', outputMimeType: 'image/jpeg', personGeneration: 'DONT_ALLOW' }
+                    })
+                });
+
+                if (gRes.ok) {
+                    const json = await gRes.json();
+                    if (json.generatedImages && json.generatedImages.length > 0) {
+                        b64 = json.generatedImages[0].image.imageBytes;
+                        console.log(`✨ Imagen 3 / Gemini Image success using model "${mName}" (:generateImages)`);
+                        break;
+                    }
+                }
+            } catch (e) {
+                console.warn(`Gemini Image model "${mName}" note:`, e.message);
             }
-        } catch (e) {
-            console.warn(`Gemini Image model "${mName}" note:`, e.message);
         }
     }
 
-    const enhancedPrompt = `Cinematic 8k movie still, photorealistic concept art, Jurassic Park aesthetics, dramatic storm lighting, bioluminescent jungle fog, epic 16:9 widescreen shot: ${rawPrompt}`;
+    const enhancedPrompt = `Cinematic 8k masterpiece movie still, photorealistic concept art, Jurassic Park aesthetics, dramatic storm lighting, bioluminescent jungle fog, epic 16:9 widescreen shot: ${rawPrompt}`;
 
     let imageBytes = null;
     if (b64) {
         imageBytes = Buffer.from(b64, 'base64');
     } else {
-        console.log('🎨 Generating ultra-HD Photorealistic Flux AI scene image...');
-        const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1280&height=720&model=flux-realism&nologo=true&enhance=true&seed=${episodeNumber * 8888}`;
+        console.log('🎨 Generating 1080p Ultra-HD Photorealistic Flux AI scene image...');
+        const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1920&height=1080&model=flux&nologo=true&enhance=true&seed=${episodeNumber * 99991}`;
         const pRes = await fetch(pollUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-        if (!pRes.ok) throw new Error(`Flux Realism AI image fetch failed: ${pRes.status}`);
+        if (!pRes.ok) throw new Error(`Flux AI image fetch failed: ${pRes.status}`);
         const ab = await pRes.arrayBuffer();
         imageBytes = Buffer.from(ab);
     }
