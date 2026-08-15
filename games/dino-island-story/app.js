@@ -246,12 +246,19 @@ function subscribeToEpisodes(seriesId = 'hybrid-dino-experiment') {
     activeSeriesId = seriesId;
     currentEpIndex = -1;
 
-    const fallbacks = seriesId === 'cosmic-treehouse-explorers' ? FALLBACK_COSMIC_EPISODES : FALLBACK_EPISODES;
+    const fallbacks = seriesId === 'cosmic-treehouse-explorers'
+        ? FALLBACK_COSMIC_EPISODES
+        : seriesId === 'time-loop-lunchbox'
+        ? FALLBACK_TIMELOOP_EPISODES
+        : FALLBACK_EPISODES;
+
     applyEpisodes(fallbacks);
 
     try {
         const pathCol = seriesId === 'cosmic-treehouse-explorers'
             ? collection(db, 'cosmic-treehouse', 'episodes', 'all')
+            : seriesId === 'time-loop-lunchbox'
+            ? collection(db, 'time-loop-lunchbox', 'episodes', 'all')
             : collection(db, 'dino-island', 'story', 'episodes');
 
         unsubscribeRemoteEps = onSnapshot(pathCol, (snapshot) => {
@@ -352,8 +359,17 @@ function openEpisode(idx) {
     if (toggleTranscriptText) toggleTranscriptText.textContent = 'Show Text Transcript';
 
     // Episode image & Player Info (always use series cover artwork)
-    const seriesTitle = activeSeriesId === 'cosmic-treehouse-explorers' ? 'The Cosmic Treehouse Explorers' : 'The Hybrid Dinosaur Experiment';
-    const seriesCover = activeSeriesId === 'cosmic-treehouse-explorers' ? 'images/cosmic-treehouse-cover.png' : 'images/hybrid-dino-cover.png';
+    const seriesTitle = activeSeriesId === 'cosmic-treehouse-explorers'
+        ? 'The Cosmic Treehouse Explorers'
+        : activeSeriesId === 'time-loop-lunchbox'
+        ? 'The Time-Loop Lunchbox'
+        : 'The Hybrid Dinosaur Experiment';
+
+    const seriesCover = activeSeriesId === 'cosmic-treehouse-explorers'
+        ? 'images/cosmic-treehouse-cover.png'
+        : activeSeriesId === 'time-loop-lunchbox'
+        ? 'images/time-loop-lunchbox-cover.png'
+        : 'images/hybrid-dino-cover.png';
     episodeImage.src = seriesCover;
     episodeImage.alt = `Illustration for Episode ${ep.episodeNumber}: ${ep.title}`;
     episodeImageCont.style.display = '';
@@ -732,8 +748,17 @@ function broadcastAudioState() {
         saveAudiobookProgress(currentEpIndex, pct, currentTime);
     }
 
-    const seriesTitle = activeSeriesId === 'cosmic-treehouse-explorers' ? 'The Cosmic Treehouse Explorers' : 'The Hybrid Dinosaur Experiment';
-    const defaultCover = activeSeriesId === 'cosmic-treehouse-explorers' ? 'images/cosmic-treehouse-cover.png' : 'images/hybrid-dino-cover.png';
+    const seriesTitle = activeSeriesId === 'cosmic-treehouse-explorers'
+        ? 'The Cosmic Treehouse Explorers'
+        : activeSeriesId === 'time-loop-lunchbox'
+        ? 'The Time-Loop Lunchbox'
+        : 'The Hybrid Dinosaur Experiment';
+
+    const defaultCover = activeSeriesId === 'cosmic-treehouse-explorers'
+        ? 'images/cosmic-treehouse-cover.png'
+        : activeSeriesId === 'time-loop-lunchbox'
+        ? 'images/time-loop-lunchbox-cover.png'
+        : 'images/hybrid-dino-cover.png';
 
     if (window.parent && window.parent !== window) {
         window.parent.postMessage({
@@ -894,10 +919,12 @@ function initTTS() {
         if (activeSeriesId !== seriesId) {
             subscribeToEpisodes(seriesId);
         }
-        const cardIsla   = document.getElementById('seriesCardIsla');
-        const cardCosmic = document.getElementById('seriesCardCosmic');
-        if (cardIsla)   cardIsla.classList.toggle('active-series', seriesId === 'hybrid-dino-experiment');
-        if (cardCosmic) cardCosmic.classList.toggle('active-series', seriesId === 'cosmic-treehouse-explorers');
+        const cardIsla     = document.getElementById('seriesCardIsla');
+        const cardCosmic   = document.getElementById('seriesCardCosmic');
+        const cardTimeLoop = document.getElementById('seriesCardTimeLoop');
+        if (cardIsla)     cardIsla.classList.toggle('active-series', seriesId === 'hybrid-dino-experiment');
+        if (cardCosmic)   cardCosmic.classList.toggle('active-series', seriesId === 'cosmic-treehouse-explorers');
+        if (cardTimeLoop) cardTimeLoop.classList.toggle('active-series', seriesId === 'time-loop-lunchbox');
     }
 
     if (seriesCardIsla) {
@@ -917,6 +944,15 @@ function initTTS() {
         });
     }
 
+    const seriesCardTimeLoop = document.getElementById('seriesCardTimeLoop');
+    if (seriesCardTimeLoop) {
+        seriesCardTimeLoop.addEventListener('click', (e) => {
+            e.preventDefault();
+            selectSeries('time-loop-lunchbox');
+            openSeriesDetail();
+        });
+    }
+
     const scPlayBtnIsla = document.getElementById('scPlayBtnIsla');
     if (scPlayBtnIsla) {
         scPlayBtnIsla.addEventListener('click', (e) => {
@@ -928,6 +964,24 @@ function initTTS() {
     }
 
     const scPlayBtnCosmic = document.getElementById('scPlayBtnCosmic');
+    if (scPlayBtnCosmic) {
+        scPlayBtnCosmic.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            selectSeries('cosmic-treehouse-explorers');
+            playSeriesAndStartAudio();
+        });
+    }
+
+    const scPlayBtnTimeLoop = document.getElementById('scPlayBtnTimeLoop');
+    if (scPlayBtnTimeLoop) {
+        scPlayBtnTimeLoop.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            selectSeries('time-loop-lunchbox');
+            playSeriesAndStartAudio();
+        });
+    }
     if (scPlayBtnCosmic) {
         scPlayBtnCosmic.addEventListener('click', (e) => {
             e.preventDefault();
