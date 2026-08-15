@@ -973,24 +973,11 @@ function initTTS() {
         if (episodes.length > 0) {
             const targetIdx = currentEpIndex >= 0 ? currentEpIndex : 0;
             openEpisode(targetIdx);
-            if ('speechSynthesis' in window && window.speechSynthesis) {
-                window.speechSynthesis.resume();
-            }
-            if (TTS.isPlaying || TTS.isPaused) {
-                ttsStop();
-            }
-            setTimeout(() => {
-                ttsStart(0);
-            }, 100);
         } else {
             const waitCheck = setInterval(() => {
                 if (episodes.length > 0) {
                     clearInterval(waitCheck);
                     openEpisode(0);
-                    if ('speechSynthesis' in window && window.speechSynthesis) {
-                        window.speechSynthesis.resume();
-                    }
-                    setTimeout(() => ttsStart(0), 100);
                 }
             }, 200);
             setTimeout(() => clearInterval(waitCheck), 4000);
@@ -1221,16 +1208,17 @@ function initTTS() {
         }
 
         if (ttsVoiceSelect) {
-            ttsVoiceSelect.addEventListener('change', () => {
+            ttsVoiceSelect.addEventListener('change', (e) => {
+                if (!e || !e.isTrusted) return;
                 const val = ttsVoiceSelect.value;
                 if (val === 'studio') {
                     TTS.selectedVoice = null;
-                    ttsStart(0);
+                    if (TTS.isPlaying) ttsStart(TTS.currentIdx >= 0 ? TTS.currentIdx : 0);
                 } else {
                     TTS.selectedVoice = TTS.voices.find(v => v.name === val) || null;
                     TTS.usingStudioAudio = false;
                     if (TTS.audioEl) TTS.audioEl.pause();
-                    ttsFallbackWebSpeech(TTS.currentIdx >= 0 ? TTS.currentIdx : 0);
+                    if (TTS.isPlaying) ttsFallbackWebSpeech(TTS.currentIdx >= 0 ? TTS.currentIdx : 0);
                 }
             });
         }
