@@ -92,6 +92,7 @@ const TTS = {
     currentIdx:      -1,   // sentence currently being spoken
     playingEpIndex:  -1,   // index of episode currently playing/loaded in audio player
     playingSeriesId: null, // seriesId of episode currently playing
+    playingUniqueId: null, // globally unique ID of episode currently playing (e.g. hybrid-dino-experiment_ep1)
     playingEpTitle:  null, // title of episode currently playing
     playingCoverUrl: null, // cover image URL of series currently playing
     rate:            1.0,  // playback rate
@@ -105,6 +106,12 @@ const TTS = {
     audioEl:         null, // HTMLAudioElement for studio MP3
     usingStudioAudio: false,
 };
+
+function getEpisodeUniqueId(ep, seriesId = activeSeriesId) {
+    if (!ep) return null;
+    const epNum = ep.episodeNumber || 1;
+    return `${seriesId}_ep${epNum}`;
+}
 
 const FALLBACK_EPISODES = [
     {
@@ -870,7 +877,9 @@ function initTTS() {
             openEpisode(0);
         }
 
-        const isSameEpisode = (TTS.playingSeriesId === activeSeriesId) && (TTS.playingEpIndex === currentEpIndex);
+        const currentEp = episodes[currentEpIndex];
+        const currentUniqueId = getEpisodeUniqueId(currentEp, activeSeriesId);
+        const isSameEpisode = TTS.playingUniqueId && (TTS.playingUniqueId === currentUniqueId);
 
         if (isSameEpisode) {
             if (TTS.isPlaying) {
@@ -1304,6 +1313,7 @@ function ttsStart(fromIdx) {
     TTS.currentIdx = fromIdx;
     TTS.playingEpIndex = currentEpIndex;
     TTS.playingSeriesId = activeSeriesId;
+    TTS.playingUniqueId = getEpisodeUniqueId(currentEp, activeSeriesId);
     TTS.playingEpTitle = currentEp ? `EP. ${String(currentEp.episodeNumber).padStart(2, '0')} — ${currentEp.title}` : '';
     TTS.playingCoverUrl = activeSeriesId === 'cosmic-treehouse-explorers'
         ? 'images/cosmic-treehouse-cover.png'
@@ -1435,13 +1445,16 @@ function ttsStop() {
         TTS.audioEl.pause();
         TTS.audioEl.currentTime = 0;
     }
-    TTS.isPlaying  = false;
-    TTS.isPaused   = false;
-    TTS.currentIdx = -1;
-    TTS.playingEpIndex = -1;
+    TTS.isPlaying       = false;
+    TTS.isPaused        = false;
+    TTS.currentIdx      = -1;
+    TTS.playingEpIndex  = -1;
     TTS.playingSeriesId = null;
+    TTS.playingUniqueId = null;
+    TTS.playingEpTitle  = null;
+    TTS.playingCoverUrl = null;
 
-    updatePlayerBarUI(-1);
+    updatePlayerBarUI();
     broadcastAudioState();
 
     ttsHighlightClear();
@@ -1463,9 +1476,12 @@ function ttsSetPlayingUI(playing) {
     const icon = btnImage.querySelector('i');
     const text = btnImage.querySelector('span');
 
-    const isSameSeries = TTS.playingSeriesId === activeSeriesId;
-    const isThisEpPlaying = playing && isSameSeries && TTS.playingEpIndex === currentEpIndex;
-    const isThisEpPaused  = TTS.isPaused && isSameSeries && TTS.playingEpIndex === currentEpIndex;
+    const currentEp = episodes[currentEpIndex];
+    const currentUniqueId = getEpisodeUniqueId(currentEp, activeSeriesId);
+    const isSameEpisode = TTS.playingUniqueId && (TTS.playingUniqueId === currentUniqueId);
+
+    const isThisEpPlaying = playing && isSameEpisode;
+    const isThisEpPaused  = TTS.isPaused && isSameEpisode;
 
     if (isThisEpPlaying) {
         if (icon) icon.className = 'fa-solid fa-pause';
