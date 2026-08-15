@@ -1162,15 +1162,20 @@ function ttsPause() {
 
 // ── Resume ─────────────────────────────────────────────────────────────────
 function ttsResume() {
-    if (!TTS.isPaused) return;
     if (TTS.usingStudioAudio && TTS.audioEl) {
-        TTS.audioEl.play().catch(err => console.warn('Resume failed:', err));
-    } else if (window.speechSynthesis) {
+        if (TTS.audioEl.paused) {
+            TTS.audioEl.play().catch(err => console.warn('Resume failed:', err));
+        }
+    } else if (TTS.isPaused && window.speechSynthesis) {
         window.speechSynthesis.resume();
+    } else if (!TTS.isPlaying) {
+        ttsStart(TTS.currentIdx >= 0 ? TTS.currentIdx : 0);
+        return;
     }
     TTS.isPaused  = false;
     TTS.isPlaying = true;
     ttsSetPlayingUI(true);
+    broadcastAudioState();
 }
 
 // ── Stop completely ────────────────────────────────────────────────────────

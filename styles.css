@@ -2110,7 +2110,7 @@ footer {
     position: fixed;
     bottom: 24px;
     left: 24px;
-    z-index: 999;
+    z-index: 10002;
     width: 380px;
     max-width: calc(100vw - 48px);
     background: rgba(13, 15, 26, 0.92);
@@ -2229,13 +2229,13 @@ footer {
 /* ── Persistent Off-Screen & Active Audiobook Frame (No DOM re-parenting) ── */
 #audiobookIframe.audiobook-frame-offscreen {
     position: fixed !important;
-    top: -9999px !important;
-    left: -9999px !important;
-    width: 1px !important;
-    height: 1px !important;
-    opacity: 0.001 !important;
+    bottom: 24px !important;
+    left: 24px !important;
+    width: 380px !important;
+    height: 100px !important;
+    opacity: 0.01 !important;
     pointer-events: none !important;
-    z-index: -1 !important;
+    z-index: 9999 !important;
     display: block !important;
 }
 #audiobookIframe.audiobook-frame-active {

@@ -1598,6 +1598,7 @@ function initAuthModal() {
 
     // Send command to child iframe (dino-island-story)
     function sendAudioCommand(action) {
+        if (action === 'play') isClosedByUser = false;
         const iframe = document.getElementById('audiobookIframe') || document.getElementById('gameIframe');
         if (iframe && iframe.contentWindow) {
             iframe.contentWindow.postMessage({ type: 'AUDIOBOOK_COMMAND', action }, '*');
@@ -1617,9 +1618,16 @@ function initAuthModal() {
         }
 
         if (data.type !== 'AUDIOBOOK_STATE') return;
-        if (isClosedByUser && !data.isPlaying) return;
 
-        isClosedByUser = false;
+        if (data.isPlaying) {
+            isClosedByUser = false;
+        }
+
+        if (isClosedByUser && !data.isPlaying) {
+            playerEl.classList.add('hidden');
+            return;
+        }
+
         playerEl.classList.remove('hidden');
         if (data.title) gapTitle.textContent = data.title;
         if (data.seriesTitle) gapSeriesTag.textContent = data.seriesTitle;
