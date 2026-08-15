@@ -224,7 +224,7 @@ function applyEpisodes(newEps) {
 
     const scEpCountIsla = document.getElementById('scEpCountIsla');
     if (scEpCountIsla) {
-        scEpCountIsla.textContent = `${episodes.length} Episode${episodes.length !== 1 ? 's' : ''} · Studio Audio`;
+        scEpCountIsla.textContent = `${episodes.length} Episode${episodes.length !== 1 ? 's' : ''}`;
     }
 
     renderEpisodeList();
