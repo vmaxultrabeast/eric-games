@@ -326,7 +326,7 @@ filterContainer.addEventListener('click', (e) => {
 // Track which game is currently open (for sync on close)
 let _activeGameId = null;
 
-async function launchGame(gameId) {
+window.launchGame = async function launchGame(gameId) {
     const game = GAMES_REGISTRY.find(g => g.id === gameId);
     if (!game) return;
 
@@ -338,18 +338,18 @@ async function launchGame(gameId) {
         localStorage.setItem('arcade_uid', user.uid);
     }
 
-    // Pull latest cloud save into localStorage before launching (if logged in)
+    // Pull latest cloud save into localStorage before launching (if logged in & helper exists)
     const uid = user?.uid;
-    if (uid && GAME_SAVE_KEYS[gameId]) {
-        await pullGameSave(uid, gameId);
+    if (uid && typeof pullGameSave === 'function' && typeof GAME_SAVE_KEYS !== 'undefined' && GAME_SAVE_KEYS[gameId]) {
+        try { await pullGameSave(uid, gameId); } catch (e) { console.warn(e); }
     }
 
     _activeGameId = gameId;
 
     // Set modal content details
-    modalGameTitle.textContent = game.title;
-    modalGameTag.textContent = game.category;
-    modalGameControls.textContent = game.controls;
+    if (modalGameTitle) modalGameTitle.textContent = game.title;
+    if (modalGameTag) modalGameTag.textContent = game.category;
+    if (modalGameControls) modalGameControls.textContent = game.controls;
 
     const audiobookIframe = document.getElementById('audiobookIframe');
     const modalBody = document.getElementById('modalBody');
@@ -382,15 +382,14 @@ async function launchGame(gameId) {
     }
 
     // Open Modal
-    gameModal.classList.add('active');
+    if (gameModal) gameModal.classList.add('active');
     document.body.style.overflow = 'hidden'; // Stop background scrolling
-}
+};
 
-async function closeGame() {
-    // Push latest localStorage save to Firestore before closing (if logged in)
+window.closeGame = async function closeGame() {
     const uid = window._arcadeUser?.uid;
-    if (uid && _activeGameId) {
-        await pushGameSave(uid, _activeGameId);
+    if (uid && typeof pushGameSave === 'function' && _activeGameId) {
+        try { await pushGameSave(uid, _activeGameId); } catch (e) { console.warn(e); }
     }
     _activeGameId = null;
 
@@ -402,7 +401,7 @@ async function closeGame() {
         audiobookIframe.className = 'audiobook-frame-offscreen';
     }
 
-    gameModal.classList.remove('active');
+    if (gameModal) gameModal.classList.remove('active');
     document.body.style.overflow = ''; // Restore scrolling
 
     // Unload regular game iframe to stop arcade game audio/loops (audiobook iframe stays alive)
@@ -411,9 +410,12 @@ async function closeGame() {
     }
 
     // Reset full screen view if active
-    modalContent.classList.remove('fullscreen');
-    modalFullscreenBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
-}
+    if (modalContent) modalContent.classList.remove('fullscreen');
+    if (modalFullscreenBtn) modalFullscreenBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
+};
+
+const launchGame = window.launchGame;
+const closeGame  = window.closeGame;
 
 // Event Listeners for Modal controls
 modalCloseBtn.addEventListener('click', closeGame);
