@@ -340,8 +340,6 @@ function renderEpisodeList() {
 
 // ── Update player bar UI for active playing episode ────────────────────────
 function updatePlayerBarUI(idx) {
-    if (idx < 0 || idx >= episodes.length) return;
-    const ep = episodes[idx];
     const seriesTitle = activeSeriesId === 'cosmic-treehouse-explorers'
         ? 'The Cosmic Treehouse Explorers'
         : activeSeriesId === 'time-loop-lunchbox'
@@ -359,8 +357,14 @@ function updatePlayerBarUI(idx) {
     const ttsCoverImg = document.getElementById('ttsCoverImg');
 
     if (ttsSeriesTag) ttsSeriesTag.textContent = seriesTitle;
-    if (ttsEpisodeTitle) ttsEpisodeTitle.textContent = `EP. ${String(ep.episodeNumber).padStart(2, '0')} — ${ep.title}`;
     if (ttsCoverImg) ttsCoverImg.src = seriesCover;
+
+    if (idx >= 0 && idx < episodes.length) {
+        const ep = episodes[idx];
+        if (ttsEpisodeTitle) ttsEpisodeTitle.textContent = `EP. ${String(ep.episodeNumber).padStart(2, '0')} — ${ep.title}`;
+    } else {
+        if (ttsEpisodeTitle) ttsEpisodeTitle.textContent = seriesTitle;
+    }
 }
 
 // ── Open an episode ───────────────────────────────────────────────────────
@@ -399,9 +403,11 @@ function openEpisode(idx) {
     episodeImage.alt = `Illustration for Episode ${ep.episodeNumber}: ${ep.title}`;
     episodeImageCont.style.display = '';
 
-    // Only update the player bar UI if an audio track is NOT currently playing/paused from another episode
-    if ((!TTS.isPlaying && !TTS.isPaused) || TTS.playingEpIndex === idx) {
-        updatePlayerBarUI(idx);
+    // Player bar remains locked to active playing episode (or series title if stopped)
+    if (TTS.playingEpIndex >= 0) {
+        updatePlayerBarUI(TTS.playingEpIndex);
+    } else {
+        updatePlayerBarUI(-1);
     }
 
     // Badge
@@ -1398,6 +1404,11 @@ function ttsStop() {
     TTS.isPlaying  = false;
     TTS.isPaused   = false;
     TTS.currentIdx = -1;
+    TTS.playingEpIndex = -1;
+    TTS.playingSeriesId = null;
+
+    updatePlayerBarUI(-1);
+    broadcastAudioState();
 
     ttsHighlightClear();
     listenBtn.classList.remove('listening');
