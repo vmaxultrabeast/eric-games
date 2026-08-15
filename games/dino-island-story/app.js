@@ -410,6 +410,9 @@ function openEpisode(idx) {
         updatePlayerBarUI(-1);
     }
 
+    // Sync Play Episode button state for newly opened episode
+    ttsSetPlayingUI(TTS.isPlaying);
+
     // Badge
     episodeNumberBadge.textContent = `EP. ${String(ep.episodeNumber).padStart(2, '0')}`;
 
@@ -1434,27 +1437,28 @@ function ttsSetPlayingUI(playing) {
     if (ttsPlayPauseIcon) ttsPlayPauseIcon.className = playing ? 'fa-solid fa-pause' : 'fa-solid fa-play';
     if (ttsWaveform) ttsWaveform.classList.toggle('playing', playing);
 
-    const isCurrentEpActive = (playing || TTS.isPaused) && TTS.playingEpIndex === currentEpIndex;
-    const isPlayingCurrent = playing && TTS.playingEpIndex === currentEpIndex;
-
     const btnImage = document.getElementById('listenBtn');
-    const btnMeta  = document.getElementById('listenBtnMeta');
+    if (!btnImage) return;
 
-    [btnImage, btnMeta].forEach(btn => {
-        if (!btn) return;
-        const icon = btn.querySelector('i');
-        const text = btn.querySelector('span');
+    const icon = btnImage.querySelector('i');
+    const text = btnImage.querySelector('span');
 
-        if (isPlayingCurrent) {
-            if (icon) icon.className = 'fa-solid fa-pause';
-            if (text) text.textContent = 'Pause Episode';
-            btn.classList.add('listening');
-        } else {
-            if (icon) icon.className = 'fa-solid fa-play';
-            if (text) text.textContent = isCurrentEpActive ? 'Resume Episode' : 'Play Episode';
-            btn.classList.remove('listening');
-        }
-    });
+    const isThisEpPlaying = playing && TTS.playingEpIndex === currentEpIndex;
+    const isThisEpPaused  = TTS.isPaused && TTS.playingEpIndex === currentEpIndex;
+
+    if (isThisEpPlaying) {
+        if (icon) icon.className = 'fa-solid fa-pause';
+        if (text) text.textContent = 'Pause Episode';
+        btnImage.classList.add('listening');
+    } else if (isThisEpPaused) {
+        if (icon) icon.className = 'fa-solid fa-play';
+        if (text) text.textContent = 'Resume Episode';
+        btnImage.classList.remove('listening');
+    } else {
+        if (icon) icon.className = 'fa-solid fa-play';
+        if (text) text.textContent = 'Play Episode';
+        btnImage.classList.remove('listening');
+    }
 }
 
 // ── Highlight a sentence span ──────────────────────────────────────────────
