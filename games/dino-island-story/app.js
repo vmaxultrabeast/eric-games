@@ -88,19 +88,21 @@ const readerPanel        = document.getElementById('readerPanel');
 
 // ── TTS State ─────────────────────────────────────────────────────────────
 const TTS = {
-    sentences:      [],   // array of plain-text sentences
-    currentIdx:     -1,   // sentence currently being spoken
-    playingEpIndex: -1,   // index of episode currently playing/loaded in audio player
+    sentences:       [],   // array of plain-text sentences
+    currentIdx:      -1,   // sentence currently being spoken
+    playingEpIndex:  -1,   // index of episode currently playing/loaded in audio player
     playingSeriesId: null, // seriesId of episode currently playing
-    rate:           1.0,  // playback rate
-    pitch:          0.92, // storytelling pitch (slightly deeper, dramatic)
-    selectedVoice:  null,
-    voices:         [],
-    isPlaying:      false,
-    isPaused:       false,
-    utterance:      null,
-    studioAudioUrl: null, // MP3 URL if episode has pre-rendered studio audio
-    audioEl:        null, // HTMLAudioElement for studio MP3
+    playingEpTitle:  null, // title of episode currently playing
+    playingCoverUrl: null, // cover image URL of series currently playing
+    rate:            1.0,  // playback rate
+    pitch:           0.92, // storytelling pitch (slightly deeper, dramatic)
+    selectedVoice:   null,
+    voices:          [],
+    isPlaying:       false,
+    isPaused:        false,
+    utterance:       null,
+    studioAudioUrl:  null, // MP3 URL if episode has pre-rendered studio audio
+    audioEl:         null, // HTMLAudioElement for studio MP3
     usingStudioAudio: false,
 };
 
@@ -339,32 +341,41 @@ function renderEpisodeList() {
 }
 
 // ── Update player bar UI for active playing episode ────────────────────────
-function updatePlayerBarUI(idx) {
-    const seriesTitle = activeSeriesId === 'cosmic-treehouse-explorers'
+function updatePlayerBarUI() {
+    const ttsSeriesTag    = document.getElementById('ttsSeriesTag');
+    const ttsEpisodeTitle = document.getElementById('ttsEpisodeTitle');
+    const ttsCoverImg     = document.getElementById('ttsCoverImg');
+
+    if (!TTS.playingSeriesId || TTS.playingEpIndex < 0) {
+        // Nothing playing — display current viewer series title/cover on player bar
+        const currentViewSeriesTitle = activeSeriesId === 'cosmic-treehouse-explorers'
+            ? 'The Cosmic Treehouse Explorers'
+            : activeSeriesId === 'time-loop-lunchbox'
+            ? 'The Time-Loop Lunchbox'
+            : 'The Hybrid Dinosaur Experiment';
+
+        const currentViewCover = activeSeriesId === 'cosmic-treehouse-explorers'
+            ? 'images/cosmic-treehouse-cover.png'
+            : activeSeriesId === 'time-loop-lunchbox'
+            ? 'images/time-loop-lunchbox-cover.png'
+            : 'images/hybrid-dino-cover.png';
+
+        if (ttsSeriesTag) ttsSeriesTag.textContent = currentViewSeriesTitle;
+        if (ttsEpisodeTitle) ttsEpisodeTitle.textContent = currentViewSeriesTitle;
+        if (ttsCoverImg) ttsCoverImg.src = currentViewCover;
+        return;
+    }
+
+    // Audio IS playing or paused — lock player bar strictly to playing series & episode!
+    const playingSeriesTitle = TTS.playingSeriesId === 'cosmic-treehouse-explorers'
         ? 'The Cosmic Treehouse Explorers'
-        : activeSeriesId === 'time-loop-lunchbox'
+        : TTS.playingSeriesId === 'time-loop-lunchbox'
         ? 'The Time-Loop Lunchbox'
         : 'The Hybrid Dinosaur Experiment';
 
-    const seriesCover = activeSeriesId === 'cosmic-treehouse-explorers'
-        ? 'images/cosmic-treehouse-cover.png'
-        : activeSeriesId === 'time-loop-lunchbox'
-        ? 'images/time-loop-lunchbox-cover.png'
-        : 'images/hybrid-dino-cover.png';
-
-    const ttsSeriesTag = document.getElementById('ttsSeriesTag');
-    const ttsEpisodeTitle = document.getElementById('ttsEpisodeTitle');
-    const ttsCoverImg = document.getElementById('ttsCoverImg');
-
-    if (ttsSeriesTag) ttsSeriesTag.textContent = seriesTitle;
-    if (ttsCoverImg) ttsCoverImg.src = seriesCover;
-
-    if (idx >= 0 && idx < episodes.length) {
-        const ep = episodes[idx];
-        if (ttsEpisodeTitle) ttsEpisodeTitle.textContent = `EP. ${String(ep.episodeNumber).padStart(2, '0')} — ${ep.title}`;
-    } else {
-        if (ttsEpisodeTitle) ttsEpisodeTitle.textContent = seriesTitle;
-    }
+    if (ttsSeriesTag) ttsSeriesTag.textContent = playingSeriesTitle;
+    if (ttsEpisodeTitle) ttsEpisodeTitle.textContent = TTS.playingEpTitle || playingSeriesTitle;
+    if (ttsCoverImg) ttsCoverImg.src = TTS.playingCoverUrl;
 }
 
 // ── Open an episode ───────────────────────────────────────────────────────
@@ -403,12 +414,8 @@ function openEpisode(idx) {
     episodeImage.alt = `Illustration for Episode ${ep.episodeNumber}: ${ep.title}`;
     episodeImageCont.style.display = '';
 
-    // Player bar remains locked to active playing episode (or series title if stopped)
-    if (TTS.playingEpIndex >= 0) {
-        updatePlayerBarUI(TTS.playingEpIndex);
-    } else {
-        updatePlayerBarUI(-1);
-    }
+    // Player bar remains strictly locked to playing episode (or current view if stopped)
+    updatePlayerBarUI();
 
     // Sync Play Episode button state for newly opened episode
     ttsSetPlayingUI(TTS.isPlaying);
@@ -770,35 +777,37 @@ function updateResumeUI() {
 // ==========================================================================
 
 function broadcastAudioState() {
-    const activeEpIdx = (TTS.playingEpIndex >= 0 && TTS.playingEpIndex < episodes.length) ? TTS.playingEpIndex : currentEpIndex;
-    const ep = episodes[activeEpIdx];
     const duration = (TTS.audioEl && TTS.audioEl.duration) ? TTS.audioEl.duration : 1;
     const currentTime = (TTS.audioEl && TTS.audioEl.currentTime) ? TTS.audioEl.currentTime : 0;
     const pct = TTS.usingStudioAudio ? Math.floor((currentTime / duration) * 100) : 50;
 
-    if (activeEpIdx >= 0) {
-        saveAudiobookProgress(activeEpIdx, pct, currentTime);
+    if (TTS.playingEpIndex >= 0) {
+        saveAudiobookProgress(TTS.playingEpIndex, pct, currentTime);
     }
 
-    const seriesTitle = activeSeriesId === 'cosmic-treehouse-explorers'
+    const playingSeriesId = TTS.playingSeriesId || activeSeriesId;
+
+    const playingSeriesTitle = playingSeriesId === 'cosmic-treehouse-explorers'
         ? 'The Cosmic Treehouse Explorers'
-        : activeSeriesId === 'time-loop-lunchbox'
+        : playingSeriesId === 'time-loop-lunchbox'
         ? 'The Time-Loop Lunchbox'
         : 'The Hybrid Dinosaur Experiment';
 
-    const defaultCover = activeSeriesId === 'cosmic-treehouse-explorers'
-        ? 'images/cosmic-treehouse-cover.png'
-        : activeSeriesId === 'time-loop-lunchbox'
-        ? 'images/time-loop-lunchbox-cover.png'
-        : 'images/hybrid-dino-cover.png';
+    const playingCover = TTS.playingCoverUrl || (
+        playingSeriesId === 'cosmic-treehouse-explorers'
+            ? 'images/cosmic-treehouse-cover.png'
+            : playingSeriesId === 'time-loop-lunchbox'
+            ? 'images/time-loop-lunchbox-cover.png'
+            : 'images/hybrid-dino-cover.png'
+    );
 
     if (window.parent && window.parent !== window) {
         window.parent.postMessage({
             type: 'AUDIOBOOK_STATE',
             isPlaying: TTS.isPlaying,
-            title: ep ? `Ep. ${ep.episodeNumber}: ${ep.title}` : seriesTitle,
-            seriesTitle: seriesTitle,
-            coverUrl: ep && ep.imageUrl ? ep.imageUrl : defaultCover,
+            title: TTS.playingEpTitle || playingSeriesTitle,
+            seriesTitle: playingSeriesTitle,
+            coverUrl: playingCover,
             progressPercent: pct
         }, '*');
     }
@@ -968,6 +977,9 @@ function initTTS() {
         if (cardIsla)     cardIsla.classList.toggle('active-series', seriesId === 'hybrid-dino-experiment');
         if (cardCosmic)   cardCosmic.classList.toggle('active-series', seriesId === 'cosmic-treehouse-explorers');
         if (cardTimeLoop) cardTimeLoop.classList.toggle('active-series', seriesId === 'time-loop-lunchbox');
+
+        updatePlayerBarUI();
+        ttsSetPlayingUI(TTS.isPlaying);
     }
 
     if (seriesCardIsla) {
@@ -1290,9 +1302,15 @@ function ttsStart(fromIdx) {
     TTS.currentIdx = fromIdx;
     TTS.playingEpIndex = currentEpIndex;
     TTS.playingSeriesId = activeSeriesId;
+    TTS.playingEpTitle = currentEp ? `EP. ${String(currentEp.episodeNumber).padStart(2, '0')} — ${currentEp.title}` : '';
+    TTS.playingCoverUrl = activeSeriesId === 'cosmic-treehouse-explorers'
+        ? 'images/cosmic-treehouse-cover.png'
+        : activeSeriesId === 'time-loop-lunchbox'
+        ? 'images/time-loop-lunchbox-cover.png'
+        : 'images/hybrid-dino-cover.png';
 
     // Update player bar to match the episode actively starting playback
-    updatePlayerBarUI(currentEpIndex);
+    updatePlayerBarUI();
 
     // UI: show bar, animate listen button
     listenBtn.classList.add('listening');
