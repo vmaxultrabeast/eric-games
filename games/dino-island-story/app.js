@@ -294,8 +294,8 @@ function renderEpisodeList() {
             .map(h => `<span class="ep-hybrid-chip">${h}</span>`)
             .join('');
 
-        const defaultCover = activeSeriesId === 'cosmic-treehouse-explorers' ? 'images/cosmic-treehouse-cover.png' : 'images/hybrid-dino-cover.png';
-        const epImg = (ep.imageUrl && ep.imageUrl.trim() !== '') ? ep.imageUrl : defaultCover;
+        const seriesCover = activeSeriesId === 'cosmic-treehouse-explorers' ? 'images/cosmic-treehouse-cover.png' : 'images/hybrid-dino-cover.png';
+        const epImg = seriesCover;
 
         const wc = ep.wordCount || (ep.content || '').split(/\s+/).length;
         const durMins = Math.max(1, Math.round(wc / 150));
@@ -351,11 +351,10 @@ function openEpisode(idx) {
     if (toggleTranscriptBtn) toggleTranscriptBtn.classList.remove('open');
     if (toggleTranscriptText) toggleTranscriptText.textContent = 'Show Text Transcript';
 
-    // Episode image & Player Info (fallback to active series cover artwork if null)
+    // Episode image & Player Info (always use series cover artwork)
     const seriesTitle = activeSeriesId === 'cosmic-treehouse-explorers' ? 'The Cosmic Treehouse Explorers' : 'The Hybrid Dinosaur Experiment';
-    const defaultCover = activeSeriesId === 'cosmic-treehouse-explorers' ? 'images/cosmic-treehouse-cover.png' : 'images/hybrid-dino-cover.png';
-    const imgSrc = (ep.imageUrl && ep.imageUrl.trim() !== '') ? ep.imageUrl : defaultCover;
-    episodeImage.src = imgSrc;
+    const seriesCover = activeSeriesId === 'cosmic-treehouse-explorers' ? 'images/cosmic-treehouse-cover.png' : 'images/hybrid-dino-cover.png';
+    episodeImage.src = seriesCover;
     episodeImage.alt = `Illustration for Episode ${ep.episodeNumber}: ${ep.title}`;
     episodeImageCont.style.display = '';
 
@@ -365,7 +364,7 @@ function openEpisode(idx) {
 
     if (ttsSeriesTag) ttsSeriesTag.textContent = seriesTitle;
     if (ttsEpisodeTitle) ttsEpisodeTitle.textContent = `EP. ${String(ep.episodeNumber).padStart(2, '0')} — ${ep.title}`;
-    if (ttsCoverImg) ttsCoverImg.src = imgSrc;
+    if (ttsCoverImg) ttsCoverImg.src = seriesCover;
 
     // Badge
     episodeNumberBadge.textContent = `EP. ${String(ep.episodeNumber).padStart(2, '0')}`;

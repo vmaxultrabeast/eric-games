@@ -200,14 +200,9 @@ Output ONLY the expanded story text, starting with **Previously on Isla Fragment
         }
     }
 
-    // 3. Generate episode image (Imagen 3 / Pollinations AI fallback)
-    let imageUrl = null;
-    try {
-        imageUrl = await generateAndUploadImage(parsed, episodeNumber);
-        console.log(`🖼️  Image uploaded: ${imageUrl}`);
-    } catch (imgErr) {
-        console.error('⚠️  Image generation failed (non-fatal):', imgErr.message);
-    }
+    // 3. Set episode cover image (Standardized Series Cover Art)
+    const imageUrl = 'images/hybrid-dino-cover.png';
+    console.log(`🖼️ Episode Cover Art set to series cover: ${imageUrl}`);
 
     // 4. Generate studio AI narration audio (Neural2 MP3)
     let audioUrl = null;
