@@ -1,5 +1,5 @@
 // ==========================================================================
-// Neon Snake — 60FPS Performance Engine & Arcade Arcade Overhaul
+// Neon Snake — 60FPS Smooth LERP Motion & Arcade Engine
 // ==========================================================================
 
 const canvas = document.getElementById('gameCanvas');
@@ -64,51 +64,51 @@ function playSound(type) {
 
         if (type === 'turn') {
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(320, now);
-            osc.frequency.exponentialRampToValueAtTime(480, now + 0.04);
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+            osc.frequency.setValueAtTime(340, now);
+            osc.frequency.exponentialRampToValueAtTime(520, now + 0.035);
+            gain.gain.setValueAtTime(0.06, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.035);
             osc.start(now);
-            osc.stop(now + 0.04);
+            osc.stop(now + 0.035);
         } else if (type === 'eat') {
             osc.type = 'triangle';
             osc.frequency.setValueAtTime(523.25, now); // C5
-            osc.frequency.setValueAtTime(659.25, now + 0.05); // E5
-            osc.frequency.setValueAtTime(783.99, now + 0.10); // G5
-            gain.gain.setValueAtTime(0.18, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+            osc.frequency.setValueAtTime(659.25, now + 0.04); // E5
+            osc.frequency.setValueAtTime(783.99, now + 0.09); // G5
+            gain.gain.setValueAtTime(0.16, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
             osc.start(now);
-            osc.stop(now + 0.18);
+            osc.stop(now + 0.16);
         } else if (type === 'bonus') {
             osc.type = 'square';
             osc.frequency.setValueAtTime(587.33, now);
-            osc.frequency.setValueAtTime(880, now + 0.06);
-            osc.frequency.setValueAtTime(1174.66, now + 0.12);
-            gain.gain.setValueAtTime(0.15, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+            osc.frequency.setValueAtTime(880, now + 0.05);
+            osc.frequency.setValueAtTime(1174.66, now + 0.10);
+            gain.gain.setValueAtTime(0.14, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.20);
             osc.start(now);
-            osc.stop(now + 0.22);
+            osc.stop(now + 0.20);
         } else if (type === 'crash') {
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(180, now);
-            osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
-            gain.gain.setValueAtTime(0.25, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            osc.frequency.setValueAtTime(200, now);
+            osc.frequency.exponentialRampToValueAtTime(35, now + 0.28);
+            gain.gain.setValueAtTime(0.22, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
             osc.start(now);
-            osc.stop(now + 0.3);
+            osc.stop(now + 0.28);
         }
     } catch (e) {}
 }
 
 // ── Game Variables ─────────────────────────────────────────────────────────
-let snake = [];
-let food = { x: 0, y: 0, type: 'normal' }; // 'normal' or 'bonus'
+let snake = []; // Array of { x, y, prevX, prevY }
+let food = { x: 0, y: 0, type: 'normal' };
 let dx = GRID_SIZE;
 let dy = 0;
-let inputQueue = []; // Fluid queue to buffer quick turns without dropping inputs
+let inputQueue = [];
 let score = 0;
 let highScore = 0;
-let gameSpeed = 115; // Grid tick interval in milliseconds
+let gameSpeed = 110; // Grid step interval in ms
 let lastStepTime = 0;
 let animationFrameId = null;
 let isPaused = false;
@@ -117,6 +117,7 @@ let particles = [];
 let screenShake = 0;
 let foodAnimAngle = 0;
 let foodEatenCount = 0;
+let globalTime = 0;
 
 // Load Highscore
 if (localStorage.getItem('neonSnakeHighScore')) {
@@ -151,10 +152,10 @@ function initColorPicker() {
     });
 }
 
-// ── 60FPS Game Loop ────────────────────────────────────────────────────────
+// ── 60FPS Continuous Sub-Pixel LERP Game Engine ────────────────────────────
 function start() {
     if (gameStarted) return;
-    
+
     getAudioContext();
     resetGame();
     overlayScreen.classList.remove('active');
@@ -167,10 +168,13 @@ function start() {
 }
 
 function resetGame() {
+    const startX = GRID_SIZE * 10;
+    const startY = GRID_SIZE * 10;
+
     snake = [
-        { x: GRID_SIZE * 10, y: GRID_SIZE * 10 },
-        { x: GRID_SIZE * 9, y: GRID_SIZE * 10 },
-        { x: GRID_SIZE * 8, y: GRID_SIZE * 10 }
+        { x: startX, y: startY, prevX: startX, prevY: startY },
+        { x: startX - GRID_SIZE, y: startY, prevX: startX - GRID_SIZE, prevY: startY },
+        { x: startX - GRID_SIZE * 2, y: startY, prevX: startX - GRID_SIZE * 2, prevY: startY }
     ];
     dx = GRID_SIZE;
     dy = 0;
@@ -178,10 +182,10 @@ function resetGame() {
     score = 0;
     foodEatenCount = 0;
     scoreVal.textContent = formatScore(score);
-    gameSpeed = 115;
+    gameSpeed = 110;
     particles = [];
     screenShake = 0;
-    
+
     generateFood();
 }
 
@@ -189,40 +193,54 @@ function loop(timestamp) {
     if (!gameStarted) return;
 
     animationFrameId = requestAnimationFrame(loop);
+    globalTime = timestamp;
 
     if (isPaused) {
-        draw();
+        draw(1.0);
         return;
     }
 
-    // 1. Grid Logic Step at fixed time interval
+    // 1. Fixed-Rate Grid Logic Step
     const delta = timestamp - lastStepTime;
     if (delta >= gameSpeed) {
         lastStepTime = timestamp - (delta % gameSpeed);
         gameStep();
     }
 
-    // 2. Update 60FPS Visual FX (Particles & Screen Shake)
+    // Calculate sub-pixel interpolation progress (0.0 to 1.0)
+    const progress = Math.min(1.0, (timestamp - lastStepTime) / gameSpeed);
+
+    // 2. 60FPS FX Updates
     updateFX();
 
-    // 3. Render Frame
-    draw();
+    // 3. Render 60FPS Interpolated Frame
+    draw(progress);
 }
 
 function gameStep() {
-    // Process next direction from input queue
+    // Process queued turn
     if (inputQueue.length > 0) {
         const nextDir = inputQueue.shift();
-        // Prevent 180-degree instant suicide turns
         if (nextDir.dx !== -dx || nextDir.dy !== -dy) {
             dx = nextDir.dx;
             dy = nextDir.dy;
         }
     }
 
-    const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+    // Save previous positions for smooth LERP sliding
+    snake.forEach(part => {
+        part.prevX = part.x;
+        part.prevY = part.y;
+    });
 
-    // Check Wall Collision
+    const head = {
+        x: snake[0].x + dx,
+        y: snake[0].y + dy,
+        prevX: snake[0].x,
+        prevY: snake[0].y
+    };
+
+    // Wall Collision
     if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
         spawnExplosion(snake[0].x + GRID_SIZE/2, snake[0].y + GRID_SIZE/2, '#ff007f', 40);
         playSound('crash');
@@ -231,7 +249,7 @@ function gameStep() {
         return;
     }
 
-    // Check Self Collision
+    // Self Collision
     for (let i = 0; i < snake.length; i++) {
         if (head.x === snake[i].x && head.y === snake[i].y) {
             spawnExplosion(head.x + GRID_SIZE/2, head.y + GRID_SIZE/2, '#ff007f', 40);
@@ -244,7 +262,7 @@ function gameStep() {
 
     snake.unshift(head);
 
-    // Check Food Collision
+    // Food Collision
     if (head.x === food.x && head.y === food.y) {
         const points = food.type === 'bonus' ? 30 : 10;
         score += points;
@@ -254,18 +272,16 @@ function gameStep() {
         screenShake = food.type === 'bonus' ? 7 : 4;
         const theme = SNAKE_THEMES[currentSnakeColor] || SNAKE_THEMES['#9d4edd'];
         const burstColor = food.type === 'bonus' ? '#ffdd44' : (theme.glow || '#00f5ff');
-        
+
         spawnExplosion(food.x + GRID_SIZE/2, food.y + GRID_SIZE/2, burstColor, 22);
         playSound(food.type === 'bonus' ? 'bonus' : 'eat');
 
-        // Check HighScore
         if (score > highScore) {
             highScore = score;
             highScoreVal.textContent = formatScore(highScore);
             localStorage.setItem('neonSnakeHighScore', highScore);
         }
 
-        // Gradually speed up grid steps down to 55ms
         if (gameSpeed > 55) {
             gameSpeed -= 2.0;
         }
@@ -276,7 +292,7 @@ function gameStep() {
     }
 }
 
-// ── Particle FX & Shake ───────────────────────────────────────────────────
+// ── Particle Physics ───────────────────────────────────────────────────────
 function spawnExplosion(x, y, color, count = 20) {
     for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2;
@@ -297,13 +313,11 @@ function spawnExplosion(x, y, color, count = 20) {
 function updateFX() {
     foodAnimAngle += 0.05;
 
-    // Decay Screen Shake
     if (screenShake > 0) {
         screenShake *= 0.85;
         if (screenShake < 0.2) screenShake = 0;
     }
 
-    // Update Particles
     for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx;
@@ -317,23 +331,22 @@ function updateFX() {
     }
 }
 
-// ── 60FPS Visual Renderer ──────────────────────────────────────────────────
-function draw() {
+// ── 60FPS Continuous Sub-Pixel LERP Renderer ──────────────────────────────
+function draw(progress = 1.0) {
     ctx.save();
 
-    // Apply Screen Shake
     if (screenShake > 0) {
         const rx = (Math.random() - 0.5) * screenShake * 2;
         const ry = (Math.random() - 0.5) * screenShake * 2;
         ctx.translate(rx, ry);
     }
 
-    // Background
+    // Clear background
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#05060b';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 1. Draw Grid Lines
+    // 1. Draw Grid
     ctx.beginPath();
     ctx.strokeStyle = 'rgba(30, 41, 59, 0.18)';
     ctx.lineWidth = 0.5;
@@ -346,13 +359,12 @@ function draw() {
     }
     ctx.stroke();
 
-    // 2. Draw Animated Food Item
+    // 2. Draw Food Item with pulsing aura
     ctx.save();
     const foodCx = food.x + GRID_SIZE / 2;
     const foodCy = food.y + GRID_SIZE / 2;
     const foodColor = food.type === 'bonus' ? '#ffdd44' : '#00f5ff';
 
-    // Pulsing outer aura
     const pulseScale = 1 + Math.sin(foodAnimAngle * 3) * 0.15;
     const radius = (GRID_SIZE / 2 - 3) * pulseScale;
 
@@ -363,13 +375,11 @@ function draw() {
     ctx.arc(foodCx, foodCy, radius, 0, Math.PI * 2);
     ctx.fill();
 
-    // Inner bright center
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.arc(foodCx, foodCy, radius * 0.4, 0, Math.PI * 2);
     ctx.fill();
 
-    // Orbiting energy speck for Bonus Food
     if (food.type === 'bonus') {
         const ox = foodCx + Math.cos(foodAnimAngle * 5) * 12;
         const oy = foodCy + Math.sin(foodAnimAngle * 5) * 12;
@@ -380,27 +390,39 @@ function draw() {
     }
     ctx.restore();
 
-    // 3. Draw Snake Body & Head
+    // 3. Compute Sub-Pixel LERP Positions for all snake segments
+    const interpSegments = snake.map(part => {
+        const ix = part.prevX + (part.x - part.prevX) * progress;
+        const iy = part.prevY + (part.y - part.prevY) * progress;
+        return { x: ix, y: iy };
+    });
+
     const theme = SNAKE_THEMES[currentSnakeColor] || SNAKE_THEMES['#9d4edd'];
     const padding = 1.5;
     const size = GRID_SIZE - padding * 2;
 
-    // Body Segments
-    if (snake.length > 1) {
-        ctx.shadowBlur = 8;
+    // Draw Continuous Smooth Neon Body Ribbon
+    if (interpSegments.length > 1) {
+        ctx.shadowBlur = 12;
         ctx.shadowColor = theme.glow;
-        ctx.fillStyle = theme.body;
+        ctx.strokeStyle = theme.body;
+        ctx.lineWidth = size - 1;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
         ctx.beginPath();
-        for (let i = 1; i < snake.length; i++) {
-            const part = snake[i];
-            ctx.roundRect(part.x + padding, part.y + padding, size, size, 5);
+        const startSeg = interpSegments[0];
+        ctx.moveTo(startSeg.x + GRID_SIZE/2, startSeg.y + GRID_SIZE/2);
+        for (let i = 1; i < interpSegments.length; i++) {
+            const seg = interpSegments[i];
+            ctx.lineTo(seg.x + GRID_SIZE/2, seg.y + GRID_SIZE/2);
         }
-        ctx.fill();
+        ctx.stroke();
     }
 
-    // Snake Head with Eyes
-    if (snake.length > 0) {
-        const head = snake[0];
+    // Draw Snake Head Segment
+    if (interpSegments.length > 0) {
+        const head = interpSegments[0];
         ctx.shadowBlur = 18;
         ctx.shadowColor = theme.headGlow;
         ctx.fillStyle = theme.head;
@@ -408,23 +430,23 @@ function draw() {
         ctx.roundRect(head.x + padding, head.y + padding, size, size, 6);
         ctx.fill();
 
-        // Render Snake Eyes facing movement direction
+        // Render Snake Eyes looking in direction of motion
         ctx.shadowBlur = 0;
         ctx.fillStyle = '#111625';
-        const eyeSize = 3;
+        const eyeSize = 2.8;
         const hCx = head.x + GRID_SIZE / 2;
         const hCy = head.y + GRID_SIZE / 2;
 
         let e1x = hCx - 4, e1y = hCy - 4;
         let e2x = hCx + 4, e2y = hCy - 4;
 
-        if (dx > 0) { // Right
+        if (dx > 0) {
             e1x = hCx + 4; e1y = hCy - 4;
             e2x = hCx + 4; e2y = hCy + 4;
-        } else if (dx < 0) { // Left
+        } else if (dx < 0) {
             e1x = hCx - 4; e1y = hCy - 4;
             e2x = hCx - 4; e2y = hCy + 4;
-        } else if (dy > 0) { // Down
+        } else if (dy > 0) {
             e1x = hCx - 4; e1y = hCy + 4;
             e2x = hCx + 4; e2y = hCy + 4;
         }
@@ -475,7 +497,6 @@ function generateFood() {
     food.x = newX;
     food.y = newY;
 
-    // Every 5th food item has 35% chance to be a Special Bonus Food
     if (foodEatenCount > 0 && foodEatenCount % 4 === 0 && Math.random() < 0.5) {
         food.type = 'bonus';
     } else {
@@ -499,7 +520,7 @@ function gameOver() {
 
 function togglePause() {
     if (!gameStarted) return;
-    
+
     isPaused = !isPaused;
     if (isPaused) {
         overlayTitle.textContent = "PAUSED";
@@ -517,14 +538,13 @@ function formatScore(num) {
     return num.toString().padStart(3, '0');
 }
 
-// ── Fluid Input Queue Direction Handler ────────────────────────────────────
+// ── Fluid Input Queue Handler ─────────────────────────────────────────────
 function queueDirection(newDx, newDy) {
     getAudioContext();
 
-    // Check against last queued direction or current direction
     const lastDir = inputQueue.length > 0 ? inputQueue[inputQueue.length - 1] : { dx, dy };
-    if (newDx === -lastDir.dx || newDy === -lastDir.dy) return; // Ignore 180-degree turn
-    if (newDx === lastDir.dx && newDy === lastDir.dy) return; // Ignore duplicate move
+    if (newDx === -lastDir.dx || newDy === -lastDir.dy) return;
+    if (newDx === lastDir.dx && newDy === lastDir.dy) return;
 
     if (inputQueue.length < 2) {
         inputQueue.push({ dx: newDx, dy: newDy });
@@ -537,17 +557,17 @@ document.addEventListener('keydown', (e) => {
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
         e.preventDefault();
     }
-    
+
     if (!gameStarted && (e.key === ' ' || e.key === 'Enter')) {
         start();
         return;
     }
-    
+
     if (e.key === 'p' || e.key === 'P') {
         togglePause();
         return;
     }
-    
+
     if (isPaused && (e.key === ' ' || e.key === 'Enter')) {
         togglePause();
         return;
