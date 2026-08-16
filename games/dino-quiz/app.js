@@ -25,292 +25,514 @@ try {
 // ── Dinosaur Master Database (32 Dinosaurs) ──────────────────────────────
 const DINOSAURS = [
     {
-        name: "Tyrannosaurus Rex",
-        pronunciation: "tie-RAN-oh-SORE-us REX",
-        era: "Late Cretaceous (68-66 Mya)",
-        diet: "Carnivore",
-        size: "12 meters (40 ft)",
-        fact: "T-Rex had teeth up to 12 inches long and a bite force of 12,800 lbs — enough to crush solid bone!",
-        svgType: "trex"
+        "name": "Abelisaurus",
+        "image": "images/abelisaurus.jpg",
+        "type": "Theropod",
+        "era": "Late Cretaceous",
+        "diet": "Carnivore",
+        "found": "Argentina",
+        "length": "Approximately 7-9 meters (23-30 feet)",
+        "fact": "We start our list of dinosaurs with Abelisaurus, a predatory theropod dinosaur of the late Cretaceous Period. Abelisaurus was a medium-sized, bipedal* dinosaur that was probably between 7 and 9 metres (23 and 29 ft.) in length."
     },
     {
-        name: "Triceratops",
-        pronunciation: "try-SER-uh-tops",
-        era: "Late Cretaceous (68-66 Mya)",
-        diet: "Herbivore",
-        size: "9 meters (30 ft)",
-        fact: "Triceratops had a massive skull featuring 3 facial horns and a solid bone frill that was nearly 7 feet wide!",
-        svgType: "triceratops"
+        "name": "Acrocanthosaurus",
+        "image": "images/acrocanthosaurus.jpg",
+        "type": "Theropod",
+        "era": "Early Cretaceous (around 110 million years ago)",
+        "diet": "Carnivore",
+        "found": "North America (especially in parts of Oklahoma, Texas, and Wyoming)",
+        "length": "Up to 38 feet (11.5 meters)",
+        "fact": "One of the apex predators of its time, Acrocanthosaurus was known for the distinctive ridge or spine running along its back. This ridge, which is believed to have supported a hump or fin, might have had various roles, from fat storage to thermoregulation or display."
     },
     {
-        name: "Velociraptor",
-        pronunciation: "veh-LOSS-ih-RAP-tor",
-        era: "Late Cretaceous (75-71 Mya)",
-        diet: "Carnivore",
-        size: "2 meters (6.5 ft)",
-        fact: "Unlike movie depictions, real Velociraptors were about the size of a turkey and were covered in feathers!",
-        svgType: "raptor"
+        "name": "Albertosaurus",
+        "image": "images/albertosaurus.jpg",
+        "type": "Theropod, closely related to T. rex",
+        "era": "Late Cretaceous",
+        "diet": "Carnivore",
+        "found": "Western North America, primarily Alberta, Canada",
+        "length": "Approximately 9 meters (30 feet)",
+        "fact": "Albertosaurus was a close relation of Tyrannosaurus, and was in the same family, Tyrannosauridae. Looking very much like its more famous&nbsp;relative, Albertosaurus walked on two legs, and had small arms. It would have been a fast runner, and probably sat at the very&nbsp;top of the food chain."
     },
     {
-        name: "Stegosaurus",
-        pronunciation: "STEG-oh-SORE-us",
-        era: "Late Jurassic (155-150 Mya)",
-        diet: "Herbivore",
-        size: "9 meters (30 ft)",
-        fact: "Stegosaurus had 17 dermal plates along its back and 4 sharp tail spikes called a 'thagomizer' for defense!",
-        svgType: "stegosaurus"
+        "name": "Allosaurus",
+        "image": "images/allosaurus.jpg",
+        "type": "Theropod",
+        "era": "Late Jurassic",
+        "diet": "Carnivore",
+        "found": "North America, Europe, and possibly Africa",
+        "length": "Around 8.5-12 meters (28-39 feet), though there&#8217;s some variation depending on the species",
+        "fact": "Allosaurus was one of the largest predators of the Jurassic Period. It would have reached lengths of around 12 metres (40 ft.), and weighed between 2 and 5 metric tonnes (2.2 and 3.3 short tons)."
     },
     {
-        name: "Brachiosaurus",
-        pronunciation: "BRACK-ee-oh-SORE-us",
-        era: "Late Jurassic (154-150 Mya)",
-        diet: "Herbivore",
-        size: "26 meters (85 ft)",
-        fact: "Brachiosaurus had longer front legs than hind legs, allowing its neck to reach tall tree crowns 40 feet high!",
-        svgType: "brachiosaurus"
+        "name": "Amargasaurus",
+        "image": "images/amargasaurus.jpg",
+        "type": "Sauropod",
+        "era": "Early Cretaceous (around 125 million years ago)",
+        "diet": "Herbivore",
+        "found": "Argentina",
+        "length": "About 33 feet (10 meters)",
+        "fact": "Amargasaurus stands out among sauropods due to its double row of long, upward-extending spines on its neck and back. Though their exact function is unknown, they might have supported skin sails for display, thermoregulation, or even protection."
     },
     {
-        name: "Spinosaurus",
-        pronunciation: "SPINE-oh-SORE-us",
-        era: "Cretaceous (112-93 Mya)",
-        diet: "Piscivore / Carnivore",
-        size: "15 meters (50 ft)",
-        fact: "Spinosaurus was larger than T-Rex and was the first known semi-aquatic dinosaur, swimming with a paddle-like tail!",
-        svgType: "spinosaurus"
+        "name": "Ankylosaurus",
+        "image": "images/ankylosaurus.jpg",
+        "type": "Armored herbivore",
+        "era": "Late Cretaceous",
+        "diet": "Herbivore",
+        "found": "North America",
+        "length": "Around 6-8 meters (20-26 feet)",
+        "fact": "Ankylosaurus was a member of a group of dinosaurs called Ankylosauria. Their name means \u2018fused together lizards\u2019 on behalf of their joined-together armoured plates."
     },
     {
-        name: "Ankylosaurus",
-        pronunciation: "an-KYE-loh-SORE-us",
-        era: "Late Cretaceous (68-66 Mya)",
-        diet: "Herbivore",
-        size: "8 meters (26 ft)",
-        fact: "Ankylosaurus was covered in thick armored plates and possessed a heavy bone club tail capable of snapping a predator's leg!",
-        svgType: "ankylosaurus"
+        "name": "Apatosaurus",
+        "image": "images/apatosaurus.jpg",
+        "type": "Sauropod",
+        "era": "Late Jurassic",
+        "diet": "Herbivore",
+        "found": "North America",
+        "length": "Approximately 21-22 meters (70-72 feet)",
+        "fact": "Apatosaurus was a huge sauropod dinosaur. It lived in the late Jurassic Period. It weighed between 20 and 30 metric tonnes (22 and 33 short tons), and was around 20 to 23 metres (65 and 75 ft.)&nbsp;in length."
     },
     {
-        name: "Pteranodon",
-        pronunciation: "ter-AN-oh-don",
-        era: "Late Cretaceous (86-84 Mya)",
-        diet: "Piscivore",
-        size: "6 meter wingspan",
-        fact: "Although a flying reptile (pterosaur), Pteranodon lived alongside dinosaurs, soaring across oceans to scoop up fish without teeth!",
-        svgType: "pteranodon"
+        "name": "Archaeopteryx",
+        "image": "images/archaeopteryx.jpg",
+        "type": "Transitional fossil between non-avian dinosaurs and birds",
+        "era": "Late Jurassic",
+        "diet": "Herbivore",
+        "found": "Southern Germany",
+        "length": "About 0.5 meters (1.6 feet) including the tail",
+        "fact": "If you can imagine a cross between a small dinosaur and a bird, then you&#8217;ll probably have a good idea of what Archaeopteryx looked like. It had the tooth-filled mouth and bony tail of a dinosaur, with the feathered wings of a bird. It may even have been able to fly, rather than simply glide."
     },
     {
-        name: "Parasaurolophus",
-        pronunciation: "PAIR-uh-sore-ALL-oh-fuss",
-        era: "Late Cretaceous (76-73 Mya)",
-        diet: "Herbivore",
-        size: "10 meters (33 ft)",
-        fact: "Parasaurolophus had a long hollow crest on its head that acted like a horn to trumpet deep resonant sounds to its herd!",
-        svgType: "parasaurolophus"
+        "name": "Argentinosaurus",
+        "image": "images/argentinosaurus.jpg",
+        "type": "Sauropod",
+        "era": "Late Cretaceous (around 94-97 million years ago)",
+        "diet": "Herbivore",
+        "found": "Argentina",
+        "length": "Estimates range up to 100 feet (30 meters)",
+        "fact": "One of the largest land animals ever to have lived, Argentinosaurus is known from limited fossils, but its immense size is undisputed. It had a massive body, long neck, and tail, and would have moved at a slow pace, browsing on vast amounts of vegetation with its small head."
     },
     {
-        name: "Diplodocus",
-        pronunciation: "dih-PLOD-oh-kuss",
-        era: "Late Jurassic (154-152 Mya)",
-        diet: "Herbivore",
-        size: "27 meters (90 ft)",
-        fact: "Diplodocus had an extremely long whip-like tail consisting of over 80 vertebrae that could crack like a whip faster than sound!",
-        svgType: "brachiosaurus"
+        "name": "Baryonyx",
+        "image": "images/baryonyx.jpg",
+        "type": "Theropod, spinosaurid",
+        "era": "Early Cretaceous",
+        "diet": "Carnivore",
+        "found": "England, Spain",
+        "length": "Approximately 7.5-10 meters (25-33 feet)",
+        "fact": "Baryonyx was a bipedal, fish-eating dinosaur that lived in the early Cretaceous Period. Its narrow, tooth-filled snout is thought to have been similar to that of today&#8217;s gharial \u2013 a fish-eating crocodilian found in Asia."
     },
     {
-        name: "Allosaurus",
-        pronunciation: "AL-oh-SORE-us",
-        era: "Late Jurassic (155-145 Mya)",
-        diet: "Carnivore",
-        size: "8.5 meters (28 ft)",
-        fact: "Allosaurus was the top apex predator of Jurassic North America, equipped with serrated teeth and sharp clawed hands!",
-        svgType: "trex"
+        "name": "Brachiosaurus",
+        "image": "images/brachiosaurus.jpg",
+        "type": "Sauropod",
+        "era": "Late Jurassic",
+        "diet": "Herbivore",
+        "found": "North America, Africa",
+        "length": "About 18-26 meters (59-85 feet)",
+        "fact": "This huge sauropod grew up to 25 metres (82 ft.)&nbsp;in length and weighed between 30 and 50 metric tonnes (33 and 55 short tons). It was one of the largest land animals ever. Brachiosaurus\u2019s name means \u2018arm lizard\u2019, because of the way its forelimbs joined its shoulders."
     },
     {
-        name: "Carnotaurus",
-        pronunciation: "CAR-noh-TORE-us",
-        era: "Late Cretaceous (72-69 Mya)",
-        diet: "Carnivore",
-        size: "8 meters (26 ft)",
-        fact: "Carnotaurus had two distinct bull-like horns above its eyes and tiny arms even smaller than those of T-Rex!",
-        svgType: "trex"
+        "name": "Brontosaurus",
+        "image": "images/brontosaurus.jpg",
+        "type": "Sauropod",
+        "era": "Late Jurassic (around 155 to 152 million years ago)",
+        "diet": "Herbivore",
+        "found": "North America (mainly in the Morrison Formation of the western U.S.)",
+        "length": "Up to 72 feet (22 meters)",
+        "fact": "Brontosaurus, which means &#8220;thunder lizard&#8221;, is one of the most iconic and recognizable dinosaurs due to its massive size, long neck, and lengthy tail."
     },
     {
-        name: "Dilophosaurus",
-        pronunciation: "dye-LOAF-oh-SORE-us",
-        era: "Early Jurassic (193 Mya)",
-        diet: "Carnivore",
-        size: "7 meters (23 ft)",
-        fact: "Dilophosaurus possessed two striking parallel crests on top of its head, used for mating displays and species recognition!",
-        svgType: "raptor"
+        "name": "Carnotaurus",
+        "image": "images/carnotaurus.jpg",
+        "type": "Theropod",
+        "era": "Late Cretaceous",
+        "diet": "Carnivore",
+        "found": "Argentina",
+        "length": "Around 7.5-9 meters (25-30 feet)",
+        "fact": "Carnotaurus was a large, fast-moving predator that walked on two legs. It was around 9 metres (30 ft.) in length, and weighed around 1.35 metric tonnes (1.5 short tons)."
     },
     {
-        name: "Pachycephalosaurus",
-        pronunciation: "PACK-ee-SEF-uh-loh-SORE-us",
-        era: "Late Cretaceous (70-66 Mya)",
-        diet: "Herbivore",
-        size: "4.5 meters (15 ft)",
-        fact: "Pachycephalosaurus had a dome of solid bone on its skull up to 10 inches thick, used for head-butting rivals!",
-        svgType: "pachy"
+        "name": "Ceratosaurus",
+        "image": "images/ceratosaurus.jpg",
+        "type": "Theropod",
+        "era": "Late Jurassic (around 150 million years ago)",
+        "diet": "Carnivore",
+        "found": "North America and possibly Portugal",
+        "length": "About 18-20 feet (5.5-6 meters)",
+        "fact": "Distinguished by its large nasal horn and two smaller horns in front of its eyes, Ceratosaurus was a carnivore with sharp teeth and a long tail. It had a more slender build compared to other large theropods of its time, suggesting it might have had a different ecological niche."
     },
     {
-        name: "Giganotosaurus",
-        pronunciation: "JYE-ga-NO-toe-SORE-us",
-        era: "Late Cretaceous (98-97 Mya)",
-        diet: "Carnivore",
-        size: "13 meters (43 ft)",
-        fact: "Giganotosaurus was one of the largest terrestrial carnivores ever, hunting giant sauropods in prehistoric South America!",
-        svgType: "spinosaurus"
+        "name": "Chasmosaurus",
+        "image": "images/chasmosaurus.jpg",
+        "type": "Ceratopsian",
+        "era": "Late Cretaceous (around 75-76 million years ago)",
+        "diet": "Herbivore",
+        "found": "North America (Canada)",
+        "length": "Up to 16 feet (4.8 meters)",
+        "fact": "Chasmosaurus was a four-legged herbivore with a large, ornate frill and long brow horns. Its frill was adorned with large fenestrae or holes, and it was likely used in display or defense. As a ceratopsian, it would have had a beak-like mouth for cropping vegetation."
     },
     {
-        name: "Deinonychus",
-        pronunciation: "dye-NON-ih-kuss",
-        era: "Early Cretaceous (115-108 Mya)",
-        diet: "Carnivore",
-        size: "3.4 meters (11 ft)",
-        fact: "Deinonychus had a huge sickle-shaped claw on each hind foot, inspiring the modern scientific understanding of active, warm-blooded dinosaurs!",
-        svgType: "raptor"
+        "name": "Coelophysis",
+        "image": "images/coelophysis.jpg",
+        "type": "Theropod",
+        "era": "Late Triassic",
+        "diet": "Carnivore",
+        "found": "Southwestern United States, especially New Mexico",
+        "length": "Approximately 3 meters (10 feet)",
+        "fact": "Coelophysis is one of the earliest known dinosaurs. It lived in the late Triassic Period. Despite their great age, many Coelophysis fossils have been found."
     },
     {
-        name: "Therizinosaurus",
-        pronunciation: "THER-ih-ZIN-oh-SORE-us",
-        era: "Late Cretaceous (70 Mya)",
-        diet: "Herbivore",
-        size: "10 meters (33 ft)",
-        fact: "Therizinosaurus possessed the longest claws of any animal in Earth's history — measuring over 3 feet (1 meter) in length!",
-        svgType: "therizino"
+        "name": "Compsognathus",
+        "image": "images/compsognathus.jpg",
+        "type": "Theropod",
+        "era": "Late Jurassic",
+        "diet": "Carnivore",
+        "found": "Germany and France",
+        "length": "About 1 meter (3.3 feet)",
+        "fact": "At the time of writing, only two Compsognathus specimens have been discovered. The first was found in Germany in the mid-nineteenth century. The second was found in France over 100 years later, in 1971."
     },
     {
-        name: "Baryonyx",
-        pronunciation: "BAIR-ee-ON-iks",
-        era: "Early Cretaceous (130-125 Mya)",
-        diet: "Piscivore",
-        size: "9 meters (30 ft)",
-        fact: "Baryonyx had a long crocodile-like snout and a massive 12-inch thumb claw designed for snagging slippery fish from riverbanks!",
-        svgType: "spinosaurus"
+        "name": "Corythosaurus",
+        "image": "images/corythosaurus.jpg",
+        "type": "Hadrosaur (duck-billed herbivorous ornithopod)",
+        "era": "Late Cretaceous",
+        "diet": "Herbivore",
+        "found": "North America (Canada \u2013 Alberta)",
+        "length": "~9 metres (\u224829.5 feet)",
+        "fact": "Corythosaurus was a large, plant-eating dinosaur that lived about 77 million years ago during the Late Cretaceous period. It is best known for the tall, hollow crest on its head, which may have been used to make sounds or for display."
     },
     {
-        name: "Argentinosaurus",
-        pronunciation: "AR-jen-TEE-noh-SORE-us",
-        era: "Late Cretaceous (96-92 Mya)",
-        diet: "Herbivore",
-        size: "35 meters (115 ft)",
-        fact: "Argentinosaurus was one of the heaviest land animals ever to exist, weighing up to 100 tons (equal to 15 elephants)!",
-        svgType: "brachiosaurus"
+        "name": "Deinonychus",
+        "image": "images/deinonychus.jpg",
+        "type": "Theropod, dromaeosaurid",
+        "era": "Early Cretaceous",
+        "diet": "Carnivore",
+        "found": "Western North America",
+        "length": "Around 3.4 meters (11 feet)",
+        "fact": "This early Cretaceous dinosaur grew to around 3 metres (10 ft.)&nbsp;in length and weighed around 80 kg (176 lb). Its name, which means \u2018terrible claw\u2019, refers to the deadly claw found on each of its feet."
     },
     {
-        name: "Styracosaurus",
-        pronunciation: "sty-RAK-oh-SORE-us",
-        era: "Late Cretaceous (75 Mya)",
-        diet: "Herbivore",
-        size: "5.5 meters (18 ft)",
-        fact: "Styracosaurus boasted a formidable head frill lined with 4 to 6 long neck spikes and a massive nose horn over 2 feet long!",
-        svgType: "triceratops"
+        "name": "Dilophosaurus",
+        "image": "images/dilophosaurus.jpg",
+        "type": "Theropod",
+        "era": "Early Jurassic (around 193 million years ago)",
+        "diet": "Carnivore",
+        "found": "North America (Arizona)",
+        "length": "About 20 feet (6 meters)",
+        "fact": "Notable for its twin crests on its skull, Dilophosaurus is an early theropod that was likely a fast and agile predator. While popular media depicted it spitting venom, there&#8217;s no scientific evidence supporting this idea."
     },
     {
-        name: "Gallimimus",
-        pronunciation: "GAL-ih-MY-muss",
-        era: "Late Cretaceous (70 Mya)",
-        diet: "Omnivore",
-        size: "6 meters (20 ft)",
-        fact: "Gallimimus resembled a giant ostrich and could sprint at speeds up to 50 km/h (30 mph) to escape predators!",
-        svgType: "raptor"
+        "name": "Diplodocus",
+        "image": "images/diplodocus.jpg",
+        "type": "Sauropod",
+        "era": "Late Jurassic",
+        "diet": "Herbivore",
+        "found": "North America",
+        "length": "Around 25 meters (82 feet)",
+        "fact": "Diplodocus, like all other sauropods, was a giant, four-legged dinosaur with a long neck and tail. It may have used its long tail as a whip for protection against predators."
     },
     {
-        name: "Iguanodon",
-        pronunciation: "ig-WAH-noh-don",
-        era: "Early Cretaceous (126-122 Mya)",
-        diet: "Herbivore",
-        size: "10 meters (33 ft)",
-        fact: "Iguanodon was the second dinosaur ever scientifically named (in 1825) and possessed a sharp conical thumb spike for defense!",
-        svgType: "parasaurolophus"
+        "name": "Edmontosaurus",
+        "image": "images/edmontosaurus.jpg",
+        "type": "Hadrosaurid (duck-billed dinosaur)",
+        "era": "Late Cretaceous",
+        "diet": "Herbivore",
+        "found": "North America",
+        "length": "Approximately 9-12 meters (30-40 feet)",
+        "fact": "Edmontosaurus was a large herbivorous dinosaur. It was a member of the \u2018duck-billed\u2019 group of dinosaurs, so-called due to their duck-like mouths. Herds of Edmontosaurus roamed western North America in the late Cretaceous Period."
     },
     {
-        name: "Archaeopteryx",
-        pronunciation: "AR-kee-OP-ter-iks",
-        era: "Late Jurassic (150 Mya)",
-        diet: "Carnivore",
-        size: "0.5 meters (1.6 ft)",
-        fact: "Archaeopteryx is famous as the transitional fossil link between non-avian feathered dinosaurs and modern birds!",
-        svgType: "pteranodon"
+        "name": "Gallimimus",
+        "image": "images/gallimimus.jpg",
+        "type": "Ornithomimid",
+        "era": "Late Cretaceous (around 70 million years ago)",
+        "diet": "Herbivore",
+        "found": "Mongolia",
+        "length": "Up to 20 feet (6 meters)",
+        "fact": "Gallimimus, with its long legs and ostrich-like build, was built for speed. It had large eyes, a long neck, and a toothless beak."
     },
     {
-        name: "Compsognathus",
-        pronunciation: "KOMP-sog-NAY-thuss",
-        era: "Late Jurassic (150 Mya)",
-        diet: "Carnivore",
-        size: "1 meter (3.3 ft)",
-        fact: "Compsognathus was about the size of a chicken, agile and fast, hunting small lizards and insects in ancient Germany and France!",
-        svgType: "raptor"
+        "name": "Giganotosaurus",
+        "image": "images/giganotosaurus.jpg",
+        "type": "Theropod",
+        "era": "Late Cretaceous",
+        "diet": "Carnivore",
+        "found": "Argentina",
+        "length": "About 12-13 meters (40-43 feet)",
+        "fact": "Giganotosaurus means \u2018giant southern lizard\u2019. This giant predator walked on two legs and was even bigger than Tyrannosaurus."
     },
     {
-        name: "Oviraptor",
-        pronunciation: "OH-vee-RAP-tor",
-        era: "Late Cretaceous (75 Mya)",
-        diet: "Omnivore",
-        size: "2 meters (6.5 ft)",
-        fact: "Originally misnamed 'egg thief', fossil discoveries later proved Oviraptor was actually brooding and protecting its own nest of eggs!",
-        svgType: "raptor"
+        "name": "Gorgosaurus",
+        "image": "images/gorgosaurus.jpg",
+        "type": "Theropod, tyrannosaurid",
+        "era": "Late Cretaceous",
+        "diet": "Carnivore",
+        "found": "North America",
+        "length": "Around 8-9 meters (26-30 feet)",
+        "fact": "With a huge skull and jaws filled with sharp teeth, Gorgosaurus definitely lived up to its name, which means \u2018dreadful lizard\u2019."
     },
     {
-        name: "Microraptor",
-        pronunciation: "MY-kroh-RAP-tor",
-        era: "Early Cretaceous (120 Mya)",
-        diet: "Carnivore",
-        size: "0.8 meters (2.6 ft)",
-        fact: "Microraptor was a 4-winged dinosaur with flight feathers on both its forelimbs and hindlegs, gliding between trees!",
-        svgType: "pteranodon"
+        "name": "Herrerasaurus",
+        "image": "images/herrerasaurus.jpg",
+        "type": "Early theropod (carnivorous dinosaur)",
+        "era": "Late Triassic",
+        "diet": "Carnivore",
+        "found": "South America (Argentina)",
+        "length": "~4\u20136 metres (\u224813\u201320 feet)",
+        "fact": "Herrerasaurus was one of the earliest known dinosaurs, living about 230 million years ago during the Late Triassic period. It was a fast, meat-eating predator with sharp teeth and long claws for catching prey."
     },
     {
-        name: "Edmontosaurus",
-        pronunciation: "ed-MON-toe-SORE-us",
-        era: "Late Cretaceous (73-66 Mya)",
-        diet: "Herbivore",
-        size: "12 meters (39 ft)",
-        fact: "Edmontosaurus was a duck-billed dinosaur that traveled in massive herds of thousands across North America!",
-        svgType: "parasaurolophus"
+        "name": "Iguanodon",
+        "image": "images/iguanodon.jpg",
+        "type": "Ornithopod",
+        "era": "Early Cretaceous",
+        "diet": "Herbivore",
+        "found": "Europe, primarily Belgium and UK, but also found in other parts of the world",
+        "length": "About 10 meters (33 feet)",
+        "fact": "Iguanodon was the second dinosaur ever to be named. The first Iguanodon fossil was a tooth. It was discovered in England by the wife of medical doctor and geologist Dr Gideon Mantell. Mantell named the specimen Iguanodon, because the tooth resembled that of an iguana."
     },
     {
-        name: "Corythosaurus",
-        pronunciation: "ko-RITH-oh-SORE-us",
-        era: "Late Cretaceous (77-75 Mya)",
-        diet: "Herbivore",
-        size: "9 meters (30 ft)",
-        fact: "Corythosaurus had a helmet-like crest resembling a Corinthian soldier's helmet, which was used for vocal amplification!",
-        svgType: "parasaurolophus"
+        "name": "Kentrosaurus",
+        "image": "images/kentrosaurus.jpg",
+        "type": "Stegosaur (armoured herbivore)",
+        "era": "Late Jurassic",
+        "diet": "Herbivore",
+        "found": "Africa (Tanzania)",
+        "length": "~4.5\u20135 metres (\u224815\u201316.5 feet)",
+        "fact": "Kentrosaurus was a small, plant-eating dinosaur that lived about 150 million years ago during the Late Jurassic period. It belonged to the stegosaur group and is known for the sharp spikes covering its back and tail."
     },
     {
-        name: "Kentrosaurus",
-        pronunciation: "KEN-troh-SORE-us",
-        era: "Late Jurassic (152 Mya)",
-        diet: "Herbivore",
-        size: "4.5 meters (15 ft)",
-        fact: "Kentrosaurus was a cousin of Stegosaurus that featured paired rows of tall sharp spikes stretching from its waist all the way down its tail!",
-        svgType: "stegosaurus"
+        "name": "Lambeosaurus",
+        "image": "images/lambeosaurus.jpg",
+        "type": "Hadrosaur (duck-billed herbivorous ornithopod)",
+        "era": "Late Cretaceous",
+        "diet": "Herbivore",
+        "found": "North America (Canada \u2013 Alberta)",
+        "length": "~9\u201310 metres (\u224830\u201333 feet)",
+        "fact": "Lambeosaurus was a plant-eating dinosaur that lived about 75 million years ago during the Late Cretaceous period. It is famous for the large, hollow crest on its head, which may have been used for making sounds, communication, or display."
     },
     {
-        name: "Majungasaurus",
-        pronunciation: "mah-JOONG-guh-SORE-us",
-        era: "Late Cretaceous (70-66 Mya)",
-        diet: "Carnivore",
-        size: "7 meters (23 ft)",
-        fact: "Majungasaurus was the apex predator of Madagascar and is one of the few dinosaurs with direct fossil evidence of cannibalism!",
-        svgType: "trex"
+        "name": "Leaellynasaura",
+        "image": "images/leaellynasaura.jpg",
+        "type": "Small ornithopod",
+        "era": "Early Cretaceous",
+        "diet": "Herbivore",
+        "found": "Australia",
+        "length": "Approximately 2 meters (6.5 feet)",
+        "fact": "This small bipedal dinosaur was just under 1 metre (3 ft.)&nbsp;in length. It was first discovered in the Australian dinosaur hotspot Dinosaur Cove."
     },
     {
-        name: "Albertosaurus",
-        pronunciation: "al-BER-toe-SORE-us",
-        era: "Late Cretaceous (70 Mya)",
-        diet: "Carnivore",
-        size: "9 meters (30 ft)",
-        fact: "Albertosaurus was a lighter, faster cousin of T-Rex that hunted in pack formations across ancient Alberta, Canada!",
-        svgType: "trex"
+        "name": "Maiasaura",
+        "image": "images/maiasaura.jpg",
+        "type": "Hadrosaur (duck-billed herbivorous ornithopod)",
+        "era": "Late Cretaceous",
+        "diet": "Herbivore",
+        "found": "North America (USA \u2013 Montana)",
+        "length": "~7\u20139 metres (\u224823\u201330 feet)",
+        "fact": "Maiasaura was a plant-eating dinosaur that lived about 76 million years ago during the Late Cretaceous period. Its name means \u201cgood mother lizard\u201d because fossils show it cared for its young in nests. Infant Maiasaura were unable to walk at first, so parents likely brought them food."
     },
     {
-        name: "Pachyrhinosaurus",
-        pronunciation: "PACK-ee-RYE-noh-SORE-us",
-        era: "Late Cretaceous (73-69 Mya)",
-        diet: "Herbivore",
-        size: "8 meters (26 ft)",
-        fact: "Instead of a long nose horn, Pachyrhinosaurus had a massive flattened bone boss (rough pad) on its snout used for ramming!",
-        svgType: "triceratops"
+        "name": "Megalosaurus",
+        "image": "images/megalosaurus.jpg",
+        "type": "Theropod",
+        "era": "Middle Jurassic",
+        "diet": "Carnivore",
+        "found": "England",
+        "length": "Around 6 meters (20 feet)",
+        "fact": "Megalosaurus was discovered in England. It was the first dinosaur to be named. Surgeon and geologist James Parkinson identified some fossilised remains as being those of a reptile. He named it \u2018Megalosaurus\u2019, which means \u2018great lizard\u2019. This was in 1824: almost twenty years before Sir Richard Owen invented the word \u2018dinosaur\u2019!"
+    },
+    {
+        "name": "Minmi",
+        "image": "images/minmi.jpg",
+        "type": "Armored herbivore, ankylosaurian",
+        "era": "Early Cretaceous",
+        "diet": "Herbivore",
+        "found": "Australia",
+        "length": "Approximately 3 meters (10 feet)",
+        "fact": "Minmi was a small, heavily-armoured dinosaur of the Ankylosauria family. Its body, including its undersides, was covered with bony plates. It had longer legs than most of its relatives, suggesting that, despite being heavily armoured, it could move relatively quickly."
+    },
+    {
+        "name": "Ornithomimus",
+        "image": "images/ornithomimus.jpg",
+        "type": "Theropod, ornithomimid",
+        "era": "Late Cretaceous",
+        "diet": "Carnivore",
+        "found": "North America",
+        "length": "About 3.5-4 meters (11-13 feet)",
+        "fact": "Ornithomimus was an ostrich-like dinosaur. Around 3.5 metres (11.5 ft.)&nbsp;long, Ornithomimus had long legs and a long, thin neck. It would have been able to run at high speeds, possibly reaching over 40 mph (64 km/h)."
+    },
+    {
+        "name": "Oviraptor",
+        "image": "images/oviraptor.jpg",
+        "type": "Theropod (oviraptorosaur, likely omnivorous)",
+        "era": "Late Cretaceous",
+        "diet": "Carnivore",
+        "found": "Asia (Mongolia)",
+        "length": "~1.5\u20132 metres (\u22485\u20136.5 feet)",
+        "fact": "Oviraptor was a small, bird-like dinosaur that lived about 75 million years ago during the Late Cretaceous period. It had a toothless beak, a short skull, and likely feathers covering its body. Its name means \u201cegg thief,\u201d but scientists now believe it was actually caring for its own eggs when fossils were found."
+    },
+    {
+        "name": "Pachycephalosaurus",
+        "image": "images/pachycephalosaurus.jpg",
+        "type": "Pachycephalosaur (thick-skulled herbivore/omnivore)",
+        "era": "Late Cretaceous",
+        "diet": "Omnivore",
+        "found": "North America (USA \u2013 Montana, South Dakota)",
+        "length": "~4\u20135 metres (\u224813\u201316.5 feet)",
+        "fact": "Pachycephalosaurus was a plant-eating dinosaur that lived about 70 million years ago during the Late Cretaceous period. It is famous for its thick, dome-shaped skull, which could be up to 25 centimetres thick. Scientists think it may have used this dome for head-butting rivals or for display."
+    },
+    {
+        "name": "Parasaurolophus",
+        "image": "images/parasaurolophus.jpg",
+        "type": "Hadrosaurid (duck-billed dinosaur)",
+        "era": "Late Cretaceous",
+        "diet": "Herbivore",
+        "found": "North America",
+        "length": "Around 9.5-10 meters (31-33 feet)",
+        "fact": "Parasaurolophus was a Late Cretaceous herbivore. It was around 10 metres (33 ft.)&nbsp;in length and weighed around 3.5 metric tonnes (4 short tons)."
+    },
+    {
+        "name": "Plateosaurus",
+        "image": "images/plateosaurus.jpg",
+        "type": "Sauropodomorph (early long-necked herbivore)",
+        "era": "Late Triassic",
+        "diet": "Herbivore",
+        "found": "Europe (Germany, Switzerland, France)",
+        "length": "~7\u201310 metres (\u224823\u201333 feet)",
+        "fact": "Plateosaurus was a large, plant-eating dinosaur that lived about 214 million years ago during the Late Triassic period. It had a long neck and small head, which helped it reach vegetation such as leaves and plants. Plateosaurus could walk on two legs but may have used all four when feeding. It had strong, grasping hands and a long tail for balance."
+    },
+    {
+        "name": "Protoceratops",
+        "image": "images/protoceratops.jpg",
+        "type": "Herbivorous ceratopsian",
+        "era": "Late Cretaceous",
+        "diet": "Herbivore",
+        "found": "Mongolia",
+        "length": "About 1.8 meters (6 feet)",
+        "fact": "Protoceratops was a sheep-sized dinosaur of the late Cretaceous Period. It had jaws shaped like a parrot\u2019s bill, and a mouthful of teeth for eating tough vegetation. A frill on the back of its head may have served to protect its neck."
+    },
+    {
+        "name": "Spinosaurus",
+        "image": "images/spinosaurus.jpg",
+        "type": "Theropod, spinosaurid",
+        "era": "Early to mid-Cretaceous",
+        "diet": "Carnivore",
+        "found": "North Africa",
+        "length": "Approximately 15-18 meters (49-59 feet), recent estimates suggest it might have been the largest of all known carnivorous dinosaurs",
+        "fact": "Spinosaurus was a meat-eating dinosaur of the late Cretaceous Period. Growing up to 15 metres (49 ft.) in length and&nbsp;23 metric tonnes (25.35 short tons)&nbsp;in weight, it was larger than the mighty&nbsp;Tyrannosaurus Rex."
+    },
+    {
+        "name": "Stegoceras",
+        "image": "images/stegoceras.jpg",
+        "type": "Pachycephalosaurid (dome-headed dinosaur)",
+        "era": "Late Cretaceous",
+        "diet": "Herbivore",
+        "found": "North America",
+        "length": "About 2 meters (6.5 feet)",
+        "fact": "Stegoceras was a bipedal herbivore that lived in North America during the late Cretaceous Period. It was around 2 metres (6.5 ft.)&nbsp;in length and stood around .75m (2.5 ft.) tall."
+    },
+    {
+        "name": "Stegosaurus",
+        "image": "images/stegosaurus.jpg",
+        "type": "Armored dinosaur (Thyreophoran)",
+        "era": "Late Jurassic",
+        "diet": "Herbivore",
+        "found": "North America and Europe",
+        "length": "Around 9 meters (30 feet)",
+        "fact": "Stegosaurus was a large plant-eating dinosaur in the Stegosauridae family. It roamed America during the late Jurassic period."
+    },
+    {
+        "name": "Stenonychosaurus",
+        "image": "images/stenonychosaurus.jpg",
+        "type": "Theropod (troodontid, likely omnivorous)",
+        "era": "Late Cretaceous",
+        "diet": "Carnivore",
+        "found": "North America (Canada \u2013 Alberta)",
+        "length": "~2.5\u20133 metres (\u22488\u201310 feet)",
+        "fact": "Stenonychosaurus was a small, bird-like dinosaur that lived about 76 million years ago, during the Late Cretaceous period. It belonged to a group called troodontids and is known for its large brain relative to body size, suggesting it was quite intelligent."
+    },
+    {
+        "name": "Suchomimus",
+        "image": "images/suchomimus.jpg",
+        "type": "Theropod, spinosaurid",
+        "era": "Early Cretaceous",
+        "diet": "Carnivore",
+        "found": "Niger, Africa",
+        "length": "About 11 meters (36 feet)",
+        "fact": "Suchomimus was a member of the Spinosauridae family of dinosaurs, and a relative of Spinosaurus."
+    },
+    {
+        "name": "Tarbosaurus",
+        "image": "images/tarbosaurus.jpg",
+        "type": "Theropod",
+        "era": "Late Cretaceous (around 70 million years ago)",
+        "diet": "Carnivore",
+        "found": "Asia (especially Mongolia)",
+        "length": "Up to 40 feet (12 meters)",
+        "fact": "A close relative of Tyrannosaurus Rex, Tarbosaurus was the apex predator in its ecosystem. It had powerful jaws, sharp teeth, and tiny, almost vestigial arms. Its massive head and strong legs made it a fearsome hunter."
+    },
+    {
+        "name": "Therizinosaurus",
+        "image": "images/therizinosaurus.jpg",
+        "type": "Theropod (therizinosaur, herbivorous/omnivorous)",
+        "era": "Late Cretaceous",
+        "diet": "Carnivore",
+        "found": "Asia (Mongolia)",
+        "length": "~9\u201310 metres (\u224830\u201333 feet)",
+        "fact": "Therizinosaurus was a strange, plant-eating dinosaur that lived about 70 million years ago during the Late Cretaceous period. It is best known for its enormous claws, which could grow over one metre long. Despite its fearsome appearance, Therizinosaurus likely used its claws to pull down branches and defend itself."
+    },
+    {
+        "name": "Triceratops",
+        "image": "images/triceratops.jpg",
+        "type": "Herbivorous ceratopsian",
+        "era": "Late Cretaceous",
+        "diet": "Herbivore",
+        "found": "North America",
+        "length": "Approximately 8-9 meters (26-30 feet)",
+        "fact": "The name Triceratops means &#8216;three-horned face&#8217;. This fearsome-looking herbivore was found in western America during the late Cretaceous Period. It may have lived in herds."
+    },
+    {
+        "name": "Troodon",
+        "image": "images/troodon.jpg",
+        "type": "Theropod, dromaeosaurid",
+        "era": "Late Cretaceous",
+        "diet": "Carnivore",
+        "found": "North America",
+        "length": "About 2-2.4 meters (6.5-8 feet)",
+        "fact": "Troodon was a small, bird-like dinosaur of the Late Cretaceous Period. It grew to around 2 metres (6.5 ft.)&nbsp;in length, and would have stood waist-high to a man."
+    },
+    {
+        "name": "Tyrannosaurus",
+        "image": "images/tyrannosaurus.jpg",
+        "type": "Theropod",
+        "era": "Late Cretaceous (around 68-66 million years ago)",
+        "diet": "Carnivore",
+        "found": "North America",
+        "length": "Up to 40 feet (12 meters)",
+        "fact": "Tyrannosaurus is perhaps the most famous type of dinosaur in the world, and no list of dinosaurs would be complete without it! One species in particular, Tyrannosaurus Rex, is particularly well-known as being the archetypal \u2018killer dinosaur\u2019."
+    },
+    {
+        "name": "Utahraptor",
+        "image": "images/utahraptor.jpg",
+        "type": "Dromaeosaurid",
+        "era": "Early Cretaceous (around 124 million years ago)",
+        "diet": "Herbivore",
+        "found": "North America (Utah)",
+        "length": "About 23 feet (7 meters)",
+        "fact": "As a member of the raptor family, Utahraptor was a carnivorous dinosaur characterized by a large sickle-shaped claw on each foot. It was much larger than other raptors like Velociraptor. It likely used its claw to pin down prey while delivering fatal bites with its sharp teeth."
+    },
+    {
+        "name": "Velociraptor",
+        "image": "images/velociraptor.jpg",
+        "type": "Theropod, dromaeosaurid",
+        "era": "Late Cretaceous",
+        "diet": "Carnivore",
+        "found": "Mongolia and China",
+        "length": "Approximately 2 meters (6.5 feet) from head to tail",
+        "fact": "Velociraptor was a small, bird-like, predatory dinosaur of the late Cretaceous Period. Its name\u2013which means \u2018swift plunderer\u2019\u2013accurately describes this speedy, fierce carnivore."
     }
 ];
 
@@ -687,7 +909,7 @@ function loadQuestion(index) {
     accuracyTagEl.textContent = `${accuracy}% Accuracy`;
 
     // Render Dino Visual
-    dinoVisual.innerHTML = renderDinoSVG(currentDino);
+    dinoVisual.innerHTML = `<img src="${currentDino.image}" alt="${currentDino.name}" class="dino-activewild-img">`;
     hintOverlay.classList.add('hidden');
 
     // Generate 4 Choices (1 Correct + 3 Distractors)
