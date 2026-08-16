@@ -866,6 +866,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     submitScoreBtn.addEventListener('click', handleScoreSubmission);
+
+    let currentLbTab = 'photo';
+
+    document.querySelectorAll('.lb-tab-btn').forEach(tabBtn => {
+        tabBtn.addEventListener('click', () => {
+            playSound('click');
+            document.querySelectorAll('.lb-tab-btn').forEach(b => b.classList.remove('active'));
+            tabBtn.classList.add('active');
+            currentLbTab = tabBtn.getAttribute('data-lb-mode');
+            openLeaderboard(currentLbTab);
+        });
+    });
+
     playerNameInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -1295,6 +1308,7 @@ async function handleScoreSubmission() {
         name: playerName,
         score: score,
         accuracy: Math.round((correctCount / totalQInRound) * 100),
+        mode: selectedMode || 'photo',
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         timestamp: Date.now()
     };
@@ -1327,40 +1341,54 @@ async function handleScoreSubmission() {
     }
 }
 
-async function openLeaderboard() {
+async function openLeaderboard(targetMode = 'photo') {
     leaderboardModal.classList.remove('hidden');
+
+    // Highlight active tab button
+    document.querySelectorAll('.lb-tab-btn').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-lb-mode') === targetMode);
+    });
+
     leaderboardTbody.innerHTML = `<tr><td colspan="5" class="lb-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading Leaderboard...</td></tr>`;
 
-    let entries = [];
+    let allEntries = [];
 
     if (db && firebaseConfig.apiKey !== "AIzaSyD-placeholder") {
         try {
-            const q = query(collection(db, 'dino-quiz-leaderboard'), orderBy('score', 'desc'), limit(15));
+            const q = query(collection(db, 'dino-quiz-leaderboard'), orderBy('score', 'desc'), limit(50));
             const snap = await withTimeout(getDocs(q), 2500);
             snap.forEach(docSnap => {
-                entries.push(docSnap.data());
+                allEntries.push(docSnap.data());
             });
         } catch (e) {
             console.warn("Falling back to local leaderboard:", e);
         }
     }
 
-    if (entries.length === 0) {
-        entries = JSON.parse(localStorage.getItem('dino_quiz_leaderboard') || '[]');
+    if (allEntries.length === 0) {
+        allEntries = JSON.parse(localStorage.getItem('dino_quiz_leaderboard') || '[]');
     }
 
-    // Default Demo Entries if empty
-    if (entries.length === 0) {
-        entries = [
-            { name: "Dr. Alan Grant", score: 4850, accuracy: 100, date: "Aug 15, 2026" },
-            { name: "Ellie Sattler", score: 4620, accuracy: 96, date: "Aug 15, 2026" },
-            { name: "Ian Malcolm", score: 4100, accuracy: 92, date: "Aug 14, 2026" },
-            { name: "Eric F.", score: 3950, accuracy: 88, date: "Aug 14, 2026" },
-            { name: "Guest Explorer", score: 3200, accuracy: 80, date: "Aug 13, 2026" }
+    // Default Demo Entries if completely empty
+    if (allEntries.length === 0) {
+        allEntries = [
+            { name: "Dr. Alan Grant", score: 4850, accuracy: 100, mode: "photo", date: "Aug 15, 2026" },
+            { name: "Ellie Sattler", score: 4620, accuracy: 96, mode: "photo", date: "Aug 15, 2026" },
+            { name: "Ian Malcolm", score: 4100, accuracy: 92, mode: "trivia", date: "Aug 14, 2026" },
+            { name: "Eric F.", score: 3950, accuracy: 88, mode: "photo", date: "Aug 14, 2026" },
+            { name: "Guest Explorer", score: 3200, accuracy: 80, mode: "mixed", date: "Aug 13, 2026" }
         ];
     }
 
-    renderLeaderboardRows(entries);
+    // Filter entries for targetMode (Older entries without mode tag default to 'photo'!)
+    const filtered = allEntries.filter(item => {
+        const itemMode = item.mode || 'photo';
+        return itemMode === targetMode;
+    });
+
+    filtered.sort((a, b) => b.score - a.score);
+
+    renderLeaderboardRows(filtered);
 }
 
 function renderLeaderboardRows(entries) {

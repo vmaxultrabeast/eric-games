@@ -931,12 +931,51 @@ html, body {
 }
 .lb-header h2 {
     font-family: var(--font-logo);
-    font-size: 1.1rem;
-    color: var(--amber);
+    font-size: 1.2rem;
+    color: #fff;
+}
+.lb-header h2 i { color: var(--amber); }
+
+.lb-tabs-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
+    background: rgba(7, 8, 13, 0.6);
+    padding: 0.4rem;
+    border-radius: 14px;
+    border: 1px solid var(--panel-border);
+}
+
+.lb-tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.6rem 0.8rem;
+    border-radius: 10px;
+    font-family: var(--font-logo);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
 }
+
+.lb-tab-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.lb-tab-btn.active {
+    background: rgba(0, 240, 255, 0.15);
+    color: var(--cyan);
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+}
+
 .close-btn {
     background: none;
     border: none;
