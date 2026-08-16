@@ -866,6 +866,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     submitScoreBtn.addEventListener('click', handleScoreSubmission);
 
+let selectedMode = 'photo'; // 'photo', 'trivia', or 'mixed'
+
+document.querySelectorAll('.mode-card-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        playSound('click');
+        document.querySelectorAll('.mode-card-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedMode = btn.getAttribute('data-mode');
+    });
+});
+
+
     // Lifeline buttons
     lifelineFifty.addEventListener('click', useFiftyFifty);
     lifelineHint.addEventListener('click', useHint);
@@ -873,6 +885,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ── Game Logic ─────────────────────────────────────────────────────────────
+
 function startNewRound() {
     score = 0;
     streak = 0;
@@ -883,9 +896,66 @@ function startNewRound() {
     lifelines = { fifty: 1, hint: 2, freeze: 1 };
     updateLifelineUI();
 
-    // Shuffle & Pick 25 Questions
-    const shuffled = [...DINOSAURS].sort(() => 0.5 - Math.random());
-    currentRoundQuestions = shuffled.slice(0, TOTAL_QUESTIONS);
+    let pool = [];
+
+    if (selectedMode === 'photo') {
+        const shuffled = [...DINOSAURS].sort(() => 0.5 - Math.random());
+        pool = shuffled.slice(0, TOTAL_QUESTIONS).map(dino => ({
+            type: 'photo',
+            dino: dino,
+            questionText: 'WHICH DINOSAUR IS THIS?',
+            correctAnswer: dino.name,
+            image: dino.image,
+            options: generateOptions(dino.name),
+            fact: dino.fact,
+            era: dino.era,
+            diet: dino.diet,
+            size: dino.length
+        }));
+    } else if (selectedMode === 'trivia') {
+        const shuffled = [...GENERAL_TRIVIA].sort(() => 0.5 - Math.random());
+        pool = shuffled.slice(0, 20).map(item => ({
+            type: 'trivia',
+            questionText: item.question,
+            correctAnswer: item.correct,
+            image: null,
+            options: [...item.options].sort(() => 0.5 - Math.random()),
+            fact: item.fact,
+            era: item.era,
+            diet: item.diet,
+            size: 'Trivia Specimen'
+        }));
+    } else {
+        // Mixed mode: 15 photo questions + 10 general trivia questions
+        const shuffledPhotos = [...DINOSAURS].sort(() => 0.5 - Math.random()).slice(0, 15).map(dino => ({
+            type: 'photo',
+            dino: dino,
+            questionText: 'WHICH DINOSAUR IS THIS?',
+            correctAnswer: dino.name,
+            image: dino.image,
+            options: generateOptions(dino.name),
+            fact: dino.fact,
+            era: dino.era,
+            diet: dino.diet,
+            size: dino.length
+        }));
+
+        const shuffledTrivia = [...GENERAL_TRIVIA].sort(() => 0.5 - Math.random()).slice(0, 10).map(item => ({
+            type: 'trivia',
+            questionText: item.question,
+            correctAnswer: item.correct,
+            image: null,
+            options: [...item.options].sort(() => 0.5 - Math.random()),
+            fact: item.fact,
+            era: item.era,
+            diet: item.diet,
+            size: 'Trivia Specimen'
+        }));
+
+        pool = [...shuffledPhotos, ...shuffledTrivia].sort(() => 0.5 - Math.random());
+    }
+
+    currentRoundQuestions = pool;
 
     updateHeaderUI();
 
@@ -896,45 +966,63 @@ function startNewRound() {
     loadQuestion(0);
 }
 
+function generateOptions(correctName) {
+    const distractors = DINOSAURS
+        .filter(d => d.name !== correctName)
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3)
+        .map(d => d.name);
+
+    return [correctName, ...distractors].sort(() => 0.5 - Math.random());
+}
+
+
+
 function loadQuestion(index) {
     isAnswered = false;
     currentQuestionIndex = index;
-    const currentDino = currentRoundQuestions[index];
+    const currentQ = currentRoundQuestions[index];
+    const totalQInRound = currentRoundQuestions.length;
 
     // Update Progress UI
     questionCounterEl.textContent = index + 1;
-    const pct = ((index + 1) / TOTAL_QUESTIONS) * 100;
+    document.querySelector('.progress-info span').innerHTML = `<i class="fa-solid fa-list-check"></i> QUESTION <strong>${index + 1}</strong> / ${totalQInRound}`;
+    const pct = ((index + 1) / totalQInRound) * 100;
     progressBarFill.style.width = `${pct}%`;
     const accuracy = index > 0 ? Math.round((correctCount / index) * 100) : 100;
     accuracyTagEl.textContent = `${accuracy}% Accuracy`;
 
-    // Render Dino Visual
-    dinoVisual.innerHTML = `<img src="${currentDino.image}" alt="${currentDino.name}" class="dino-activewild-img">`;
+    // Render Dino Visual or Question Text
+    if (currentQ.type === 'photo') {
+        dinoVisual.style.display = 'flex';
+        dinoVisual.innerHTML = `<img src="${currentQ.image}" alt="${currentQ.correctAnswer}" class="dino-activewild-img">`;
+        document.querySelector('.question-prompt h3').textContent = 'WHICH DINOSAUR IS THIS?';
+        document.querySelector('.question-prompt h3').className = '';
+    } else {
+        dinoVisual.style.display = 'none';
+        document.querySelector('.question-prompt h3').textContent = currentQ.questionText;
+        document.querySelector('.question-prompt h3').className = 'question-text-heading';
+    }
+
     hintOverlay.classList.add('hidden');
 
-    // Generate 4 Choices (1 Correct + 3 Distractors)
-    const distractors = DINOSAURS
-        .filter(d => d.name !== currentDino.name)
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 3);
-
-    const allChoices = [currentDino, ...distractors].sort(() => 0.5 - Math.random());
-
+    // Render Options Grid
     choicesGrid.innerHTML = '';
     const letters = ['A', 'B', 'C', 'D'];
 
-    allChoices.forEach((choice, i) => {
+    currentQ.options.forEach((optText, i) => {
         const btn = document.createElement('button');
         btn.className = 'choice-btn';
         btn.setAttribute('data-letter', letters[i]);
-        btn.setAttribute('data-name', choice.name);
-        btn.textContent = choice.name;
-        btn.addEventListener('click', () => handleAnswerSelect(choice.name, currentDino.name, btn));
+        btn.setAttribute('data-name', optText);
+        btn.textContent = optText;
+        btn.addEventListener('click', () => handleAnswerSelect(optText, currentQ.correctAnswer, btn));
         choicesGrid.appendChild(btn);
     });
 
     startTimer();
 }
+
 
 function startTimer() {
     clearInterval(timerInterval);
@@ -1011,21 +1099,22 @@ function handleTimeOut() {
     streak = 0;
     updateHeaderUI();
 
-    const currentDino = currentRoundQuestions[currentQuestionIndex];
+    const currentQ = currentRoundQuestions[currentQuestionIndex];
     const allBtns = choicesGrid.querySelectorAll('.choice-btn');
     allBtns.forEach(b => {
         b.disabled = true;
-        if (b.getAttribute('data-name') === currentDino.name) {
+        if (b.getAttribute('data-name') === currentQ.correctAnswer) {
             b.classList.add('correct');
         }
     });
 
     setTimeout(() => {
-        showFactModal(currentDino, false, true);
+        showFactModal(currentQ, false, true);
     }, 1000);
 }
 
-function showFactModal(dino, isCorrect, isTimeout = false) {
+
+function showFactModal(qObj, isCorrect, isTimeout = false) {
     if (isCorrect) {
         factStatusBadge.className = 'fact-status-badge correct-bg';
         factStatusBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> CORRECT!';
@@ -1037,14 +1126,15 @@ function showFactModal(dino, isCorrect, isTimeout = false) {
         factStatusBadge.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> INCORRECT!';
     }
 
-    factDinoName.textContent = dino.name;
-    factEra.textContent = dino.era;
-    factDiet.textContent = dino.diet;
-    factSize.textContent = dino.size;
-    factTextEl.textContent = dino.fact;
+    factDinoName.textContent = qObj.correctAnswer;
+    factEra.textContent = qObj.era || 'Mesozoic Era';
+    factDiet.textContent = qObj.diet || 'Dino Fact';
+    factSize.textContent = qObj.size || 'Prehistoric Specimen';
+    factTextEl.textContent = qObj.fact || 'Great job testing your dinosaur knowledge!';
 
     factModal.classList.remove('hidden');
 }
+
 
 function advanceToNextQuestion() {
     if (currentQuestionIndex + 1 < TOTAL_QUESTIONS) {
@@ -1104,10 +1194,11 @@ function useFiftyFifty() {
     updateLifelineUI();
     playSound('lifeline');
 
-    const currentDino = currentRoundQuestions[currentQuestionIndex];
+    const currentQ = currentRoundQuestions[currentQuestionIndex];
     const allBtns = Array.from(choicesGrid.querySelectorAll('.choice-btn'));
     
-    const incorrectBtns = allBtns.filter(b => b.getAttribute('data-name') !== currentDino.name);
+    const currentQ = currentRoundQuestions[currentQuestionIndex];
+    const incorrectBtns = allBtns.filter(b => b.getAttribute('data-name') !== currentQ.correctAnswer);
     // Remove 2 incorrect buttons
     const toRemove = incorrectBtns.sort(() => 0.5 - Math.random()).slice(0, 2);
     toRemove.forEach(b => {
@@ -1122,7 +1213,7 @@ function useHint() {
     updateLifelineUI();
     playSound('lifeline');
 
-    const currentDino = currentRoundQuestions[currentQuestionIndex];
+    const currentQ = currentRoundQuestions[currentQuestionIndex];
     hintText.textContent = `HINT — ERA: ${currentDino.era} | DIET: ${currentDino.diet}`;
     hintOverlay.classList.remove('hidden');
 }
@@ -1255,3 +1346,288 @@ function escapeHTML(str) {
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[match]));
 }
+
+
+// ── General Dinosaur Knowledge Questions ──────────────────────────────────
+const GENERAL_TRIVIA = [
+    {
+        "id": "gen_1",
+        "question": "What does the word 'Dinosaur' actually mean?",
+        "options": [
+            "Giant Dragon",
+            "Terrible Lizard",
+            "Big Monster",
+            "Scaly Beast"
+        ],
+        "correct": "Terrible Lizard",
+        "era": "Mesozoic Era",
+        "diet": "Science Fact",
+        "fact": "Sir Richard Owen coined the word 'Dinosauria' in 1842, combining Greek words meaning 'terrible' (or fearfully great) and 'lizard'!"
+    },
+    {
+        "id": "gen_2",
+        "question": "What giant space rock crashed into Earth and ended the time of the dinosaurs 66 million years ago?",
+        "options": [
+            "A Comet",
+            "An Asteroid",
+            "A Moon Fragment",
+            "A Shooting Star"
+        ],
+        "correct": "An Asteroid",
+        "era": "66 Million Years Ago",
+        "diet": "Extinction Event",
+        "fact": "The 6-mile-wide Chicxulub asteroid crashed near Mexico, triggering earthquakes, tsunamis, and a global dust cloud!"
+    },
+    {
+        "id": "gen_3",
+        "question": "Which animal alive today is actually a direct living relative of dinosaurs like T-Rex?",
+        "options": [
+            "Crocodiles",
+            "Birds",
+            "Lizards",
+            "Sharks"
+        ],
+        "correct": "Birds",
+        "era": "Present Day",
+        "diet": "Evolution Fact",
+        "fact": "Birds are modern avian theropod dinosaurs! Chickens and hummingbirds are closer relatives to T-Rex than lizards!"
+    },
+    {
+        "id": "gen_4",
+        "question": "What did giant plant-eating dinosaurs like Brachiosaurus eat every day?",
+        "options": [
+            "Leaves, ferns, and tree branches",
+            "Fish and seaweed",
+            "Insects and bugs",
+            "Meat and bones"
+        ],
+        "correct": "Leaves, ferns, and tree branches",
+        "era": "Jurassic Period",
+        "diet": "Herbivore",
+        "fact": "Giant sauropods like Brachiosaurus needed up to 800 pounds of tree leaves every single day to fuel their massive bodies!"
+    },
+    {
+        "id": "gen_5",
+        "question": "What do scientists call fossilized dinosaur poop?",
+        "options": [
+            "Coprolite",
+            "Amber",
+            "Geode",
+            "Fossil Mud"
+        ],
+        "correct": "Coprolite",
+        "era": "Prehistoric Fossils",
+        "diet": "Fossil Fact",
+        "fact": "Coprolites help paleontologists figure out exactly what prehistoric dinosaurs ate for dinner millions of years ago!"
+    },
+    {
+        "id": "gen_6",
+        "question": "Which of these prehistoric creatures flew in the sky, but was actually a flying reptile\u2014NOT a dinosaur?",
+        "options": [
+            "Pteranodon",
+            "Allosaurus",
+            "Triceratops",
+            "Velociraptor"
+        ],
+        "correct": "Pteranodon",
+        "era": "Cretaceous Period",
+        "diet": "Piscivore",
+        "fact": "Pteranodons were flying reptiles called Pterosaurs. Dinosaurs were land-dwelling animals with straight legs under their bodies!"
+    },
+    {
+        "id": "gen_7",
+        "question": "How big was a real Velociraptor in real life?",
+        "options": [
+            "As tall as a 2-story building",
+            "About the size of a turkey or big dog",
+            "As large as an elephant",
+            "The size of a hamster"
+        ],
+        "correct": "About the size of a turkey or big dog",
+        "era": "Late Cretaceous",
+        "diet": "Carnivore",
+        "fact": "Real Velociraptors were only about 1.6 feet tall and covered in feathers! Movie raptors were actually modeled after Utahraptor!"
+    },
+    {
+        "id": "gen_8",
+        "question": "Which armored dinosaur had a heavy bone club on the end of its tail to smash away predators?",
+        "options": [
+            "Ankylosaurus",
+            "Stegosaurus",
+            "Diplodocus",
+            "Triceratops"
+        ],
+        "correct": "Ankylosaurus",
+        "era": "Late Cretaceous",
+        "diet": "Herbivore",
+        "fact": "Ankylosaurus used its heavy bone tail club like a bowling ball to break the legs of attacking predators!"
+    },
+    {
+        "id": "gen_9",
+        "question": "On which continents have scientists discovered dinosaur fossils?",
+        "options": [
+            "North America only",
+            "Europe and Asia only",
+            "All 7 continents, even Antarctica!",
+            "Australia only"
+        ],
+        "correct": "All 7 continents, even Antarctica!",
+        "era": "Global Geography",
+        "diet": "Fossil Record",
+        "fact": "Dinosaurs lived everywhere on Earth! Millions of years ago, Antarctica was warm with rainforests full of dinosaurs!"
+    },
+    {
+        "id": "gen_10",
+        "question": "Why did plant-eating dinosaurs swallow smooth stones called gastroliths?",
+        "options": [
+            "To crush and grind up tough plants in their stomach",
+            "To float in deep rivers",
+            "To clean their teeth",
+            "To cool down"
+        ],
+        "correct": "To crush and grind up tough plants in their stomach",
+        "era": "Digestion Fact",
+        "diet": "Herbivore",
+        "fact": "Sauropods didn't chew their food! They swallowed swallowed stones that tumbled inside their gizzard to grind up leaves!"
+    },
+    {
+        "id": "gen_11",
+        "question": "Which famous dinosaur had 3 sharp horns on its face and a giant neck shield for protection?",
+        "options": [
+            "Triceratops",
+            "Spinosaurus",
+            "Pachycephalosaurus",
+            "Brachiosaurus"
+        ],
+        "correct": "Triceratops",
+        "era": "Late Cretaceous",
+        "diet": "Herbivore",
+        "fact": "Triceratops' name means 'Three-Horned Face'. Its skull alone was as long as an adult human!"
+    },
+    {
+        "id": "gen_12",
+        "question": "What is a scientist who digs up and studies dinosaur fossils called?",
+        "options": [
+            "Archaeologist",
+            "Paleontologist",
+            "Geologist",
+            "Astronomer"
+        ],
+        "correct": "Paleontologist",
+        "era": "Science Career",
+        "diet": "Fossil Science",
+        "fact": "Paleontologists use brushes, chisels, and scanners to carefully unearth fossilized bones and reconstruct ancient life!"
+    },
+    {
+        "id": "gen_13",
+        "question": "Which giant predator was even longer than T-Rex and lived in rivers hunting fish?",
+        "options": [
+            "Spinosaurus",
+            "Stegosaurus",
+            "Velociraptor",
+            "Carnotaurus"
+        ],
+        "correct": "Spinosaurus",
+        "era": "Cretaceous Period",
+        "diet": "Piscivore / Carnivore",
+        "fact": "Spinosaurus was 50 feet long and featured a giant 6-foot sail on its back, swimming in ancient North African rivers!"
+    },
+    {
+        "id": "gen_14",
+        "question": "What is the hardened tree sap that preserved ancient prehistoric bugs and feathers called?",
+        "options": [
+            "Amber",
+            "Crystal",
+            "Diamond",
+            "Lava Glass"
+        ],
+        "correct": "Amber",
+        "era": "Preservation",
+        "diet": "Fossil Gem",
+        "fact": "Sticky tree resin trapped ancient insects and dinosaur feathers 100 million years ago, hardening into golden amber!"
+    },
+    {
+        "id": "gen_15",
+        "question": "Which dinosaur had 4 sharp spikes on its tail and 17 giant plates along its back?",
+        "options": [
+            "Stegosaurus",
+            "Ankylosaurus",
+            "Parasaurolophus",
+            "Carnotaurus"
+        ],
+        "correct": "Stegosaurus",
+        "era": "Late Jurassic",
+        "diet": "Herbivore",
+        "fact": "Stegosaurus' 4 tail spikes are called a 'thagomizer', which it swung at predators like Allosaurus!"
+    },
+    {
+        "id": "gen_16",
+        "question": "Why did Parasaurolophus have a long hollow tube on top of its head?",
+        "options": [
+            "To store extra water",
+            "To trumpet loud sounds like a horn to its herd",
+            "To dig holes in the dirt",
+            "To fly"
+        ],
+        "correct": "Parasaurolophus",
+        "era": "Late Cretaceous",
+        "diet": "Herbivore",
+        "fact": "Parasaurolophus used its 6-foot hollow head crest like a musical brass instrument to send long-distance foghorn signals!"
+    },
+    {
+        "id": "gen_17",
+        "question": "Which dinosaur had a thick dome of solid bone on its head up to 10 inches thick for head-butting?",
+        "options": [
+            "Pachycephalosaurus",
+            "Triceratops",
+            "Gallimimus",
+            "Iguanodon"
+        ],
+        "correct": "Pachycephalosaurus",
+        "era": "Late Cretaceous",
+        "diet": "Herbivore",
+        "fact": "Pachycephalosaurus had a skull made of 10-inch-thick solid bone surrounded by tiny bone spikes!"
+    },
+    {
+        "id": "gen_18",
+        "question": "Which dinosaur had the longest claws ever discovered\u2014measuring over 3 feet long!",
+        "options": [
+            "Therizinosaurus",
+            "T-Rex",
+            "Velociraptor",
+            "Ankylosaurus"
+        ],
+        "correct": "Therizinosaurus",
+        "era": "Late Cretaceous",
+        "diet": "Herbivore",
+        "fact": "Therizinosaurus had giant giant giant giant scythe-like claws used for pulling down high tree branches and defending itself!"
+    },
+    {
+        "id": "gen_19",
+        "question": "How fast could ostrich-like dinosaurs like Gallimimus run to escape predators?",
+        "options": [
+            "5 miles per hour",
+            "Up to 30 to 40 miles per hour!",
+            "100 miles per hour",
+            "They could only crawl"
+        ],
+        "correct": "Up to 30 to 40 miles per hour!",
+        "era": "Late Cretaceous",
+        "diet": "Omnivore",
+        "fact": "Gallimimus was lightweight with long hollow bones, allowing it to sprint as fast as a racehorse across open plains!"
+    },
+    {
+        "id": "gen_20",
+        "question": "What is the name of the final dinosaur period when T-Rex and Triceratops lived right before extinction?",
+        "options": [
+            "Ice Age",
+            "Cretaceous Period",
+            "Stone Age",
+            "Modern Age"
+        ],
+        "correct": "Cretaceous Period",
+        "era": "145-66 Mya",
+        "diet": "Time Period",
+        "fact": "The Cretaceous Period was the last chapter of the Mesozoic Era, ending with the asteroid impact 66 million years ago!"
+    }
+];
