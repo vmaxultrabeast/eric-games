@@ -866,6 +866,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     submitScoreBtn.addEventListener('click', handleScoreSubmission);
+    playerNameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleScoreSubmission();
+        }
+    });
+
+    playerNameInput.addEventListener('input', () => {
+        submitScoreBtn.disabled = false;
+        submitScoreBtn.style.opacity = '1';
+        submitScoreBtn.style.pointerEvents = 'auto';
+        submitScoreBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> SUBMIT SCORE';
+    });
 
     document.querySelectorAll('.mode-card-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1153,12 +1166,13 @@ function endRound() {
 
     playSound('fanfare');
 
-    const accuracyPct = Math.round((correctCount / TOTAL_QUESTIONS) * 100);
+    const totalQInRound = currentRoundQuestions.length || TOTAL_QUESTIONS;
+    const accuracyPct = Math.round((correctCount / totalQInRound) * 100);
 
     resFinalScore.textContent = score.toLocaleString();
     resAccuracy.textContent = `${accuracyPct}%`;
     resBestStreak.textContent = `${bestStreak}🔥`;
-    resCorrect.textContent = `${correctCount} / ${TOTAL_QUESTIONS}`;
+    resCorrect.textContent = `${correctCount} / ${totalQInRound}`;
 
     // Calculate Rank
     if (accuracyPct >= 95) {
@@ -1187,6 +1201,12 @@ function endRound() {
     // Pre-fill Player Name if signed in or saved
     const savedName = localStorage.getItem('dino_quiz_player_name') || window.parent._arcadeUser?.displayName || 'Guest Dino Hunter';
     playerNameInput.value = savedName;
+
+    // Reset submit button & feedback for every round
+    submitScoreBtn.disabled = false;
+    submitScoreBtn.style.opacity = '1';
+    submitScoreBtn.style.pointerEvents = 'auto';
+    submitScoreBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> SUBMIT SCORE';
     submitFeedback.textContent = '';
 }
 
@@ -1215,7 +1235,7 @@ function useHint() {
     playSound('lifeline');
 
     const currentQ = currentRoundQuestions[currentQuestionIndex];
-    hintText.textContent = `HINT — ERA: ${currentDino.era} | DIET: ${currentDino.diet}`;
+    hintText.textContent = `HINT — ERA: ${currentQ.era} | DIET: ${currentQ.diet}`;
     hintOverlay.classList.remove('hidden');
 }
 
@@ -1244,39 +1264,60 @@ function updateHeaderUI() {
     currentStreakEl.textContent = `${streak}×`;
 }
 
+function withTimeout(promise, ms = 2500) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
+    ]);
+}
+
 // ── Leaderboard Submission & Fetching ──────────────────────────────────────
 async function handleScoreSubmission() {
+    if (submitScoreBtn.disabled) return;
+
     const playerName = playerNameInput.value.trim() || 'Anonymous Explorer';
     localStorage.setItem('dino_quiz_player_name', playerName);
+    
     submitScoreBtn.disabled = true;
+    submitScoreBtn.style.opacity = '0.6';
+    submitScoreBtn.style.pointerEvents = 'none';
+    submitScoreBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> SUBMITTING...';
     submitFeedback.textContent = "Submitting score to Leaderboard...";
 
+    const totalQInRound = currentRoundQuestions.length || TOTAL_QUESTIONS;
     const entry = {
         name: playerName,
         score: score,
-        accuracy: Math.round((correctCount / TOTAL_QUESTIONS) * 100),
+        accuracy: Math.round((correctCount / totalQInRound) * 100),
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         timestamp: Date.now()
     };
 
     // 1. Save to Local High Scores
     let localLb = JSON.parse(localStorage.getItem('dino_quiz_leaderboard') || '[]');
+    localLb = localLb.filter(e => e.timestamp !== entry.timestamp);
     localLb.push(entry);
     localLb.sort((a, b) => b.score - a.score);
     localLb = localLb.slice(0, 20);
     localStorage.setItem('dino_quiz_leaderboard', JSON.stringify(localLb));
 
-    // 2. Try Firestore Push
-    if (db) {
+    // 2. Try Firestore Push with 2.5-second timeout race
+    let firestoreSuccess = false;
+    if (db && firebaseConfig.apiKey !== "AIzaSyD-placeholder") {
         try {
-            await addDoc(collection(db, 'dino-quiz-leaderboard'), entry);
-            submitFeedback.textContent = "✅ High Score successfully posted to Global Leaderboard!";
+            await withTimeout(addDoc(collection(db, 'dino-quiz-leaderboard'), entry), 2500);
+            firestoreSuccess = true;
         } catch (e) {
-            console.warn("Firestore error:", e);
-            submitFeedback.textContent = "✅ Score saved to Local Leaderboard!";
+            console.warn("Firestore save timeout/error:", e);
         }
+    }
+
+    if (firestoreSuccess) {
+        submitFeedback.textContent = "✅ High Score successfully posted to Global Leaderboard!";
+        submitScoreBtn.innerHTML = '<i class="fa-solid fa-check"></i> SCORE POSTED!';
     } else {
         submitFeedback.textContent = "✅ Score saved to Local Leaderboard!";
+        submitScoreBtn.innerHTML = '<i class="fa-solid fa-check"></i> SAVED LOCALLY!';
     }
 }
 
@@ -1286,10 +1327,10 @@ async function openLeaderboard() {
 
     let entries = [];
 
-    if (db) {
+    if (db && firebaseConfig.apiKey !== "AIzaSyD-placeholder") {
         try {
             const q = query(collection(db, 'dino-quiz-leaderboard'), orderBy('score', 'desc'), limit(15));
-            const snap = await getDocs(q);
+            const snap = await withTimeout(getDocs(q), 2500);
             snap.forEach(docSnap => {
                 entries.push(docSnap.data());
             });
