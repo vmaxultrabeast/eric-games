@@ -337,6 +337,11 @@ html, body {
 
 .start-actions {
     display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
 /* Mode Selection */
 .mode-selection-container {
     margin-bottom: 2rem;

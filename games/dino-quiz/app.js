@@ -753,6 +753,7 @@ let correctCount = 0;
 let timerInterval = null;
 let timeLeft = QUESTION_TIME_LIMIT;
 let isAnswered = false;
+let selectedMode = 'photo'; // 'photo', 'trivia', or 'mixed'
 
 let lifelines = {
     fifty: 1,
@@ -866,9 +867,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     submitScoreBtn.addEventListener('click', handleScoreSubmission);
 
-let selectedMode = 'photo'; // 'photo', 'trivia', or 'mixed'
-
-document.querySelectorAll('.mode-card-btn').forEach(btn => {
+    document.querySelectorAll('.mode-card-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         playSound('click');
         document.querySelectorAll('.mode-card-btn').forEach(b => b.classList.remove('active'));
@@ -1196,8 +1195,6 @@ function useFiftyFifty() {
 
     const currentQ = currentRoundQuestions[currentQuestionIndex];
     const allBtns = Array.from(choicesGrid.querySelectorAll('.choice-btn'));
-    
-    const currentQ = currentRoundQuestions[currentQuestionIndex];
     const incorrectBtns = allBtns.filter(b => b.getAttribute('data-name') !== currentQ.correctAnswer);
     // Remove 2 incorrect buttons
     const toRemove = incorrectBtns.sort(() => 0.5 - Math.random()).slice(0, 2);
