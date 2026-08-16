@@ -991,10 +991,15 @@ function generateOptions(correctName) {
 
 
 function loadQuestion(index) {
+    const totalQInRound = currentRoundQuestions.length || 20;
+    if (index < 0 || index >= totalQInRound || !currentRoundQuestions[index]) {
+        endRound();
+        return;
+    }
+
     isAnswered = false;
     currentQuestionIndex = index;
     const currentQ = currentRoundQuestions[index];
-    const totalQInRound = currentRoundQuestions.length;
 
     // Update Progress UI
     questionCounterEl.textContent = index + 1;
