@@ -5,9 +5,18 @@ import { onAuthChange, signInWithEmail, signUpWithEmail, signOutUser, getFriendl
 import { pullAllSaves, pullGameSave, pushGameSave, pushAllLocalSaves, saveUserProfile, updatePresence, getOnlinePlayers, sendChatMessage, subscribeToChatMessages, getPrivateRoomId, GAME_SAVE_KEYS } from './firebase-sync.js';
 
 // ==========================================================================
-// Games Registry (Metadata)
-// ==========================================================================
 const GAMES_REGISTRY = [
+    {
+        id: 'dino-quiz',
+        title: 'Dino Quiz Master',
+        category: 'puzzle',
+        description: 'Test your paleontology skills in this high-energy 25-question dinosaur trivia challenge! Identify prehistoric giants, earn streak multipliers, use lifelines, and compete on the global leaderboard.',
+        folder: 'games/dino-quiz',
+        cover: 'games/dino-quiz/cover.png',
+        controls: 'Click or tap options to select the correct dinosaur. Use lifelines (50:50, Hint, Freeze) when needed.',
+        addedDate: '2026-08-15',
+        updatedDate: '2026-08-15'
+    },
     {
         id: 'dino-island-story',
         title: "Eric's Audiobooks",

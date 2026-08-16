@@ -20,6 +20,7 @@ import {
 
 // ── localStorage key registry per game ID ──────────────────────────────────
 export const GAME_SAVE_KEYS = {
+    'dino-quiz':              ['dino_quiz_high_score', 'dino_quiz_leaderboard', 'dino_quiz_player_name'],
     'pokegotchi':             ['pokegotchi_state_save'],
     'dino-dna':               ['dino_dna_save'],
     'doggy-run':              ['doggy_run_save'],

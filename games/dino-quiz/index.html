@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dino Quiz Master — Eric's Arcade</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Outfit:wght@300;400;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="ambient-bg">
+        <div class="orb orb-cyan"></div>
+        <div class="orb orb-purple"></div>
+        <div class="orb orb-amber"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="app-header">
+        <div class="header-brand">
+            <i class="fa-solid fa-dragon brand-icon"></i>
+            <div class="brand-text">
+                <span class="brand-badge">RETRO ARCADE</span>
+                <h1 class="brand-title">DINO QUIZ <span class="highlight">MASTER</span></h1>
+            </div>
+        </div>
+
+        <div class="header-stats">
+            <div class="stat-pill score-pill">
+                <i class="fa-solid fa-trophy"></i>
+                <div class="stat-meta">
+                    <span class="stat-label">SCORE</span>
+                    <span class="stat-value" id="currentScore">0</span>
+                </div>
+            </div>
+
+            <div class="stat-pill streak-pill">
+                <i class="fa-solid fa-fire"></i>
+                <div class="stat-meta">
+                    <span class="stat-label">STREAK</span>
+                    <span class="stat-value" id="currentStreak">0×</span>
+                </div>
+            </div>
+
+            <button class="sound-toggle-btn" id="soundToggleBtn" title="Toggle Sound">
+                <i class="fa-solid fa-volume-high"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="game-container">
+        
+        <!-- Welcome / Start Screen -->
+        <section class="screen start-screen active" id="startScreen">
+            <div class="hero-card">
+                <div class="hero-badge"><i class="fa-solid fa-bolt"></i> 25 QUESTIONS ROUND</div>
+                <h2 class="hero-title">CAN YOU IDENTIFY ALL THE DINOSAURS?</h2>
+                <p class="hero-sub">Test your paleontology knowledge! Identify 25 prehistoric giants, earn streak multipliers, use power-up lifelines, and climb the Global Leaderboard!</p>
+                
+                <div class="powerup-showcase">
+                    <div class="powerup-item">
+                        <i class="fa-solid fa-scissors"></i>
+                        <span>50:50 Lifeline</span>
+                    </div>
+                    <div class="powerup-item">
+                        <i class="fa-solid fa-lightbulb"></i>
+                        <span>Fossil Clue</span>
+                    </div>
+                    <div class="powerup-item">
+                        <i class="fa-solid fa-hourglass-half"></i>
+                        <span>Time Freeze</span>
+                    </div>
+                </div>
+
+                <div class="start-actions">
+                    <button class="btn btn-primary start-btn" id="startQuizBtn">
+                        <i class="fa-solid fa-play"></i> START 25-QUESTION QUIZ
+                    </button>
+                    <button class="btn btn-secondary leaderboard-btn" id="openLeaderboardBtn">
+                        <i class="fa-solid fa-ranking-star"></i> GLOBAL LEADERBOARD
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Active Quiz Screen -->
+        <section class="screen quiz-screen" id="quizScreen">
+            
+            <!-- Top Progress & Timer Bar -->
+            <div class="quiz-status-bar">
+                <div class="progress-container">
+                    <div class="progress-info">
+                        <span><i class="fa-solid fa-list-check"></i> QUESTION <strong id="questionCounter">1</strong> / 25</span>
+                        <span class="accuracy-tag" id="accuracyTag">100% Accuracy</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="progressBarFill" style="width: 4%;"></div>
+                    </div>
+                </div>
+
+                <!-- Circular Timer -->
+                <div class="timer-badge" id="timerBadge">
+                    <svg class="timer-svg" viewBox="0 0 36 36">
+                        <path class="timer-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                        <path class="timer-circle" id="timerCircle" stroke-dasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    </svg>
+                    <span class="timer-text" id="timerText">15</span>
+                </div>
+            </div>
+
+            <!-- Lifelines Bar -->
+            <div class="lifelines-bar">
+                <button class="lifeline-btn" id="lifelineFifty" title="Remove 2 incorrect choices">
+                    <i class="fa-solid fa-scissors"></i>
+                    <span>50:50</span>
+                    <span class="lifeline-count" id="countFifty">1</span>
+                </button>
+                <button class="lifeline-btn" id="lifelineHint" title="Show Dino Era & Diet hint">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <span>HINT</span>
+                    <span class="lifeline-count" id="countHint">2</span>
+                </button>
+                <button class="lifeline-btn" id="lifelineFreeze" title="Add +10s to timer">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                    <span>FREEZE</span>
+                    <span class="lifeline-count" id="countFreeze">1</span>
+                </button>
+            </div>
+
+            <!-- Dinosaur Display Card -->
+            <div class="dino-card" id="dinoCard">
+                <div class="dino-image-wrapper">
+                    <div class="dino-svg-canvas" id="dinoVisual"></div>
+                    <div class="hint-overlay hidden" id="hintOverlay">
+                        <span id="hintText">ERA: Late Cretaceous | DIET: Carnivore</span>
+                    </div>
+                </div>
+
+                <div class="question-prompt">
+                    <h3>WHICH DINOSAUR IS THIS?</h3>
+                </div>
+
+                <!-- Multiple Choice Grid -->
+                <div class="choices-grid" id="choicesGrid">
+                    <button class="choice-btn" data-index="0">Option A</button>
+                    <button class="choice-btn" data-index="1">Option B</button>
+                    <button class="choice-btn" data-index="2">Option C</button>
+                    <button class="choice-btn" data-index="3">Option D</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fact Popup Modal -->
+        <div class="fact-modal-overlay hidden" id="factModal">
+            <div class="fact-modal-card" id="factModalCard">
+                <div class="fact-header">
+                    <span class="fact-status-badge" id="factStatusBadge"><i class="fa-solid fa-circle-check"></i> CORRECT!</span>
+                    <h3 class="fact-dino-name" id="factDinoName">Tyrannosaurus Rex</h3>
+                </div>
+                <div class="fact-body">
+                    <div class="fact-meta">
+                        <span class="meta-tag"><i class="fa-solid fa-calendar"></i> <span id="factEra">Late Cretaceous</span></span>
+                        <span class="meta-tag"><i class="fa-solid fa-drumstick-bite"></i> <span id="factDiet">Carnivore</span></span>
+                        <span class="meta-tag"><i class="fa-solid fa-ruler-vertical"></i> <span id="factSize">12 meters long</span></span>
+                    </div>
+                    <p class="fact-text" id="factText">T-Rex had teeth up to 12 inches long and a bite force capable of crushing solid bone!</p>
+                </div>
+                <div class="fact-footer">
+                    <button class="btn btn-primary" id="nextQuestionBtn">
+                        NEXT QUESTION <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- End Game / Results Screen -->
+        <section class="screen results-screen" id="resultsScreen">
+            <div class="results-card">
+                <div class="rank-badge-container">
+                    <div class="rank-icon" id="rankIcon">🏆</div>
+                    <h2 class="rank-title" id="rankTitle">S RANK — DINO MASTER</h2>
+                </div>
+
+                <div class="results-grid">
+                    <div class="result-box">
+                        <span class="res-label">FINAL SCORE</span>
+                        <span class="res-val highlight" id="resFinalScore">0</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="res-label">ACCURACY</span>
+                        <span class="res-val" id="resAccuracy">0%</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="res-label">BEST STREAK</span>
+                        <span class="res-val" id="resBestStreak">0🔥</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="res-label">CORRECT</span>
+                        <span class="res-val" id="resCorrect">0 / 25</span>
+                    </div>
+                </div>
+
+                <!-- Submit High Score Form -->
+                <div class="score-submit-box">
+                    <h3><i class="fa-solid fa-award"></i> SAVE YOUR HIGH SCORE</h3>
+                    <div class="input-group">
+                        <input type="text" id="playerNameInput" placeholder="Enter Player Name..." maxlength="18" autocomplete="off">
+                        <button class="btn btn-accent" id="submitScoreBtn">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> SUBMIT SCORE
+                        </button>
+                    </div>
+                    <p class="submit-feedback" id="submitFeedback"></p>
+                </div>
+
+                <div class="results-actions">
+                    <button class="btn btn-primary" id="playAgainBtn">
+                        <i class="fa-solid fa-rotate-right"></i> PLAY AGAIN
+                    </button>
+                    <button class="btn btn-secondary" id="viewLeaderboardResultsBtn">
+                        <i class="fa-solid fa-list-ol"></i> LEADERBOARD
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Global Leaderboard Modal -->
+    <div class="modal-overlay hidden" id="leaderboardModal">
+        <div class="leaderboard-card">
+            <div class="lb-header">
+                <h2><i class="fa-solid fa-trophy"></i> GLOBAL DINO LEADERBOARD</h2>
+                <button class="close-btn" id="closeLeaderboardBtn">&times;</button>
+            </div>
+            
+            <div class="lb-table-container">
+                <table class="lb-table">
+                    <thead>
+                        <tr>
+                            <th>RANK</th>
+                            <th>PLAYER</th>
+                            <th>SCORE</th>
+                            <th>ACCURACY</th>
+                            <th>DATE</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardTbody">
+                        <tr>
+                            <td colspan="5" class="lb-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading Leaderboard...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="lb-footer">
+                <button class="btn btn-secondary" id="closeLeaderboardFooterBtn">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (ES Module App Logic) -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
