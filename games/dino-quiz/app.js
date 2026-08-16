@@ -1586,7 +1586,7 @@ const GENERAL_TRIVIA = [
         "era": "Cretaceous Period",
         "diet": "Piscivore / Carnivore",
         "fact": "Spinosaurus was 50 feet long and featured a giant 6-foot sail on its back, swimming in ancient North African rivers!",
-        "image": "images/gen_13.svg"
+        "image": "images/gen_13.png"
     },
     {
         "id": "gen_14",
@@ -1601,7 +1601,7 @@ const GENERAL_TRIVIA = [
         "era": "Preservation",
         "diet": "Fossil Gem",
         "fact": "Sticky tree resin trapped ancient insects and dinosaur feathers 100 million years ago, hardening into golden amber!",
-        "image": "images/gen_14.svg"
+        "image": "images/gen_14.png"
     },
     {
         "id": "gen_15",
@@ -1616,7 +1616,7 @@ const GENERAL_TRIVIA = [
         "era": "Late Jurassic",
         "diet": "Herbivore",
         "fact": "Stegosaurus' 4 tail spikes are called a 'thagomizer', which it swung at predators like Allosaurus!",
-        "image": "images/gen_15.svg"
+        "image": "images/gen_15.png"
     },
     {
         "id": "gen_16",
@@ -1631,7 +1631,7 @@ const GENERAL_TRIVIA = [
         "era": "Late Cretaceous",
         "diet": "Herbivore",
         "fact": "Parasaurolophus used its 6-foot hollow head crest like a musical brass instrument to send long-distance foghorn signals!",
-        "image": "images/gen_16.svg"
+        "image": "images/gen_16.png"
     },
     {
         "id": "gen_17",
@@ -1646,7 +1646,7 @@ const GENERAL_TRIVIA = [
         "era": "Late Cretaceous",
         "diet": "Herbivore",
         "fact": "Pachycephalosaurus had a skull made of 10-inch-thick solid bone surrounded by tiny bone spikes!",
-        "image": "images/gen_17.svg"
+        "image": "images/gen_17.png"
     },
     {
         "id": "gen_18",
@@ -1661,7 +1661,7 @@ const GENERAL_TRIVIA = [
         "era": "Late Cretaceous",
         "diet": "Herbivore",
         "fact": "Therizinosaurus had giant giant giant giant scythe-like claws used for pulling down high tree branches and defending itself!",
-        "image": "images/gen_18.svg"
+        "image": "images/gen_18.png"
     },
     {
         "id": "gen_19",
@@ -1676,7 +1676,7 @@ const GENERAL_TRIVIA = [
         "era": "Late Cretaceous",
         "diet": "Omnivore",
         "fact": "Gallimimus was lightweight with long hollow bones, allowing it to sprint as fast as a racehorse across open plains!",
-        "image": "images/gen_19.svg"
+        "image": "images/gen_19.png"
     },
     {
         "id": "gen_20",
@@ -1691,6 +1691,6 @@ const GENERAL_TRIVIA = [
         "era": "145-66 Mya",
         "diet": "Time Period",
         "fact": "The Cretaceous Period was the last chapter of the Mesozoic Era, ending with the asteroid impact 66 million years ago!",
-        "image": "images/gen_20.svg"
+        "image": "images/gen_20.png"
     }
 ];
