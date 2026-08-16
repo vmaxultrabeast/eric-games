@@ -1365,23 +1365,26 @@ async function openLeaderboard(targetMode = 'photo') {
         }
     }
 
-    if (allEntries.length === 0) {
-        allEntries = JSON.parse(localStorage.getItem('dino_quiz_leaderboard') || '[]');
-    }
+    let localLb = JSON.parse(localStorage.getItem('dino_quiz_leaderboard') || '[]');
+    let combined = [...allEntries, ...localLb];
 
-    // Default Demo Entries if completely empty
-    if (allEntries.length === 0) {
-        allEntries = [
-            { name: "Dr. Alan Grant", score: 4850, accuracy: 100, mode: "photo", date: "Aug 15, 2026" },
-            { name: "Ellie Sattler", score: 4620, accuracy: 96, mode: "photo", date: "Aug 15, 2026" },
-            { name: "Ian Malcolm", score: 4100, accuracy: 92, mode: "trivia", date: "Aug 14, 2026" },
-            { name: "Eric F.", score: 3950, accuracy: 88, mode: "photo", date: "Aug 14, 2026" },
-            { name: "Guest Explorer", score: 3200, accuracy: 80, mode: "mixed", date: "Aug 13, 2026" }
-        ];
-    }
+    const DEMO_ENTRIES = [
+        { name: "Dr. Alan Grant", score: 4850, accuracy: 100, mode: "photo", date: "Aug 15, 2026" },
+        { name: "Ellie Sattler", score: 4620, accuracy: 96, mode: "photo", date: "Aug 15, 2026" },
+        { name: "Eric F.", score: 4350, accuracy: 92, mode: "photo", date: "Aug 14, 2026" },
+        { name: "Henry F.", score: 3950, accuracy: 88, mode: "photo", date: "Aug 14, 2026" },
+        { name: "Ian Malcolm", score: 3600, accuracy: 84, mode: "trivia", date: "Aug 14, 2026" },
+        { name: "Guest Explorer", score: 3200, accuracy: 80, mode: "mixed", date: "Aug 13, 2026" }
+    ];
+
+    DEMO_ENTRIES.forEach(demo => {
+        if (!combined.some(e => e.name === demo.name && (e.mode || 'photo') === demo.mode)) {
+            combined.push(demo);
+        }
+    });
 
     // Filter entries for targetMode (Older entries without mode tag default to 'photo'!)
-    const filtered = allEntries.filter(item => {
+    const filtered = combined.filter(item => {
         const itemMode = item.mode || 'photo';
         return itemMode === targetMode;
     });
