@@ -1368,16 +1368,26 @@ async function openLeaderboard(targetMode = 'photo') {
     let localLb = JSON.parse(localStorage.getItem('dino_quiz_leaderboard') || '[]');
     let combined = [...allEntries, ...localLb];
 
-    const DEMO_ENTRIES = [
+    const DEFAULT_HALL_OF_FAME = [
+        // Photo ID Entries
         { name: "Dr. Alan Grant", score: 4850, accuracy: 100, mode: "photo", date: "Aug 15, 2026" },
         { name: "Ellie Sattler", score: 4620, accuracy: 96, mode: "photo", date: "Aug 15, 2026" },
         { name: "Eric F.", score: 4350, accuracy: 92, mode: "photo", date: "Aug 14, 2026" },
         { name: "Henry F.", score: 3950, accuracy: 88, mode: "photo", date: "Aug 14, 2026" },
-        { name: "Ian Malcolm", score: 3600, accuracy: 84, mode: "trivia", date: "Aug 14, 2026" },
-        { name: "Guest Explorer", score: 3200, accuracy: 80, mode: "mixed", date: "Aug 13, 2026" }
+
+        // General Trivia Entries
+        { name: "Eric F.", score: 3900, accuracy: 95, mode: "trivia", date: "Aug 16, 2026" },
+        { name: "Henry F.", score: 3750, accuracy: 90, mode: "trivia", date: "Aug 16, 2026" },
+        { name: "Ian Malcolm", score: 3600, accuracy: 85, mode: "trivia", date: "Aug 14, 2026" },
+        { name: "Dr. Alan Grant", score: 3500, accuracy: 80, mode: "trivia", date: "Aug 14, 2026" },
+
+        // Ultimate Mixed Entries
+        { name: "Eric F.", score: 4500, accuracy: 96, mode: "mixed", date: "Aug 16, 2026" },
+        { name: "Henry F.", score: 4200, accuracy: 92, mode: "mixed", date: "Aug 16, 2026" },
+        { name: "Ellie Sattler", score: 4100, accuracy: 88, mode: "mixed", date: "Aug 15, 2026" }
     ];
 
-    DEMO_ENTRIES.forEach(demo => {
+    DEFAULT_HALL_OF_FAME.forEach(demo => {
         if (!combined.some(e => e.name === demo.name && (e.mode || 'photo') === demo.mode)) {
             combined.push(demo);
         }
