@@ -1107,6 +1107,12 @@ footer {
     border: none !important;
 }
 
+.modal-content.fullscreen .modal-footer,
+.modal-overlay:fullscreen .modal-footer,
+.modal-overlay:-webkit-full-screen .modal-footer {
+    display: none !important;
+}
+
 /* Audiobook iframe state styles */
 .audiobook-frame-active {
     position: absolute !important;

@@ -1326,3 +1326,23 @@ body {
     transition: width 0.1s linear;
 }
 
+/* ── Wide Screen & Fullscreen Content Scaling ── */
+@media (min-width: 1400px) {
+    .series-collection-view {
+        max-width: 100% !important;
+        padding: 40px 60px 80px !important;
+    }
+    .series-grid {
+        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)) !important;
+        gap: 32px !important;
+    }
+    .episode-reader {
+        max-width: 1400px !important;
+        padding-left: 40px !important;
+        padding-right: 40px !important;
+    }
+    .welcome-state {
+        max-width: 1300px !important;
+    }
+}
+
