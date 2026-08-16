@@ -1314,82 +1314,20 @@ async function handleScoreSubmission() {
     };
 
     // 1. Save to Local High Scores
-    let localLb = JSON.parse(localStorage.getItem('dino_quiz_leaderboard') || '[]');
-    localLb = localLb.filter(e => e.timestamp !== entry.timestamp);
-    localLb.push(entry);
-    localLb.sort((a, b) => b.score - a.score);
-    localLb = localLb.slice(0, 20);
-    localStorage.setItem('dino_quiz_leaderboard', JSON.stringify(localLb));
-
-    // 2. Try Firestore Push with 2.5-second timeout race
-    let firestoreSuccess = false;
-    if (db && firebaseConfig.apiKey !== "AIzaSyD-placeholder") {
-        try {
-            await withTimeout(addDoc(collection(db, 'dino-quiz-leaderboard'), entry), 2500);
-            firestoreSuccess = true;
-        } catch (e) {
-            console.warn("Firestore save timeout/error:", e);
-        }
-    }
-
-    if (firestoreSuccess) {
-        submitFeedback.textContent = "✅ High Score successfully posted to Global Leaderboard!";
-        submitScoreBtn.innerHTML = '<i class="fa-solid fa-check"></i> SCORE POSTED!';
-    } else {
-        submitFeedback.textContent = "✅ Score saved to Local Leaderboard!";
-        submitScoreBtn.innerHTML = '<i class="fa-solid fa-check"></i> SAVED LOCALLY!';
-    }
-}
-
-async function openLeaderboard(targetMode = 'photo') {
-    leaderboardModal.classList.remove('hidden');
-
-    // Highlight active tab button
-    document.querySelectorAll('.lb-tab-btn').forEach(b => {
-        b.classList.toggle('active', b.getAttribute('data-lb-mode') === targetMode);
-    });
-
-    leaderboardTbody.innerHTML = `<tr><td colspan="5" class="lb-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading Leaderboard...</td></tr>`;
-
-    let allEntries = [];
-
-    if (db && firebaseConfig.apiKey !== "AIzaSyD-placeholder") {
-        try {
-            const q = query(collection(db, 'dino-quiz-leaderboard'), orderBy('score', 'desc'), limit(50));
-            const snap = await withTimeout(getDocs(q), 2500);
-            snap.forEach(docSnap => {
-                allEntries.push(docSnap.data());
-            });
-        } catch (e) {
-            console.warn("Falling back to local leaderboard:", e);
-        }
-    }
+    const REAL_HISTORICAL_ENTRIES = [
+        { name: "Eric", score: 3860, accuracy: 64, mode: "photo", date: "Aug 15, 2026", timestamp: 1786850152921 },
+        { name: "Eric", score: 3280, accuracy: 52, mode: "photo", date: "Aug 15, 2026", timestamp: 1786850936332 },
+        { name: "Henry", score: 2090, accuracy: 36, mode: "photo", date: "Aug 15, 2026", timestamp: 1786851227320 },
+        { name: "Markus", score: 1950, accuracy: 28, mode: "photo", date: "Aug 15, 2026", timestamp: 1786852616260 }
+    ];
 
     let localLb = JSON.parse(localStorage.getItem('dino_quiz_leaderboard') || '[]');
     let combined = [...allEntries, ...localLb];
 
-    const DEFAULT_HALL_OF_FAME = [
-        // Photo ID Entries
-        { name: "Dr. Alan Grant", score: 4850, accuracy: 100, mode: "photo", date: "Aug 15, 2026" },
-        { name: "Ellie Sattler", score: 4620, accuracy: 96, mode: "photo", date: "Aug 15, 2026" },
-        { name: "Eric F.", score: 4350, accuracy: 92, mode: "photo", date: "Aug 14, 2026" },
-        { name: "Henry F.", score: 3950, accuracy: 88, mode: "photo", date: "Aug 14, 2026" },
-
-        // General Trivia Entries
-        { name: "Eric F.", score: 3900, accuracy: 95, mode: "trivia", date: "Aug 16, 2026" },
-        { name: "Henry F.", score: 3750, accuracy: 90, mode: "trivia", date: "Aug 16, 2026" },
-        { name: "Ian Malcolm", score: 3600, accuracy: 85, mode: "trivia", date: "Aug 14, 2026" },
-        { name: "Dr. Alan Grant", score: 3500, accuracy: 80, mode: "trivia", date: "Aug 14, 2026" },
-
-        // Ultimate Mixed Entries
-        { name: "Eric F.", score: 4500, accuracy: 96, mode: "mixed", date: "Aug 16, 2026" },
-        { name: "Henry F.", score: 4200, accuracy: 92, mode: "mixed", date: "Aug 16, 2026" },
-        { name: "Ellie Sattler", score: 4100, accuracy: 88, mode: "mixed", date: "Aug 15, 2026" }
-    ];
-
-    DEFAULT_HALL_OF_FAME.forEach(demo => {
-        if (!combined.some(e => e.name === demo.name && (e.mode || 'photo') === demo.mode)) {
-            combined.push(demo);
+    // Seed real historical entries if not already present
+    REAL_HISTORICAL_ENTRIES.forEach(real => {
+        if (!combined.some(e => e.name === real.name && e.score === real.score && (e.mode || 'photo') === real.mode)) {
+            combined.push(real);
         }
     });
 
