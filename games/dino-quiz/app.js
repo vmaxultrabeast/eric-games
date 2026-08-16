@@ -917,7 +917,7 @@ function startNewRound() {
             type: 'trivia',
             questionText: item.question,
             correctAnswer: item.correct,
-            image: null,
+            image: item.image,
             options: [...item.options].sort(() => 0.5 - Math.random()),
             fact: item.fact,
             era: item.era,
@@ -943,7 +943,7 @@ function startNewRound() {
             type: 'trivia',
             questionText: item.question,
             correctAnswer: item.correct,
-            image: null,
+            image: item.image,
             options: [...item.options].sort(() => 0.5 - Math.random()),
             fact: item.fact,
             era: item.era,
@@ -992,13 +992,17 @@ function loadQuestion(index) {
     accuracyTagEl.textContent = `${accuracy}% Accuracy`;
 
     // Render Dino Visual or Question Text
+    dinoVisual.style.display = 'flex';
+    if (currentQ.image) {
+        dinoVisual.innerHTML = `<img src="${currentQ.image}" alt="Nano Banana Dinosaur Trivia" class="dino-activewild-img">`;
+    } else {
+        dinoVisual.innerHTML = '';
+    }
+
     if (currentQ.type === 'photo') {
-        dinoVisual.style.display = 'flex';
-        dinoVisual.innerHTML = `<img src="${currentQ.image}" alt="${currentQ.correctAnswer}" class="dino-activewild-img">`;
         document.querySelector('.question-prompt h3').textContent = 'WHICH DINOSAUR IS THIS?';
         document.querySelector('.question-prompt h3').className = '';
     } else {
-        dinoVisual.style.display = 'none';
         document.querySelector('.question-prompt h3').textContent = currentQ.questionText;
         document.querySelector('.question-prompt h3').className = 'question-text-heading';
     }
@@ -1359,7 +1363,8 @@ const GENERAL_TRIVIA = [
         "correct": "Terrible Lizard",
         "era": "Mesozoic Era",
         "diet": "Science Fact",
-        "fact": "Sir Richard Owen coined the word 'Dinosauria' in 1842, combining Greek words meaning 'terrible' (or fearfully great) and 'lizard'!"
+        "fact": "Sir Richard Owen coined the word 'Dinosauria' in 1842, combining Greek words meaning 'terrible' (or fearfully great) and 'lizard'!",
+        "image": "images/gen_1.png"
     },
     {
         "id": "gen_2",
@@ -1373,7 +1378,8 @@ const GENERAL_TRIVIA = [
         "correct": "An Asteroid",
         "era": "66 Million Years Ago",
         "diet": "Extinction Event",
-        "fact": "The 6-mile-wide Chicxulub asteroid crashed near Mexico, triggering earthquakes, tsunamis, and a global dust cloud!"
+        "fact": "The 6-mile-wide Chicxulub asteroid crashed near Mexico, triggering earthquakes, tsunamis, and a global dust cloud!",
+        "image": "images/gen_2.png"
     },
     {
         "id": "gen_3",
@@ -1387,7 +1393,8 @@ const GENERAL_TRIVIA = [
         "correct": "Birds",
         "era": "Present Day",
         "diet": "Evolution Fact",
-        "fact": "Birds are modern avian theropod dinosaurs! Chickens and hummingbirds are closer relatives to T-Rex than lizards!"
+        "fact": "Birds are modern avian theropod dinosaurs! Chickens and hummingbirds are closer relatives to T-Rex than lizards!",
+        "image": "images/gen_3.png"
     },
     {
         "id": "gen_4",
@@ -1401,7 +1408,8 @@ const GENERAL_TRIVIA = [
         "correct": "Leaves, ferns, and tree branches",
         "era": "Jurassic Period",
         "diet": "Herbivore",
-        "fact": "Giant sauropods like Brachiosaurus needed up to 800 pounds of tree leaves every single day to fuel their massive bodies!"
+        "fact": "Giant sauropods like Brachiosaurus needed up to 800 pounds of tree leaves every single day to fuel their massive bodies!",
+        "image": "images/gen_4.png"
     },
     {
         "id": "gen_5",
@@ -1415,7 +1423,8 @@ const GENERAL_TRIVIA = [
         "correct": "Coprolite",
         "era": "Prehistoric Fossils",
         "diet": "Fossil Fact",
-        "fact": "Coprolites help paleontologists figure out exactly what prehistoric dinosaurs ate for dinner millions of years ago!"
+        "fact": "Coprolites help paleontologists figure out exactly what prehistoric dinosaurs ate for dinner millions of years ago!",
+        "image": "images/gen_5.png"
     },
     {
         "id": "gen_6",
@@ -1429,7 +1438,8 @@ const GENERAL_TRIVIA = [
         "correct": "Pteranodon",
         "era": "Cretaceous Period",
         "diet": "Piscivore",
-        "fact": "Pteranodons were flying reptiles called Pterosaurs. Dinosaurs were land-dwelling animals with straight legs under their bodies!"
+        "fact": "Pteranodons were flying reptiles called Pterosaurs. Dinosaurs were land-dwelling animals with straight legs under their bodies!",
+        "image": "images/gen_6.png"
     },
     {
         "id": "gen_7",
@@ -1443,7 +1453,8 @@ const GENERAL_TRIVIA = [
         "correct": "About the size of a turkey or big dog",
         "era": "Late Cretaceous",
         "diet": "Carnivore",
-        "fact": "Real Velociraptors were only about 1.6 feet tall and covered in feathers! Movie raptors were actually modeled after Utahraptor!"
+        "fact": "Real Velociraptors were only about 1.6 feet tall and covered in feathers! Movie raptors were actually modeled after Utahraptor!",
+        "image": "images/gen_7.png"
     },
     {
         "id": "gen_8",
@@ -1457,7 +1468,8 @@ const GENERAL_TRIVIA = [
         "correct": "Ankylosaurus",
         "era": "Late Cretaceous",
         "diet": "Herbivore",
-        "fact": "Ankylosaurus used its heavy bone tail club like a bowling ball to break the legs of attacking predators!"
+        "fact": "Ankylosaurus used its heavy bone tail club like a bowling ball to break the legs of attacking predators!",
+        "image": "images/gen_8.png"
     },
     {
         "id": "gen_9",
@@ -1471,7 +1483,8 @@ const GENERAL_TRIVIA = [
         "correct": "All 7 continents, even Antarctica!",
         "era": "Global Geography",
         "diet": "Fossil Record",
-        "fact": "Dinosaurs lived everywhere on Earth! Millions of years ago, Antarctica was warm with rainforests full of dinosaurs!"
+        "fact": "Dinosaurs lived everywhere on Earth! Millions of years ago, Antarctica was warm with rainforests full of dinosaurs!",
+        "image": "images/gen_9.png"
     },
     {
         "id": "gen_10",
@@ -1485,7 +1498,8 @@ const GENERAL_TRIVIA = [
         "correct": "To crush and grind up tough plants in their stomach",
         "era": "Digestion Fact",
         "diet": "Herbivore",
-        "fact": "Sauropods didn't chew their food! They swallowed swallowed stones that tumbled inside their gizzard to grind up leaves!"
+        "fact": "Sauropods didn't chew their food! They swallowed swallowed stones that tumbled inside their gizzard to grind up leaves!",
+        "image": "images/gen_10.png"
     },
     {
         "id": "gen_11",
@@ -1499,7 +1513,8 @@ const GENERAL_TRIVIA = [
         "correct": "Triceratops",
         "era": "Late Cretaceous",
         "diet": "Herbivore",
-        "fact": "Triceratops' name means 'Three-Horned Face'. Its skull alone was as long as an adult human!"
+        "fact": "Triceratops' name means 'Three-Horned Face'. Its skull alone was as long as an adult human!",
+        "image": "images/gen_11.png"
     },
     {
         "id": "gen_12",
@@ -1513,7 +1528,8 @@ const GENERAL_TRIVIA = [
         "correct": "Paleontologist",
         "era": "Science Career",
         "diet": "Fossil Science",
-        "fact": "Paleontologists use brushes, chisels, and scanners to carefully unearth fossilized bones and reconstruct ancient life!"
+        "fact": "Paleontologists use brushes, chisels, and scanners to carefully unearth fossilized bones and reconstruct ancient life!",
+        "image": "images/gen_12.png"
     },
     {
         "id": "gen_13",
@@ -1527,7 +1543,8 @@ const GENERAL_TRIVIA = [
         "correct": "Spinosaurus",
         "era": "Cretaceous Period",
         "diet": "Piscivore / Carnivore",
-        "fact": "Spinosaurus was 50 feet long and featured a giant 6-foot sail on its back, swimming in ancient North African rivers!"
+        "fact": "Spinosaurus was 50 feet long and featured a giant 6-foot sail on its back, swimming in ancient North African rivers!",
+        "image": "images/gen_13.png"
     },
     {
         "id": "gen_14",
@@ -1541,7 +1558,8 @@ const GENERAL_TRIVIA = [
         "correct": "Amber",
         "era": "Preservation",
         "diet": "Fossil Gem",
-        "fact": "Sticky tree resin trapped ancient insects and dinosaur feathers 100 million years ago, hardening into golden amber!"
+        "fact": "Sticky tree resin trapped ancient insects and dinosaur feathers 100 million years ago, hardening into golden amber!",
+        "image": "images/gen_14.png"
     },
     {
         "id": "gen_15",
@@ -1555,7 +1573,8 @@ const GENERAL_TRIVIA = [
         "correct": "Stegosaurus",
         "era": "Late Jurassic",
         "diet": "Herbivore",
-        "fact": "Stegosaurus' 4 tail spikes are called a 'thagomizer', which it swung at predators like Allosaurus!"
+        "fact": "Stegosaurus' 4 tail spikes are called a 'thagomizer', which it swung at predators like Allosaurus!",
+        "image": "images/gen_15.png"
     },
     {
         "id": "gen_16",
@@ -1569,7 +1588,8 @@ const GENERAL_TRIVIA = [
         "correct": "Parasaurolophus",
         "era": "Late Cretaceous",
         "diet": "Herbivore",
-        "fact": "Parasaurolophus used its 6-foot hollow head crest like a musical brass instrument to send long-distance foghorn signals!"
+        "fact": "Parasaurolophus used its 6-foot hollow head crest like a musical brass instrument to send long-distance foghorn signals!",
+        "image": "images/gen_16.png"
     },
     {
         "id": "gen_17",
@@ -1583,7 +1603,8 @@ const GENERAL_TRIVIA = [
         "correct": "Pachycephalosaurus",
         "era": "Late Cretaceous",
         "diet": "Herbivore",
-        "fact": "Pachycephalosaurus had a skull made of 10-inch-thick solid bone surrounded by tiny bone spikes!"
+        "fact": "Pachycephalosaurus had a skull made of 10-inch-thick solid bone surrounded by tiny bone spikes!",
+        "image": "images/gen_17.png"
     },
     {
         "id": "gen_18",
@@ -1597,7 +1618,8 @@ const GENERAL_TRIVIA = [
         "correct": "Therizinosaurus",
         "era": "Late Cretaceous",
         "diet": "Herbivore",
-        "fact": "Therizinosaurus had giant giant giant giant scythe-like claws used for pulling down high tree branches and defending itself!"
+        "fact": "Therizinosaurus had giant giant giant giant scythe-like claws used for pulling down high tree branches and defending itself!",
+        "image": "images/gen_18.png"
     },
     {
         "id": "gen_19",
@@ -1611,7 +1633,8 @@ const GENERAL_TRIVIA = [
         "correct": "Up to 30 to 40 miles per hour!",
         "era": "Late Cretaceous",
         "diet": "Omnivore",
-        "fact": "Gallimimus was lightweight with long hollow bones, allowing it to sprint as fast as a racehorse across open plains!"
+        "fact": "Gallimimus was lightweight with long hollow bones, allowing it to sprint as fast as a racehorse across open plains!",
+        "image": "images/gen_19.png"
     },
     {
         "id": "gen_20",
@@ -1625,6 +1648,7 @@ const GENERAL_TRIVIA = [
         "correct": "Cretaceous Period",
         "era": "145-66 Mya",
         "diet": "Time Period",
-        "fact": "The Cretaceous Period was the last chapter of the Mesozoic Era, ending with the asteroid impact 66 million years ago!"
+        "fact": "The Cretaceous Period was the last chapter of the Mesozoic Era, ending with the asteroid impact 66 million years ago!",
+        "image": "images/gen_20.png"
     }
 ];
